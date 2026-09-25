@@ -1,0 +1,70 @@
+# Normalize text line endings. Must stay first: later lines add attributes per
+# path, and text=auto keeps git's binary detection active for Unity .asset files
+# (LightingData/Terrain .asset are binary even under Force Text).
+* text=auto
+
+# Code and text assets
+*.cs             text diff=csharp
+*.shader         text
+*.hlsl           text
+*.cginc          text
+*.compute        text
+*.shadergraph    text
+*.uss            text
+*.uxml           text
+*.json           text
+*.asmdef         text
+*.asmref         text
+*.inputactions   text
+*.md             text
+
+# Unity YAML: Smart Merge driver (global git config), always LF
+*.unity              merge=unityyamlmerge eol=lf
+*.prefab             merge=unityyamlmerge eol=lf
+*.asset              merge=unityyamlmerge eol=lf
+*.meta               merge=unityyamlmerge eol=lf
+*.mat                merge=unityyamlmerge eol=lf
+*.anim               merge=unityyamlmerge eol=lf
+*.controller         merge=unityyamlmerge eol=lf
+*.overrideController merge=unityyamlmerge eol=lf
+*.physicMaterial     merge=unityyamlmerge eol=lf
+*.mask               merge=unityyamlmerge eol=lf
+*.playable           merge=unityyamlmerge eol=lf
+*.signal             merge=unityyamlmerge eol=lf
+*.mixer              merge=unityyamlmerge eol=lf
+*.lighting           merge=unityyamlmerge eol=lf
+*.preset             merge=unityyamlmerge eol=lf
+*.renderTexture      merge=unityyamlmerge eol=lf
+*.spriteatlasv2      merge=unityyamlmerge eol=lf
+
+# Binary assets via Git LFS
+# Images
+*.png  filter=lfs diff=lfs merge=lfs -text
+*.jpg  filter=lfs diff=lfs merge=lfs -text
+*.jpeg filter=lfs diff=lfs merge=lfs -text
+*.gif  filter=lfs diff=lfs merge=lfs -text
+*.psd  filter=lfs diff=lfs merge=lfs -text
+*.psb  filter=lfs diff=lfs merge=lfs -text
+*.tga  filter=lfs diff=lfs merge=lfs -text
+*.tif  filter=lfs diff=lfs merge=lfs -text
+*.tiff filter=lfs diff=lfs merge=lfs -text
+*.exr  filter=lfs diff=lfs merge=lfs -text
+*.hdr  filter=lfs diff=lfs merge=lfs -text
+# Models
+*.fbx   filter=lfs diff=lfs merge=lfs -text
+*.obj   filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
+# Audio
+*.wav  filter=lfs diff=lfs merge=lfs -text
+*.mp3  filter=lfs diff=lfs merge=lfs -text
+*.ogg  filter=lfs diff=lfs merge=lfs -text
+*.aif  filter=lfs diff=lfs merge=lfs -text
+*.aiff filter=lfs diff=lfs merge=lfs -text
+*.flac filter=lfs diff=lfs merge=lfs -text
+# Video
+*.mp4  filter=lfs diff=lfs merge=lfs -text
+*.mov  filter=lfs diff=lfs merge=lfs -text
+*.webm filter=lfs diff=lfs merge=lfs -text
+# Fonts
+*.ttf filter=lfs diff=lfs merge=lfs -text
+*.otf filter=lfs diff=lfs merge=lfs -text

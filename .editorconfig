@@ -1,0 +1,81 @@
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{yml,yaml,md}]
+indent_size = 2
+
+[*.md]
+# Two trailing spaces are a Markdown line break
+trim_trailing_whitespace = false
+
+# Unity-serialized files: leave exactly as Unity writes them
+# (e.g. "m_Name: " keeps its trailing space)
+[*.{unity,prefab,asset,meta,mat,anim,controller,overrideController,physicMaterial,mask,playable,signal,mixer,lighting,preset,renderTexture,spriteatlasv2,inputactions,asmdef,asmref}]
+indent_size = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+
+[*.cs]
+# Unity 6.3 compiles C# 9: file-scoped namespaces (C# 10) are not available
+csharp_style_namespace_declarations = block_scoped:warning
+csharp_new_line_before_open_brace = all
+csharp_prefer_braces = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_for_built_in_types = false:suggestion
+dotnet_sort_system_directives_first = true
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+
+# --- Naming (most specific rules first) ---
+
+# const and static readonly fields: PascalCase
+dotnet_naming_rule.constants_pascal.symbols = constant_fields
+dotnet_naming_rule.constants_pascal.style = pascal_case
+dotnet_naming_rule.constants_pascal.severity = suggestion
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.required_modifiers = const
+
+dotnet_naming_rule.static_readonly_pascal.symbols = static_readonly_fields
+dotnet_naming_rule.static_readonly_pascal.style = pascal_case
+dotnet_naming_rule.static_readonly_pascal.severity = suggestion
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
+
+# Private fields: _camelCase (Unity's Inspector hides the leading underscore)
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_camel
+dotnet_naming_rule.private_fields_underscore.severity = suggestion
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+# Interfaces: IPascalCase
+dotnet_naming_rule.interfaces_i_prefix.symbols = interfaces
+dotnet_naming_rule.interfaces_i_prefix.style = i_prefix
+dotnet_naming_rule.interfaces_i_prefix.severity = suggestion
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+
+# Types and members: PascalCase
+dotnet_naming_rule.types_members_pascal.symbols = types_members
+dotnet_naming_rule.types_members_pascal.style = pascal_case
+dotnet_naming_rule.types_members_pascal.severity = suggestion
+dotnet_naming_symbols.types_members.applicable_kinds = namespace, class, struct, enum, delegate, method, property, event
+
+# Parameters and locals: camelCase
+dotnet_naming_rule.params_locals_camel.symbols = params_locals
+dotnet_naming_rule.params_locals_camel.style = camel_case
+dotnet_naming_rule.params_locals_camel.severity = suggestion
+dotnet_naming_symbols.params_locals.applicable_kinds = parameter, local
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_style.i_prefix.capitalization = pascal_case
+dotnet_naming_style.i_prefix.required_prefix = I
