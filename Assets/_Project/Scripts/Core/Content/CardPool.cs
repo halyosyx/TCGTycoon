@@ -9,6 +9,7 @@ namespace Game.Core.Content
         private static readonly IReadOnlyList<Card> s_noCards = Array.Empty<Card>();
 
         private readonly Dictionary<RarityTier, List<Card>> _cardsByTier = new Dictionary<RarityTier, List<Card>>();
+        private readonly Dictionary<string, Card> _cardsById = new Dictionary<string, Card>(StringComparer.Ordinal);
 
         public CardPool(IEnumerable<Card> cards)
         {
@@ -33,6 +34,12 @@ namespace Game.Core.Content
                 }
 
                 tierCards.Add(card);
+
+                // Duplicate ids are a validation error (PackConfigValidator); lookups keep the first.
+                if (!_cardsById.ContainsKey(card.Id))
+                {
+                    _cardsById.Add(card.Id, card);
+                }
             }
 
             Cards = allCards.AsReadOnly();
@@ -48,6 +55,18 @@ namespace Game.Core.Content
         }
 
         public bool HasCards(RarityTier tier) => CardsOf(tier).Count > 0;
+
+        /// <summary>Finds a card by id, e.g. to name an inventory stack, which stores only the id.</summary>
+        public bool TryGetCard(string cardId, out Card card)
+        {
+            if (cardId == null)
+            {
+                card = null;
+                return false;
+            }
+
+            return _cardsById.TryGetValue(cardId, out card);
+        }
 
         /// <summary>
         /// Mean value of the tier's cards in cents. Cards are picked uniformly within a tier, so this is

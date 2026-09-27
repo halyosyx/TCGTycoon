@@ -32,16 +32,11 @@ namespace Game.Unity.DebugTools
 
         private readonly PackOpener _opener;
         private readonly InventoryService _inventory;
-        private readonly Dictionary<string, Card> _cardsById = new Dictionary<string, Card>();
 
         public PackDebugCommands(PackOpener opener, InventoryService inventory)
         {
             _opener = opener ?? throw new ArgumentNullException(nameof(opener));
             _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
-            foreach (Card card in opener.Pool.Cards)
-            {
-                _cardsById[card.Id] = card;
-            }
         }
 
         /// <summary>Runs one command line and returns its output.</summary>
@@ -161,7 +156,7 @@ namespace Game.Unity.DebugTools
                 .ThenBy(stack => stack.CardId, StringComparer.Ordinal);
             foreach (InventoryStack stack in ordered)
             {
-                string cardName = _cardsById.TryGetValue(stack.CardId, out Card card) ? card.DisplayName : stack.CardId;
+                string cardName = _opener.Pool.TryGetCard(stack.CardId, out Card card) ? card.DisplayName : stack.CardId;
                 output.AppendLine(Invariant($"{stack.Tier,-22} {cardName,-28} {stack.Count,6:N0}   {Money.Format(stack.CostBasisCents),10}"));
                 totalCards += stack.Count;
             }

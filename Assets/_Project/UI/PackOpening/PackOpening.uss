@@ -1,0 +1,97 @@
+/* Pack opening screen. Flat: solid colours, rounded panels, one accent (the pack label cream).
+   Card colours come from the Rarity Palette in code; only layout and chrome live here. */
+
+.pack-opening {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(12, 14, 18, 0.82);
+}
+
+.pack-opening__cards {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* Every card is centred on the layer; code moves it with translate and scale only, so animating
+   never triggers a layout pass. Size matches .card in the generated card template. */
+.card-view {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 250px;
+    height: 350px;
+    margin-left: -125px;
+    margin-top: -175px;
+}
+
+.card-view__glow {
+    position: absolute;
+    opacity: 0;
+}
+
+.card-view__face {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.card-view__back {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-width: 8px;
+    border-radius: 16px;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-view__back-label {
+    font-size: 30px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+}
+
+.pack-opening__footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 48px;
+    align-items: center;
+}
+
+.pack-opening__hint {
+    font-size: 20px;
+    color: rgba(242, 242, 242, 0.7);
+    margin-bottom: 16px;
+}
+
+.pack-opening__store {
+    min-width: 180px;
+    height: 52px;
+    margin: 0;
+    padding: 0 28px;
+    border-width: 0;
+    border-radius: 12px;
+    background-color: rgb(242, 230, 200);
+    color: rgb(27, 31, 36);
+    font-size: 22px;
+    -unity-font-style: bold;
+}
+
+.pack-opening__store:hover {
+    background-color: rgb(255, 244, 216);
+}
+
+.pack-opening__store:active {
+    background-color: rgb(222, 208, 176);
+}

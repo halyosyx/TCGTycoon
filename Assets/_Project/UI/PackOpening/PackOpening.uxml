@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="PackOpening.uss" />
+    <ui:VisualElement name="pack-opening" class="pack-opening">
+        <ui:VisualElement name="card-layer" class="pack-opening__cards" picking-mode="Ignore" />
+        <ui:VisualElement class="pack-opening__footer" picking-mode="Ignore">
+            <ui:Label name="hint" class="pack-opening__hint" text="Click or drag to reveal" picking-mode="Ignore" />
+            <ui:Button name="store-button" class="pack-opening__store" text="Store" focusable="false" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
