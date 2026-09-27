@@ -8,6 +8,10 @@ namespace Game.Unity.Definitions
     [CreateAssetMenu(menuName = "TCG/Card Set", fileName = "NewCardSet")]
     public sealed class CardSetDefinition : ScriptableObject
     {
+        public const string IdField = nameof(_id);
+        public const string DisplayNameField = nameof(_displayName);
+        public const string CardsField = nameof(_cards);
+
         [SerializeField]
         private string _id;
 
@@ -16,6 +20,12 @@ namespace Game.Unity.Definitions
 
         [SerializeField]
         private List<CardDefinition> _cards = new List<CardDefinition>();
+
+        public string Id => _id;
+
+        public string DisplayName => _displayName;
+
+        public IReadOnlyList<CardDefinition> Cards => _cards;
 
         /// <summary>Empty entries in the card list; they're skipped when converting.</summary>
         public int MissingCardCount

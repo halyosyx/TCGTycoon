@@ -45,6 +45,21 @@ namespace Game.Data.Tests
         }
 
         [Test]
+        public void DefaultPack_GeneratedPool_CoversEveryWeightedTier()
+        {
+            for (int slotIndex = 0; slotIndex < _config.Slots.Count; slotIndex++)
+            {
+                foreach (TierWeight entry in _config.Slots[slotIndex].Entries)
+                {
+                    if (entry.Weight > 0)
+                    {
+                        Assert.That(_pool.HasCards(entry.Tier), $"Slot {slotIndex + 1} can roll {entry.Tier}, but the pack's card set has no {entry.Tier} cards.");
+                    }
+                }
+            }
+        }
+
+        [Test]
         public void DefaultPack_ExpectedValue_WithinEightyToNinetyFivePercentOfPrice()
         {
             double share = PackAnalysis.ExpectedValueCents(_config, _pool) / _config.PriceCents;

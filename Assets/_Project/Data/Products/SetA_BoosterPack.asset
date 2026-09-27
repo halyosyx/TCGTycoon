@@ -15,7 +15,7 @@ MonoBehaviour:
   _id: SetA_BoosterPack
   _displayName: Set A Booster Pack
   _priceCents: 425
-  _cardSet: {fileID: 11400000, guid: 2f4de85c346ded44b9b92a1d44c1ea60, type: 2}
+  _cardSet: {fileID: 11400000, guid: 241544cab128f1d448774f83dd8e1ead, type: 2}
   _slots:
   - _entries:
     - _tier: 0

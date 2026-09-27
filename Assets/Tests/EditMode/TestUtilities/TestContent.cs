@@ -4,9 +4,10 @@ using Game.Core.Content;
 namespace Game.Core.Tests.TestUtilities
 {
     /// <summary>
-    /// Builds the F1a starting pack and the Set A placeholder pool in code. Mirrors the default asset
-    /// (Data/Products/SetA_BoosterPack); Game.Data.Tests checks the real asset separately, so drift
-    /// between the two is caught.
+    /// Builds the F1a starting pack and a small Set A pool in code. The pack mirrors the default asset
+    /// (Data/Products/SetA_BoosterPack) and the cards mirror its tier values, not the exact generated
+    /// cards (Data/Generated), so expected values match while card names and counts may differ.
+    /// Game.Data.Tests checks the real assets separately, so drift between the two is caught.
     /// </summary>
     public static class TestContent
     {

@@ -7,6 +7,11 @@ namespace Game.Unity.Definitions
     [CreateAssetMenu(menuName = "TCG/Card", fileName = "NewCard")]
     public sealed class CardDefinition : ScriptableObject
     {
+        public const string IdField = nameof(_id);
+        public const string DisplayNameField = nameof(_displayName);
+        public const string TierField = nameof(_tier);
+        public const string ValueCentsField = nameof(_valueCents);
+
         [SerializeField, Tooltip("Stable id used by inventory and saves. Don't change it once cards can be owned.")]
         private string _id;
 
@@ -18,6 +23,14 @@ namespace Game.Unity.Definitions
 
         [SerializeField, Tooltip("Value in cents, used for Rip EV until market prices exist.")]
         private long _valueCents;
+
+        public string Id => _id;
+
+        public string DisplayName => _displayName;
+
+        public RarityTier Tier => _tier;
+
+        public long ValueCents => _valueCents;
 
         /// <summary>Converts to the Core card. Throws when the id is missing, naming this asset.</summary>
         public Card ToCard(string setId)
