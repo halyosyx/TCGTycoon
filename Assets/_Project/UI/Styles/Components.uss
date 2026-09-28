@@ -1,0 +1,437 @@
+/* ==========================================================================
+   Card Show UI Kit: shared components (style guide §6)
+   One block per control in Game.Unity.UI.Controls. Tokens only: every colour,
+   size and spacing is a var(--token). Longhand properties are used on purpose
+   so each var() resolves on its own. Every state has a pseudo-class and a
+   modifier class, so code (and the component gallery) can force a state.
+   ========================================================================== */
+
+/* ---- Panel ---- */
+.panel {
+    background-color: var(--color-surface);
+    border-top-width: var(--border-width);
+    border-right-width: var(--border-width);
+    border-bottom-width: var(--border-width);
+    border-left-width: var(--border-width);
+    border-top-color: var(--color-border);
+    border-right-color: var(--color-border);
+    border-bottom-color: var(--color-border);
+    border-left-color: var(--color-border);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.panel__header {
+    height: var(--size-header-bar);
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+    justify-content: center;
+    border-bottom-width: var(--border-width);
+    border-bottom-color: var(--color-border);
+}
+
+.panel--small > .panel__body {
+    padding-top: var(--space-4);
+    padding-right: var(--space-4);
+    padding-bottom: var(--space-4);
+    padding-left: var(--space-4);
+}
+
+.panel--medium > .panel__body {
+    padding-top: var(--space-6);
+    padding-right: var(--space-6);
+    padding-bottom: var(--space-6);
+    padding-left: var(--space-6);
+}
+
+.panel--large > .panel__body {
+    padding-top: var(--space-8);
+    padding-right: var(--space-8);
+    padding-bottom: var(--space-8);
+    padding-left: var(--space-8);
+}
+
+/* ---- Button (KitButton). Base + variant classes are paired so they outrank
+        the default theme's .unity-button state rules. ---- */
+.kit-button {
+    height: var(--size-button-height);
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: var(--size-button-padding-x);
+    padding-right: var(--size-button-padding-x);
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-md);
+    border-top-width: var(--border-width);
+    border-right-width: var(--border-width);
+    border-bottom-width: var(--border-width);
+    border-left-width: var(--border-width);
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+    transition-property: background-color;
+    transition-duration: var(--duration-fast);
+}
+
+.kit-button > Image {
+    width: var(--size-icon);
+    height: var(--size-icon);
+    margin-right: var(--space-2);
+}
+
+.kit-button.kit-button--primary {
+    background-color: var(--color-accent);
+    color: var(--color-text-on-accent);
+    border-top-color: var(--color-accent);
+    border-right-color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+    border-left-color: var(--color-accent);
+}
+
+.kit-button.kit-button--primary:hover,
+.kit-button.kit-button--primary.kit-button--hover {
+    background-color: var(--color-accent-hover);
+}
+
+.kit-button.kit-button--primary:active,
+.kit-button.kit-button--primary.kit-button--pressed {
+    background-color: var(--color-accent-pressed);
+}
+
+.kit-button.kit-button--secondary {
+    background-color: var(--color-surface-raised);
+    color: var(--color-text);
+    border-top-color: var(--color-border);
+    border-right-color: var(--color-border);
+    border-bottom-color: var(--color-border);
+    border-left-color: var(--color-border);
+}
+
+.kit-button.kit-button--secondary:hover,
+.kit-button.kit-button--secondary.kit-button--hover {
+    background-color: var(--color-surface-hover);
+}
+
+.kit-button.kit-button--secondary:active,
+.kit-button.kit-button--secondary.kit-button--pressed {
+    background-color: var(--color-surface-pressed);
+}
+
+.kit-button.kit-button--ghost {
+    background-color: transparent;
+    color: var(--color-text);
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+}
+
+.kit-button.kit-button--ghost:hover,
+.kit-button.kit-button--ghost.kit-button--hover {
+    background-color: var(--color-surface-hover);
+}
+
+.kit-button.kit-button--ghost:active,
+.kit-button.kit-button--ghost.kit-button--pressed {
+    background-color: var(--color-surface-pressed);
+}
+
+.kit-button:focus,
+.kit-button.kit-button--focus {
+    border-top-width: var(--border-width-focus);
+    border-right-width: var(--border-width-focus);
+    border-bottom-width: var(--border-width-focus);
+    border-left-width: var(--border-width-focus);
+    border-top-color: var(--color-text);
+    border-right-color: var(--color-text);
+    border-bottom-color: var(--color-text);
+    border-left-color: var(--color-text);
+}
+
+.kit-button:disabled,
+.kit-button.kit-button--disabled {
+    opacity: var(--opacity-disabled);
+}
+
+/* ---- Keycap ---- */
+.keycap {
+    min-width: var(--size-keycap);
+    min-height: var(--size-keycap);
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    -unity-text-align: middle-center;
+    background-color: var(--color-surface-raised);
+    border-top-width: var(--border-width);
+    border-right-width: var(--border-width);
+    border-left-width: var(--border-width);
+    border-bottom-width: var(--border-width-keycap-bottom);
+    border-top-color: var(--color-border);
+    border-right-color: var(--color-border);
+    border-bottom-color: var(--color-border);
+    border-left-color: var(--color-border);
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+}
+
+/* ---- Key hints ---- */
+.key-hints {
+    flex-direction: row;
+    align-items: center;
+    align-self: flex-start;
+    padding-top: var(--space-3);
+    padding-bottom: var(--space-3);
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+    background-color: var(--color-surface);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+}
+
+.key-hints--on-world {
+    background-color: var(--color-hud-plate);
+}
+
+.key-hints__hint {
+    flex-direction: row;
+    align-items: center;
+}
+
+.key-hints__hint--spaced {
+    margin-left: var(--space-6);
+}
+
+.key-hints__label {
+    margin-left: var(--space-2);
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* ---- Tier glyph (Phosphor bold, white SVGs tinted per tier) ---- */
+.tier-glyph {
+    width: var(--size-glyph-sm);
+    height: var(--size-glyph-sm);
+    flex-shrink: 0;
+}
+
+.tier-glyph--1 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/circle-bold.svg");   -unity-background-image-tint-color: var(--color-tier-1); }
+.tier-glyph--2 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/triangle-bold.svg"); -unity-background-image-tint-color: var(--color-tier-2); }
+.tier-glyph--3 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/square-bold.svg");   -unity-background-image-tint-color: var(--color-tier-3); }
+.tier-glyph--4 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/pentagon-bold.svg"); -unity-background-image-tint-color: var(--color-tier-4); }
+.tier-glyph--5 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/hexagon-bold.svg");  -unity-background-image-tint-color: var(--color-tier-5); }
+.tier-glyph--6 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/star-bold.svg");     -unity-background-image-tint-color: var(--color-tier-6); }
+.tier-glyph--7 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/crown-bold.svg");    -unity-background-image-tint-color: var(--color-tier-7); }
+
+/* ---- Tier chip ---- */
+.tier-chip {
+    height: var(--size-chip-height);
+    flex-direction: row;
+    align-items: center;
+    align-self: flex-start;
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+    border-top-width: var(--border-width);
+    border-right-width: var(--border-width);
+    border-bottom-width: var(--border-width);
+    border-left-width: var(--border-width);
+    border-top-left-radius: var(--radius-sm);
+    border-top-right-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-sm);
+}
+
+.tier-chip__name {
+    margin-left: var(--space-1);
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    color: var(--color-text);
+}
+
+.tier-chip--tier-1 { border-top-color: var(--color-tier-1); border-right-color: var(--color-tier-1); border-bottom-color: var(--color-tier-1); border-left-color: var(--color-tier-1); }
+.tier-chip--tier-2 { border-top-color: var(--color-tier-2); border-right-color: var(--color-tier-2); border-bottom-color: var(--color-tier-2); border-left-color: var(--color-tier-2); }
+.tier-chip--tier-3 { border-top-color: var(--color-tier-3); border-right-color: var(--color-tier-3); border-bottom-color: var(--color-tier-3); border-left-color: var(--color-tier-3); }
+.tier-chip--tier-4 { border-top-color: var(--color-tier-4); border-right-color: var(--color-tier-4); border-bottom-color: var(--color-tier-4); border-left-color: var(--color-tier-4); }
+.tier-chip--tier-5 { border-top-color: var(--color-tier-5); border-right-color: var(--color-tier-5); border-bottom-color: var(--color-tier-5); border-left-color: var(--color-tier-5); }
+.tier-chip--tier-6 { border-top-color: var(--color-tier-6); border-right-color: var(--color-tier-6); border-bottom-color: var(--color-tier-6); border-left-color: var(--color-tier-6); }
+.tier-chip--tier-7 { border-top-color: var(--color-tier-7); border-right-color: var(--color-tier-7); border-bottom-color: var(--color-tier-7); border-left-color: var(--color-tier-7); }
+
+/* ---- Card face (placeholder). Border width is set in code from the card's
+        width (style guide: width / 40, min 3); the parent sets the size (63:88). ---- */
+.card-face {
+    justify-content: space-between;
+    padding-top: var(--space-2);
+    padding-right: var(--space-2);
+    padding-bottom: var(--space-2);
+    padding-left: var(--space-2);
+    background-color: var(--color-card-body);
+    border-top-left-radius: var(--radius-sm);
+    border-top-right-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.card-face__top {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.card-face__glyph {
+    width: var(--size-icon);
+    height: var(--size-icon);
+}
+
+/* Long ids shrink and end in an ellipsis rather than overflowing the card at pocket size. */
+.card-face__id {
+    flex-shrink: 1;
+    min-width: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: var(--space-1);
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    -unity-text-align: upper-right;
+    color: var(--color-card-muted);
+}
+
+.card-face__name {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    font-size: var(--font-size-md);
+    color: var(--color-card-text);
+    white-space: normal;
+}
+
+.card-face__tier {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-card-muted);
+    white-space: normal;
+}
+
+.card-face--tier-1 { border-top-color: var(--color-tier-1); border-right-color: var(--color-tier-1); border-bottom-color: var(--color-tier-1); border-left-color: var(--color-tier-1); }
+.card-face--tier-2 { border-top-color: var(--color-tier-2); border-right-color: var(--color-tier-2); border-bottom-color: var(--color-tier-2); border-left-color: var(--color-tier-2); }
+.card-face--tier-3 { border-top-color: var(--color-tier-3); border-right-color: var(--color-tier-3); border-bottom-color: var(--color-tier-3); border-left-color: var(--color-tier-3); }
+.card-face--tier-4 { border-top-color: var(--color-tier-4); border-right-color: var(--color-tier-4); border-bottom-color: var(--color-tier-4); border-left-color: var(--color-tier-4); }
+.card-face--tier-5 { border-top-color: var(--color-tier-5); border-right-color: var(--color-tier-5); border-bottom-color: var(--color-tier-5); border-left-color: var(--color-tier-5); }
+.card-face--tier-6 { border-top-color: var(--color-tier-6); border-right-color: var(--color-tier-6); border-bottom-color: var(--color-tier-6); border-left-color: var(--color-tier-6); }
+.card-face--tier-7 { border-top-color: var(--color-tier-7); border-right-color: var(--color-tier-7); border-bottom-color: var(--color-tier-7); border-left-color: var(--color-tier-7); }
+
+/* ---- Copy badge ---- */
+.copy-badge {
+    min-width: var(--size-badge-width);
+    min-height: var(--size-badge-height);
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-on-accent);
+    -unity-text-align: middle-center;
+    background-color: var(--color-accent);
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+}
+
+.copy-badge--corner {
+    position: absolute;
+    right: var(--offset-badge);
+    bottom: var(--offset-badge);
+}
+
+/* ---- Tab (KitTab). The container positions it so it sticks out of its edge. ---- */
+.kit-tab {
+    height: var(--size-tab-height);
+    width: var(--size-tab-width);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+    background-color: var(--color-surface);
+    border-top-width: var(--border-width);
+    border-right-width: var(--border-width);
+    border-bottom-width: var(--border-width);
+    border-left-width: var(--border-width);
+    border-top-color: var(--color-border);
+    border-right-color: var(--color-border);
+    border-bottom-color: var(--color-border);
+    border-left-color: var(--color-border);
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+    transition-property: background-color, width;
+    transition-duration: var(--duration-fast);
+}
+
+.kit-tab:hover,
+.kit-tab.kit-tab--hover {
+    background-color: var(--color-surface-hover);
+}
+
+.kit-tab.kit-tab--active {
+    width: var(--size-tab-width-active);
+    background-color: var(--color-accent);
+    border-top-color: var(--color-accent);
+    border-right-color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+    border-left-color: var(--color-accent);
+}
+
+.kit-tab.kit-tab--active:hover,
+.kit-tab.kit-tab--active.kit-tab--hover {
+    background-color: var(--color-accent-hover);
+}
+
+.kit-tab__label,
+.kit-tab__count {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.kit-tab--active .kit-tab__label,
+.kit-tab--active .kit-tab__count {
+    color: var(--color-text-on-accent);
+}

@@ -1,0 +1,40 @@
+/* ==========================================================================
+   Card Show UI Kit: typography
+   Baloo 2 = display (titles, labels, buttons, tabs)
+   Nunito  = body copy and EVERY number (money, counts, clock, XP, prices)
+   Nunito's digits are all the same width by default, so numbers never
+   jitter as they change. Do not set numbers in Baloo 2.
+
+   UI Toolkit can't pick a weight from one font file, so each weight is its
+   own Font Asset. Create them next to the .ttf files (see the style guide)
+   and keep these paths in sync if you move them.
+   ========================================================================== */
+
+/* ---- Families by weight ---- */
+.font-display-semibold { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Baloo2/Baloo2-SemiBold SDF.asset"); }
+.font-display-bold     { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Baloo2/Baloo2-Bold SDF.asset"); }
+.font-display-extrabold{ -unity-font-definition: url("/Assets/_Project/UI/Fonts/Baloo2/Baloo2-ExtraBold SDF.asset"); }
+.font-body-regular     { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Nunito/Nunito-Regular SDF.asset"); }
+.font-body-semibold    { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Nunito/Nunito-SemiBold SDF.asset"); }
+.font-body-bold        { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Nunito/Nunito-Bold SDF.asset"); }
+.font-body-extrabold   { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Nunito/Nunito-ExtraBold SDF.asset"); }
+
+/* ---- Roles: use these on Labels, not raw sizes ---- */
+.text-title      { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Baloo2/Baloo2-ExtraBold SDF.asset"); font-size: var(--font-size-2xl); color: var(--color-text); }
+.text-heading    { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Baloo2/Baloo2-Bold SDF.asset");      font-size: var(--font-size-xl);  color: var(--color-text); }
+.text-subheading { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Baloo2/Baloo2-Bold SDF.asset");      font-size: var(--font-size-lg);  color: var(--color-text); }
+.text-label      { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Baloo2/Baloo2-SemiBold SDF.asset");  font-size: var(--font-size-sm);  color: var(--color-text); }
+.text-body       { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Nunito/Nunito-Regular SDF.asset");   font-size: var(--font-size-md);  color: var(--color-text); }
+.text-caption    { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Nunito/Nunito-SemiBold SDF.asset");  font-size: var(--font-size-sm);  color: var(--color-text-muted); }
+
+.num-hud { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Nunito/Nunito-ExtraBold SDF.asset"); font-size: var(--font-size-hud); color: var(--color-text); }
+.num-lg  { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Nunito/Nunito-ExtraBold SDF.asset"); font-size: var(--font-size-2xl); color: var(--color-text); }
+.num-md  { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Nunito/Nunito-ExtraBold SDF.asset"); font-size: var(--font-size-lg);  color: var(--color-text); }
+.num-sm  { -unity-font-definition: url("/Assets/_Project/UI/Fonts/Nunito/Nunito-Bold SDF.asset");      font-size: var(--font-size-xs);  color: var(--color-text); }
+
+/* ---- Modifiers ---- */
+.text-muted    { color: var(--color-text-muted); }
+.text-accent   { color: var(--color-accent); }
+.text-positive { color: var(--color-positive); }
+.text-negative { color: var(--color-negative); }
+.text-on-world { text-shadow: 0 1px 2px var(--color-text-shadow); }  /* HUD text over the 3D scene */

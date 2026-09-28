@@ -1,0 +1,97 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:kit="Game.Unity.UI.Controls" xmlns:dev="Game.Unity.UI.Dev" editor-extension-mode="False">
+    <!-- DEV ONLY: every UI kit component in every state. Open in UI Builder; the theme toggle
+         switches the whole gallery to .theme-light. Not used by any game screen. -->
+    <Style src="/Assets/_Project/UI/Styles/Tokens.uss" />
+    <Style src="/Assets/_Project/UI/Styles/RarityTokens.uss" />
+    <Style src="/Assets/_Project/UI/Styles/Typography.uss" />
+    <Style src="/Assets/_Project/UI/Styles/Components.uss" />
+    <Style src="ComponentGallery.uss" />
+    <ui:ScrollView class="component-gallery">
+        <ui:VisualElement class="gallery__header">
+            <ui:Label text="Component gallery" class="text-title" />
+            <dev:ThemeToggle class="gallery__toggle" />
+        </ui:VisualElement>
+
+        <ui:Label text="Panel" class="text-heading gallery__section-title" />
+        <ui:VisualElement class="gallery__row">
+            <kit:Panel padding="Small"><ui:Label text="Small, no header" class="text-body" /></kit:Panel>
+            <kit:Panel title="Medium with header" padding="Medium" class="gallery__item"><ui:Label text="Body text" class="text-body" /></kit:Panel>
+            <kit:Panel title="Large" padding="Large" class="gallery__item"><ui:Label text="Body text" class="text-body" /></kit:Panel>
+        </ui:VisualElement>
+
+        <ui:Label text="Button" class="text-heading gallery__section-title" />
+        <ui:VisualElement class="gallery__row">
+            <kit:KitButton text="Primary" variant="Primary" />
+            <kit:KitButton text="Hover" variant="Primary" class="kit-button--hover gallery__item" />
+            <kit:KitButton text="Pressed" variant="Primary" class="kit-button--pressed gallery__item" />
+            <kit:KitButton text="Focus" variant="Primary" class="kit-button--focus gallery__item" />
+            <kit:KitButton text="Disabled" variant="Primary" class="kit-button--disabled gallery__item" />
+        </ui:VisualElement>
+        <ui:VisualElement class="gallery__row">
+            <kit:KitButton text="Secondary" variant="Secondary" />
+            <kit:KitButton text="Hover" variant="Secondary" class="kit-button--hover gallery__item" />
+            <kit:KitButton text="Pressed" variant="Secondary" class="kit-button--pressed gallery__item" />
+            <kit:KitButton text="Focus" variant="Secondary" class="kit-button--focus gallery__item" />
+            <kit:KitButton text="Disabled" variant="Secondary" class="kit-button--disabled gallery__item" />
+        </ui:VisualElement>
+        <ui:VisualElement class="gallery__row">
+            <kit:KitButton text="Ghost" variant="Ghost" />
+            <kit:KitButton text="Hover" variant="Ghost" class="kit-button--hover gallery__item" />
+            <kit:KitButton text="Pressed" variant="Ghost" class="kit-button--pressed gallery__item" />
+            <kit:KitButton text="Focus" variant="Ghost" class="kit-button--focus gallery__item" />
+            <kit:KitButton text="Disabled" variant="Ghost" class="kit-button--disabled gallery__item" />
+        </ui:VisualElement>
+
+        <ui:Label text="Keycap and key hints" class="text-heading gallery__section-title" />
+        <ui:VisualElement class="gallery__row">
+            <kit:Keycap text="E" />
+            <kit:Keycap text="Tab" class="gallery__item" />
+            <kit:Keycap text="Esc" class="gallery__item" />
+        </ui:VisualElement>
+        <ui:VisualElement class="gallery__row">
+            <kit:KeyHints hints="Tab:Inventory;F:Booth setup;Esc:Pause" />
+        </ui:VisualElement>
+        <ui:VisualElement class="gallery__row gallery__row--world">
+            <kit:KeyHints hints="A/D:Page;Q/E:Tab;Enter:Card details;Tab:Close" on-world="true" />
+        </ui:VisualElement>
+
+        <ui:Label text="Tier chip" class="text-heading gallery__section-title" />
+        <ui:VisualElement class="gallery__row">
+            <kit:TierChip tier="1" />
+            <kit:TierChip tier="2" class="gallery__item" />
+            <kit:TierChip tier="3" class="gallery__item" />
+            <kit:TierChip tier="4" class="gallery__item" />
+            <kit:TierChip tier="5" class="gallery__item" />
+            <kit:TierChip tier="6" class="gallery__item" />
+            <kit:TierChip tier="7" class="gallery__item" />
+        </ui:VisualElement>
+        <ui:VisualElement class="gallery__row">
+            <kit:TierChip tier="1" compact="true" />
+            <kit:TierChip tier="2" compact="true" class="gallery__item" />
+            <kit:TierChip tier="3" compact="true" class="gallery__item" />
+            <kit:TierChip tier="4" compact="true" class="gallery__item" />
+            <kit:TierChip tier="5" compact="true" class="gallery__item" />
+            <kit:TierChip tier="6" compact="true" class="gallery__item" />
+            <kit:TierChip tier="7" compact="true" class="gallery__item" />
+        </ui:VisualElement>
+
+        <ui:Label text="Card face and copy badge" class="text-heading gallery__section-title" />
+        <ui:VisualElement class="gallery__row">
+            <ui:VisualElement class="gallery__card"><kit:CardFace tier="1" card-name="Zenkin" card-id="SetA_Common_01" class="gallery__card-face" /><kit:CopyBadge count="3" corner="true" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="2" card-name="Silmir" card-id="SetA_Uncommon_07" class="gallery__card-face" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="3" card-name="Rynithlin" card-id="SetA_Rare_01" class="gallery__card-face" /><kit:CopyBadge count="2" corner="true" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="4" card-name="Coralin" card-id="SetA_Holo_02" class="gallery__card-face" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="5" card-name="Orunos Colossus" card-id="SetA_FullArt_01" class="gallery__card-face" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="6" card-name="Orawyn Herald" card-id="SetA_AltArt_01" class="gallery__card-face" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="7" card-name="Braolin Crowned in Ash" card-id="SetA_SpecialArt_01" class="gallery__card-face" /><kit:CopyBadge count="1" corner="true" /></ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Label text="Tab" class="text-heading gallery__section-title" />
+        <ui:VisualElement class="gallery__column">
+            <kit:KitTab title="Set A" count="34" active="true" />
+            <kit:KitTab title="Set B" count="0" class="gallery__stacked" />
+            <kit:KitTab title="Sealed" count="3" class="kit-tab--hover gallery__stacked" />
+            <kit:KitTab title="Bulk" count="112" class="gallery__stacked" />
+        </ui:VisualElement>
+    </ui:ScrollView>
+</ui:UXML>

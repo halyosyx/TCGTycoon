@@ -1,0 +1,65 @@
+/* DEV ONLY: layout of the component gallery. Tokens only, like every kit stylesheet. */
+
+.component-gallery {
+    flex-grow: 1;
+    background-color: var(--color-surface-pressed);
+}
+
+.component-gallery > .unity-scroll-view__content-viewport > .unity-scroll-view__content-container {
+    padding-top: var(--space-8);
+    padding-right: var(--space-8);
+    padding-bottom: var(--space-8);
+    padding-left: var(--space-8);
+}
+
+.gallery__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.gallery__toggle {
+    color: var(--color-text);
+}
+
+.gallery__section-title {
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-3);
+}
+
+.gallery__row {
+    flex-direction: row;
+    align-items: flex-start;
+    margin-bottom: var(--space-4);
+}
+
+.gallery__row--world {
+    padding-top: var(--space-4);
+    padding-right: var(--space-4);
+    padding-bottom: var(--space-4);
+    padding-left: var(--space-4);
+    background-color: var(--color-cover);
+}
+
+.gallery__column {
+    align-items: flex-start;
+}
+
+/* USS has no gap: every item after the first in a row carries the spacing. */
+.gallery__item {
+    margin-left: var(--space-3);
+}
+
+.gallery__stacked {
+    margin-top: var(--space-2);
+}
+
+/* Cards are shown at binder-pocket size (style guide §8). */
+.gallery__card {
+    width: var(--size-pocket-card-width);
+    height: var(--size-pocket-card-height);
+}
+
+.gallery__card-face {
+    flex-grow: 1;
+}

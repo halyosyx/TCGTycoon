@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Game.Core.Content;
 using Game.Core.Packs;
 using Game.Unity.Definitions;
@@ -24,7 +23,6 @@ namespace Game.EditorTools.CardGeneration
         public const string DefaultPriceTablePath = "Assets/_Project/Data/Balance/TierPrices.asset";
 
         private const string AssetsRoot = "Assets";
-        private static readonly UTF8Encoding s_utf8WithoutBom = new UTF8Encoding(false);
 
         /// <summary>World text needs TextMesh Pro's essentials (default font and shaders) in the project.</summary>
         public static bool HasTmpEssentials() => AssetDatabase.FindAssets("t:TMP_Settings").Length > 0;
@@ -334,16 +332,14 @@ namespace Game.EditorTools.CardGeneration
         private static void EnsureTextFile(string path, string content, bool overwrite, CardGenerationReport report)
         {
             bool exists = File.Exists(path);
-            // Compare without carriage returns: git may check the file out with CRLF line endings.
-            if (exists && (!overwrite || File.ReadAllText(path).Replace("\r\n", "\n") == content))
+            if (exists && !overwrite)
             {
                 report.Count(AssetChange.Unchanged);
                 return;
             }
 
-            File.WriteAllText(path, content, s_utf8WithoutBom);
-            AssetDatabase.ImportAsset(path);
-            report.Count(exists ? AssetChange.Updated : AssetChange.Created);
+            bool isWritten = GeneratedTextFiles.WriteIfChanged(path, content);
+            report.Count(!isWritten ? AssetChange.Unchanged : exists ? AssetChange.Updated : AssetChange.Created);
         }
 
         private static void LinkPack(PackConfigDefinition pack, CardSetDefinition set, CardGenerationReport report)
