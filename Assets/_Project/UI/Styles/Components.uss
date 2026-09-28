@@ -435,3 +435,301 @@
 .kit-tab--active .kit-tab__count {
     color: var(--color-text-on-accent);
 }
+
+/* ==========================================================================
+   HUD components (style guide §7). The HUD layout and its translucent plates
+   live in UI/Hud/Hud.uss; these blocks only style the controls themselves.
+   ========================================================================== */
+
+/* ---- Signed amount: sign plus caret, never colour alone (style guide §5) ---- */
+.signed-amount {
+    flex-direction: row;
+    align-items: center;
+}
+
+.signed-amount__caret {
+    width: var(--size-glyph-sm);
+    height: var(--size-glyph-sm);
+    margin-right: var(--space-1);
+}
+
+.signed-amount__value {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.signed-amount--positive .signed-amount__caret {
+    background-image: url("/Assets/_Project/UI/Icons/Phosphor/caret-up-bold.svg");
+    -unity-background-image-tint-color: var(--color-positive);
+}
+
+.signed-amount--positive .signed-amount__value {
+    color: var(--color-positive);
+}
+
+.signed-amount--negative .signed-amount__caret {
+    background-image: url("/Assets/_Project/UI/Icons/Phosphor/caret-down-bold.svg");
+    -unity-background-image-tint-color: var(--color-negative);
+}
+
+.signed-amount--negative .signed-amount__value {
+    color: var(--color-negative);
+}
+
+/* ---- Day clock ---- */
+.day-clock {
+    width: var(--size-day-clock-width);
+    padding-top: var(--space-day-clock-y);
+    padding-bottom: var(--space-day-clock-y);
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+}
+
+.day-clock Label {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+}
+
+.day-clock__heading {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.day-clock__day {
+    font-size: var(--font-size-hud-day);
+    color: var(--color-text);
+}
+
+.day-clock Label.day-clock__kind {
+    margin-left: var(--space-3);
+}
+
+.day-clock__clock {
+    flex-direction: row;
+    align-items: flex-end;
+    margin-top: var(--space-1);
+}
+
+.day-clock Label.day-clock__meridiem {
+    margin-left: var(--space-1);
+    margin-bottom: var(--space-2);
+    font-size: var(--font-size-lg);
+    color: var(--color-text-muted);
+}
+
+.day-clock Label.day-clock__closing {
+    margin-left: var(--space-3);
+    margin-bottom: var(--space-2);
+    font-size: var(--font-size-hud-alert);
+    color: var(--color-negative);
+}
+
+.day-clock Label.day-clock__tagline {
+    margin-top: var(--space-1);
+    font-size: var(--font-size-md);
+    color: var(--color-accent);
+}
+
+/* ---- Cash readout ---- */
+.cash-readout {
+    width: var(--size-cash-readout-width);
+    align-items: flex-end;
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+}
+
+.cash-readout__amount {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    -unity-text-align: middle-right;
+}
+
+/* The event line keeps its space and fades, so the readout never jumps when it appears. */
+.cash-readout__event {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: var(--duration-medium);
+}
+
+.cash-readout__event--visible {
+    opacity: 1;
+}
+
+.cash-readout__event-label {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-right: var(--space-2);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* ---- Toast (a panel; the HUD swaps the fill for its plate) ---- */
+.toast {
+    width: var(--size-toast-width);
+    flex-direction: row;
+    align-items: center;
+    padding-top: var(--space-3);
+    padding-bottom: var(--space-3);
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+    background-color: var(--color-surface);
+    border-top-width: var(--border-width);
+    border-right-width: var(--border-width);
+    border-bottom-width: var(--border-width);
+    border-left-width: var(--border-width);
+    border-top-color: var(--color-border);
+    border-right-color: var(--color-border);
+    border-bottom-color: var(--color-border);
+    border-left-color: var(--color-border);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: var(--duration-medium);
+}
+
+.toast--shown {
+    opacity: 1;
+}
+
+.toast--spaced {
+    margin-top: var(--space-2);
+}
+
+.toast__status {
+    width: var(--size-toast-status);
+    height: var(--size-toast-status);
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-top-width: var(--border-width);
+    border-right-width: var(--border-width);
+    border-bottom-width: var(--border-width);
+    border-left-width: var(--border-width);
+    border-top-color: var(--color-border);
+    border-right-color: var(--color-border);
+    border-bottom-color: var(--color-border);
+    border-left-color: var(--color-border);
+    border-top-left-radius: var(--radius-sm);
+    border-top-right-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-sm);
+}
+
+.toast__status-icon {
+    width: var(--size-icon);
+    height: var(--size-icon);
+    background-image: url("/Assets/_Project/UI/Icons/Phosphor/check-bold.svg");
+    -unity-background-image-tint-color: var(--color-text-muted);
+}
+
+.toast--positive .toast__status {
+    border-top-color: var(--color-positive);
+    border-right-color: var(--color-positive);
+    border-bottom-color: var(--color-positive);
+    border-left-color: var(--color-positive);
+}
+
+.toast--positive .toast__status-icon {
+    -unity-background-image-tint-color: var(--color-positive);
+}
+
+.toast__text {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-left: var(--space-3);
+}
+
+.toast__title,
+.toast__detail {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    white-space: normal;
+}
+
+.toast__amount {
+    margin-left: var(--space-3);
+}
+
+/* ---- Crosshair: a dot, or an accent ring round a smaller dot when aiming at something usable ---- */
+.crosshair {
+    width: var(--size-crosshair-ring);
+    height: var(--size-crosshair-ring);
+    align-items: center;
+    justify-content: center;
+}
+
+.crosshair__dot {
+    width: var(--size-crosshair-dot);
+    height: var(--size-crosshair-dot);
+    border-top-left-radius: 50%;
+    border-top-right-radius: 50%;
+    border-bottom-left-radius: 50%;
+    border-bottom-right-radius: 50%;
+    background-color: var(--color-text);
+}
+
+.crosshair__ring {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    border-top-width: var(--border-width-crosshair-ring);
+    border-right-width: var(--border-width-crosshair-ring);
+    border-bottom-width: var(--border-width-crosshair-ring);
+    border-left-width: var(--border-width-crosshair-ring);
+    border-top-color: var(--color-accent);
+    border-right-color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+    border-left-color: var(--color-accent);
+    border-top-left-radius: 50%;
+    border-top-right-radius: 50%;
+    border-bottom-left-radius: 50%;
+    border-bottom-right-radius: 50%;
+}
+
+.crosshair--usable .crosshair__ring {
+    display: flex;
+}
+
+.crosshair--usable .crosshair__dot {
+    width: var(--size-crosshair-ring-dot);
+    height: var(--size-crosshair-ring-dot);
+    background-color: var(--color-accent);
+}
+
+/* ---- Interaction prompt: keycap + verb + object ---- */
+.interaction-prompt {
+    flex-direction: row;
+    align-items: center;
+}
+
+.interaction-prompt__verb,
+.interaction-prompt__object {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: var(--space-2);
+    padding-top: 0;
+    padding-bottom: 0;
+}

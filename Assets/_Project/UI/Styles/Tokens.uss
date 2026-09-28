@@ -97,6 +97,20 @@
     --size-pocket-card-width: 152px;  /* card face inside a binder pocket (style guide §8), 63:88 */
     --size-pocket-card-height: 217px;
 
+    /* ---- HUD sizes (style guide §7). The HUD sits --space-10 (40px) in from the screen edges. ---- */
+    --font-size-hud-day: 26px;          /* "Day 8" */
+    --font-size-hud-alert: 17px;        /* "Closing soon" */
+    --size-day-clock-width: 320px;
+    --space-day-clock-y: 18px;          /* DayClock vertical padding (horizontal is --space-5) */
+    --size-cash-readout-width: 260px;
+    --size-toast-width: 340px;
+    --size-toast-status: 32px;          /* toast status square */
+    --size-crosshair-dot: 8px;
+    --size-crosshair-ring: 28px;        /* crosshair when aiming at something usable */
+    --size-crosshair-ring-dot: 6px;
+    --border-width-crosshair-ring: 2px;
+    --offset-interaction-prompt: 58px;  /* below the screen centre */
+
     /* ---- Opacity ---- */
     --opacity-disabled: 0.4;
     --opacity-subdued: 0.64;

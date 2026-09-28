@@ -5,6 +5,7 @@ using Game.Core.Inventory;
 using Game.Core.Packs;
 using Game.Unity.DebugTools;
 using Game.Unity.Definitions;
+using Game.Unity.UI.Hud;
 using UnityEditor;
 using UnityEngine;
 
@@ -138,13 +139,37 @@ namespace Game.EditorTools
                 return;
             }
 
+            if (HudDebugCommands.Handles(command))
+            {
+                AppendLog($"> {command}\n{RunHudCommand(command)}");
+                return;
+            }
+
             if (_commands == null && !TryStartSession(out string error))
             {
                 AppendLog($"> {command}\n{error}");
                 return;
             }
 
-            AppendLog($"> {command}\n{_commands.Execute(command)}");
+            string output = _commands.Execute(command);
+            if (string.Equals(command, "help", StringComparison.OrdinalIgnoreCase))
+            {
+                output += "\n\n" + HudDebugCommands.HelpText;
+            }
+
+            AppendLog($"> {command}\n{output}");
+        }
+
+        // HUD commands act on the HUD of the scene in Play Mode, not on this window's own session.
+        private static string RunHudCommand(string command)
+        {
+            if (!EditorApplication.isPlaying)
+            {
+                return "HUD commands need Play Mode.";
+            }
+
+            var hud = UnityEngine.Object.FindFirstObjectByType<HudPresenter>();
+            return hud == null ? "No HUD in the open scene." : new HudDebugCommands(hud).Execute(command);
         }
 
         private bool TryStartSession(out string error)

@@ -1,0 +1,22 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:kit="Game.Unity.UI.Controls" editor-extension-mode="False">
+    <!-- The HUD (style guide §7). Uses HudPanelSettings (GameTheme); always dark. HudPresenter binds
+         the controls by type and turns picking off everywhere, so the HUD never takes the pointer. -->
+    <Style src="Hud.uss" />
+    <ui:VisualElement name="hud" class="hud text-on-world">
+        <ui:VisualElement class="hud__top">
+            <kit:DayClock name="day-clock" class="hud__plate" />
+            <ui:VisualElement class="hud__right">
+                <ui:VisualElement class="hud__cluster">
+                    <!-- VendorLevel (up for discussion, not v1) slots in here, left of the cash. -->
+                    <kit:CashReadout name="cash-readout" class="hud__plate" />
+                </ui:VisualElement>
+                <kit:ToastStack name="toasts" class="hud__toasts" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <kit:Crosshair name="crosshair" class="hud__crosshair" />
+        <ui:VisualElement class="hud__prompt">
+            <kit:InteractionPrompt name="interaction-prompt" />
+        </ui:VisualElement>
+        <kit:KeyHints name="key-hints" on-world="true" class="hud__hints" />
+    </ui:VisualElement>
+</ui:UXML>

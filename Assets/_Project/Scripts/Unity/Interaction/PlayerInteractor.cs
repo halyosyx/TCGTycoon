@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Game.Unity.Interaction
@@ -24,6 +25,9 @@ namespace Game.Unity.Interaction
 
         /// <summary>The object currently aimed at, or null.</summary>
         public IInteractable Hovered => _hovered;
+
+        /// <summary>Raised with the newly aimed-at object, or null when the aim leaves it.</summary>
+        public event Action<IInteractable> HoveredChanged;
 
         private void Awake()
         {
@@ -110,6 +114,8 @@ namespace Game.Unity.Interaction
             {
                 target.SetHovered(true);
             }
+
+            HoveredChanged?.Invoke(target);
         }
 
         // Interactables are MonoBehaviours; a destroyed one only looks null to Unity's == operator.
@@ -120,7 +126,7 @@ namespace Game.Unity.Interaction
                 return false;
             }
 
-            return !(interactable is Object unityObject) || unityObject != null;
+            return !(interactable is UnityEngine.Object unityObject) || unityObject != null;
         }
     }
 }

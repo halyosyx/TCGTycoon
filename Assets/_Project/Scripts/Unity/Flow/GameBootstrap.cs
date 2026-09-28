@@ -43,8 +43,8 @@ namespace Game.Unity.Flow
         [SerializeField]
         private InventoryScreen _inventoryScreen;
 
-        [SerializeField]
-        private CrosshairView _crosshair;
+        [SerializeField, Tooltip("The HUD (Hud.uxml on the Hud panel): day, cash, toasts, crosshair and prompt.")]
+        private HudPresenter _hud;
 
         /// <summary>The run's session; null if the content failed to load.</summary>
         public GameSession Session { get; private set; }
@@ -81,15 +81,24 @@ namespace Game.Unity.Flow
                 return;
             }
 
-            if (_player == null || _packProp == null || _packOpeningScreen == null || _inventoryScreen == null || _crosshair == null)
+            if (_player == null || _packProp == null || _packOpeningScreen == null || _inventoryScreen == null)
             {
-                Debug.LogError($"{name}: {nameof(GameBootstrap)} is missing a scene reference (player, pack prop, screens or crosshair).", this);
+                Debug.LogError($"{name}: {nameof(GameBootstrap)} is missing a scene reference (player, pack prop or screens).", this);
                 return;
             }
 
             _packOpeningScreen.Initialize(Session, _palette, _player, _packProp);
             _inventoryScreen.Initialize(Session, _palette, _player);
-            _crosshair.Initialize(_player);
+
+            // The HUD is optional so a scene without one still plays; pack opening never depends on it.
+            if (_hud != null)
+            {
+                _hud.Initialize(_player, _player.Interactor);
+            }
+            else
+            {
+                Debug.LogWarning($"{name}: no HUD assigned, so day, cash and the interaction prompt aren't shown.", this);
+            }
         }
     }
 }

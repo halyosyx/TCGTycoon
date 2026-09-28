@@ -14,7 +14,10 @@ namespace Game.Unity.UI.Controls
         public const string TextCaption = "text-caption";
         public const string NumberSmall = "num-sm";
         public const string NumberMedium = "num-md";
+        public const string NumberHud = "num-hud";
+        public const string TextMuted = "text-muted";
         public const string FontDisplayBold = "font-display-bold";
+        public const string FontDisplayExtraBold = "font-display-extrabold";
         public const string FontBodyExtraBold = "font-body-extrabold";
         public const string TextOnWorld = "text-on-world";
         public const string ThemeLight = "theme-light";

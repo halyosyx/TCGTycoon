@@ -21,6 +21,12 @@ namespace Game.Unity.Props
         [SerializeField, Tooltip("Base colour of the pack while hovered.")]
         private Color _highlightColor = new Color(0.55f, 0.45f, 0.85f);
 
+        [SerializeField, Tooltip("HUD prompt verb while aiming at the pack.")]
+        private string _promptVerb = "Open";
+
+        [SerializeField, Tooltip("HUD prompt object while aiming at the pack.")]
+        private string _promptObject = "Booster pack";
+
         private MaterialPropertyBlock _propertyBlock;
         private bool _isAvailable;
 
@@ -28,6 +34,10 @@ namespace Game.Unity.Props
         public event Action<PackProp> PickedUp;
 
         public bool CanInteract => _isAvailable && isActiveAndEnabled;
+
+        public string PromptVerb => _promptVerb;
+
+        public string PromptObject => _promptObject;
 
         private void Awake()
         {
