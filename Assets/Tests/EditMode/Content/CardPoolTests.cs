@@ -29,6 +29,18 @@ namespace Game.Core.Tests.Content
             Assert.That(card, Is.Null);
         }
 
+        [TestCase(RarityTier.Common, true)]
+        [TestCase(RarityTier.Uncommon, true)]
+        [TestCase(RarityTier.Rare, false)]
+        [TestCase(RarityTier.Holographic, false)]
+        [TestCase(RarityTier.FullArt, false)]
+        [TestCase(RarityTier.AlternateIllustration, false)]
+        [TestCase(RarityTier.SpecialIllustration, false)]
+        public void RarityTiers_IsBulk_OnlyCommonAndUncommon(RarityTier tier, bool expected)
+        {
+            Assert.That(RarityTiers.IsBulk(tier), Is.EqualTo(expected));
+        }
+
         [Test]
         public void TryGetCard_NullId_ReturnsFalse()
         {

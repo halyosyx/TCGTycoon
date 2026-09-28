@@ -15,5 +15,11 @@ namespace Game.Core.Content
 
         /// <summary>True when the value is one of the defined tiers (data can hold stale or out-of-range values).</summary>
         public static bool IsDefined(RarityTier tier) => (int)tier >= 0 && (int)tier < Count;
+
+        /// <summary>
+        /// GDD: Commons and Uncommons are bulk. They go to the bulk box (sold at a fixed price per card)
+        /// rather than the binder and display case.
+        /// </summary>
+        public static bool IsBulk(RarityTier tier) => tier == RarityTier.Common || tier == RarityTier.Uncommon;
     }
 }

@@ -23,6 +23,12 @@ namespace Game.Core.Inventory
             _state = state ?? throw new ArgumentNullException(nameof(state));
         }
 
+        /// <summary>
+        /// Raised once after any change to what is owned: one card, a whole pack (after every card is
+        /// in), a removal or a clear. Not raised when nothing changed or an operation throws.
+        /// </summary>
+        public event Action Changed;
+
         /// <summary>Current stacks, in the order they were first acquired. Read-only for callers.</summary>
         public IReadOnlyList<InventoryStack> Stacks => _state.Stacks;
 
@@ -49,21 +55,8 @@ namespace Game.Core.Inventory
         /// <summary>Adds one copy of <paramref name="card"/> that cost <paramref name="costCents"/>.</summary>
         public void Add(Card card, long costCents)
         {
-            if (card == null) throw new ArgumentNullException(nameof(card));
-            if (costCents < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(costCents), costCents, "Cost can't be negative.");
-            }
-
-            InventoryStack stack = Find(card.Id, card.Tier);
-            if (stack == null)
-            {
-                stack = new InventoryStack { CardId = card.Id, Tier = card.Tier };
-                _state.Stacks.Add(stack);
-            }
-
-            stack.Count++;
-            stack.CostBasisCents += costCents;
+            AddCopy(card, costCents);
+            Changed?.Invoke();
         }
 
         /// <summary>
@@ -87,13 +80,25 @@ namespace Game.Core.Inventory
                 return;
             }
 
+            // Checked up front so a bad entry can't leave half a pack added with no Changed raised.
+            foreach (Card card in pack.Cards)
+            {
+                if (card == null)
+                {
+                    throw new ArgumentException("The pack contains an empty card entry.", nameof(pack));
+                }
+            }
+
             long evenShare = purchaseCostCents / cardCount;
             long leftoverCents = purchaseCostCents % cardCount;
             for (int slotIndex = 0; slotIndex < cardCount; slotIndex++)
             {
                 long share = evenShare + (slotIndex < leftoverCents ? 1 : 0);
-                Add(pack.Cards[slotIndex], share);
+                AddCopy(pack.Cards[slotIndex], share);
             }
+
+            // One notification per pack: listeners see all its cards at once.
+            Changed?.Invoke();
         }
 
         /// <summary>
@@ -127,10 +132,39 @@ namespace Game.Core.Inventory
                 _state.Stacks.Remove(stack);
             }
 
+            Changed?.Invoke();
             return removedCostCents;
         }
 
-        public void Clear() => _state.Stacks.Clear();
+        public void Clear()
+        {
+            if (_state.Stacks.Count == 0)
+            {
+                return;
+            }
+
+            _state.Stacks.Clear();
+            Changed?.Invoke();
+        }
+
+        private void AddCopy(Card card, long costCents)
+        {
+            if (card == null) throw new ArgumentNullException(nameof(card));
+            if (costCents < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(costCents), costCents, "Cost can't be negative.");
+            }
+
+            InventoryStack stack = Find(card.Id, card.Tier);
+            if (stack == null)
+            {
+                stack = new InventoryStack { CardId = card.Id, Tier = card.Tier };
+                _state.Stacks.Add(stack);
+            }
+
+            stack.Count++;
+            stack.CostBasisCents += costCents;
+        }
 
         private InventoryStack Find(string cardId, RarityTier tier)
         {
