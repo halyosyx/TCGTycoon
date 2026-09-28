@@ -137,6 +137,77 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Screens",
+            "id": "6b1f0c2e-8d4a-4f7b-9e21-3c5a7d9e0f14",
+            "actions": [
+                {
+                    "name": "QuickOpen",
+                    "type": "Button",
+                    "id": "a3e5c7d9-1b2f-4a6c-8e0d-2f4b6d8a0c1e",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "ToggleInventory",
+                    "type": "Button",
+                    "id": "b4f6d8e0-2c3a-4b7d-9f1e-3a5c7e9b1d2f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "Dismiss",
+                    "type": "Button",
+                    "id": "c5a7e9f1-3d4b-4c8e-8a2f-4b6d8f0c2e3a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "d6b8f0a2-4e5c-4d9f-9b3a-5c7e9a1d3f4b",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "QuickOpen",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e7c9a1b3-5f6d-4e0a-8c4b-6d8f0b2e4a5c",
+                    "path": "<Keyboard>/i",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleInventory",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f8d0b2c4-6a7e-4f1b-9d5c-7e9a1c3f5b6d",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Dismiss",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

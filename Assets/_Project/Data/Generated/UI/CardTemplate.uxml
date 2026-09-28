@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="CardTemplate.uss" />
+    <ui:VisualElement name="card" class="card">
+        <ui:Label name="card-id" class="card__id" text="SetA_Common_01" />
+        <ui:VisualElement name="card-face" class="card__face">
+            <ui:Label name="card-name" class="card__name" text="Card Name" />
+            <ui:Label name="card-tier" class="card__tier" text="Common" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,111 @@
+/* Inventory screen. Flat: solid colours, one rounded panel, the same cream accent as the pack
+   opening screen. Tier colours come from the Rarity Palette in code. */
+
+.inventory {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(12, 14, 18, 0.7);
+    justify-content: center;
+    align-items: center;
+}
+
+.inventory__panel {
+    width: 880px;
+    height: 760px;
+    padding: 28px 32px;
+    border-radius: 20px;
+    background-color: rgb(27, 31, 36);
+}
+
+.inventory__header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.inventory__title {
+    font-size: 34px;
+    -unity-font-style: bold;
+    color: rgb(242, 242, 242);
+}
+
+.inventory__summary {
+    flex-grow: 1;
+    margin-left: 20px;
+    font-size: 20px;
+    color: rgba(242, 242, 242, 0.6);
+}
+
+.inventory__close {
+    height: 44px;
+    min-width: 120px;
+    margin: 0;
+    border-width: 0;
+    border-radius: 10px;
+    background-color: rgb(242, 230, 200);
+    color: rgb(27, 31, 36);
+    font-size: 18px;
+    -unity-font-style: bold;
+}
+
+.inventory__close:hover {
+    background-color: rgb(255, 244, 216);
+}
+
+.inventory__list {
+    flex-grow: 1;
+}
+
+.inventory__empty {
+    margin-top: 40px;
+    font-size: 22px;
+    -unity-text-align: middle-center;
+    color: rgba(242, 242, 242, 0.6);
+}
+
+.inventory__hint {
+    margin-top: 12px;
+    font-size: 16px;
+    -unity-text-align: middle-center;
+    color: rgba(242, 242, 242, 0.45);
+}
+
+.inventory-row {
+    flex-direction: row;
+    align-items: center;
+    height: 40px;
+    padding: 0 12px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(242, 242, 242, 0.08);
+}
+
+.inventory-row--heading {
+    border-bottom-color: rgba(242, 242, 242, 0.25);
+}
+
+.inventory-row--heading > Label {
+    color: rgba(242, 242, 242, 0.55);
+    -unity-font-style: bold;
+}
+
+.inventory-row__tier {
+    width: 240px;
+    font-size: 19px;
+    -unity-font-style: bold;
+}
+
+.inventory-row__name {
+    flex-grow: 1;
+    font-size: 19px;
+    color: rgb(242, 242, 242);
+}
+
+.inventory-row__count {
+    width: 90px;
+    font-size: 19px;
+    -unity-text-align: middle-right;
+    color: rgb(242, 242, 242);
+}

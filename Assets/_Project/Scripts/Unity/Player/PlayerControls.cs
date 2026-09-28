@@ -225,6 +225,77 @@ namespace Game.Unity.Player
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Screens"",
+            ""id"": ""6b1f0c2e-8d4a-4f7b-9e21-3c5a7d9e0f14"",
+            ""actions"": [
+                {
+                    ""name"": ""QuickOpen"",
+                    ""type"": ""Button"",
+                    ""id"": ""a3e5c7d9-1b2f-4a6c-8e0d-2f4b6d8a0c1e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""ToggleInventory"",
+                    ""type"": ""Button"",
+                    ""id"": ""b4f6d8e0-2c3a-4b7d-9f1e-3a5c7e9b1d2f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Dismiss"",
+                    ""type"": ""Button"",
+                    ""id"": ""c5a7e9f1-3d4b-4c8e-8a2f-4b6d8f0c2e3a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""d6b8f0a2-4e5c-4d9f-9b3a-5c7e9a1d3f4b"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""QuickOpen"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e7c9a1b3-5f6d-4e0a-8c4b-6d8f0b2e4a5c"",
+                    ""path"": ""<Keyboard>/i"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleInventory"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f8d0b2c4-6a7e-4f1b-9d5c-7e9a1c3f5b6d"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Dismiss"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -235,11 +306,17 @@ namespace Game.Unity.Player
             m_Player_Look = m_Player.FindAction("Look", throwIfNotFound: true);
             m_Player_Cancel = m_Player.FindAction("Cancel", throwIfNotFound: true);
             m_Player_Click = m_Player.FindAction("Click", throwIfNotFound: true);
+            // Screens
+            m_Screens = asset.FindActionMap("Screens", throwIfNotFound: true);
+            m_Screens_QuickOpen = m_Screens.FindAction("QuickOpen", throwIfNotFound: true);
+            m_Screens_ToggleInventory = m_Screens.FindAction("ToggleInventory", throwIfNotFound: true);
+            m_Screens_Dismiss = m_Screens.FindAction("Dismiss", throwIfNotFound: true);
         }
 
         ~@PlayerControls()
         {
             UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, PlayerControls.Player.Disable() has not been called.");
+            UnityEngine.Debug.Assert(!m_Screens.enabled, "This will cause a leak and performance issues, PlayerControls.Screens.Disable() has not been called.");
         }
 
         /// <summary>
@@ -440,6 +517,124 @@ namespace Game.Unity.Player
         /// Provides a new <see cref="PlayerActions" /> instance referencing this action map.
         /// </summary>
         public PlayerActions @Player => new PlayerActions(this);
+
+        // Screens
+        private readonly InputActionMap m_Screens;
+        private List<IScreensActions> m_ScreensActionsCallbackInterfaces = new List<IScreensActions>();
+        private readonly InputAction m_Screens_QuickOpen;
+        private readonly InputAction m_Screens_ToggleInventory;
+        private readonly InputAction m_Screens_Dismiss;
+        /// <summary>
+        /// Provides access to input actions defined in input action map "Screens".
+        /// </summary>
+        public struct ScreensActions
+        {
+            private @PlayerControls m_Wrapper;
+
+            /// <summary>
+            /// Construct a new instance of the input action map wrapper class.
+            /// </summary>
+            public ScreensActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/QuickOpen".
+            /// </summary>
+            public InputAction @QuickOpen => m_Wrapper.m_Screens_QuickOpen;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/ToggleInventory".
+            /// </summary>
+            public InputAction @ToggleInventory => m_Wrapper.m_Screens_ToggleInventory;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/Dismiss".
+            /// </summary>
+            public InputAction @Dismiss => m_Wrapper.m_Screens_Dismiss;
+            /// <summary>
+            /// Provides access to the underlying input action map instance.
+            /// </summary>
+            public InputActionMap Get() { return m_Wrapper.m_Screens; }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+            public void Enable() { Get().Enable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+            public void Disable() { Get().Disable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+            public bool enabled => Get().enabled;
+            /// <summary>
+            /// Implicitly converts an <see ref="ScreensActions" /> to an <see ref="InputActionMap" /> instance.
+            /// </summary>
+            public static implicit operator InputActionMap(ScreensActions set) { return set.Get(); }
+            /// <summary>
+            /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <param name="instance">Callback instance.</param>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+            /// </remarks>
+            /// <seealso cref="ScreensActions" />
+            public void AddCallbacks(IScreensActions instance)
+            {
+                if (instance == null || m_Wrapper.m_ScreensActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_ScreensActionsCallbackInterfaces.Add(instance);
+                @QuickOpen.started += instance.OnQuickOpen;
+                @QuickOpen.performed += instance.OnQuickOpen;
+                @QuickOpen.canceled += instance.OnQuickOpen;
+                @ToggleInventory.started += instance.OnToggleInventory;
+                @ToggleInventory.performed += instance.OnToggleInventory;
+                @ToggleInventory.canceled += instance.OnToggleInventory;
+                @Dismiss.started += instance.OnDismiss;
+                @Dismiss.performed += instance.OnDismiss;
+                @Dismiss.canceled += instance.OnDismiss;
+            }
+
+            /// <summary>
+            /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <remarks>
+            /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+            /// </remarks>
+            /// <seealso cref="ScreensActions" />
+            private void UnregisterCallbacks(IScreensActions instance)
+            {
+                @QuickOpen.started -= instance.OnQuickOpen;
+                @QuickOpen.performed -= instance.OnQuickOpen;
+                @QuickOpen.canceled -= instance.OnQuickOpen;
+                @ToggleInventory.started -= instance.OnToggleInventory;
+                @ToggleInventory.performed -= instance.OnToggleInventory;
+                @ToggleInventory.canceled -= instance.OnToggleInventory;
+                @Dismiss.started -= instance.OnDismiss;
+                @Dismiss.performed -= instance.OnDismiss;
+                @Dismiss.canceled -= instance.OnDismiss;
+            }
+
+            /// <summary>
+            /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="ScreensActions.UnregisterCallbacks(IScreensActions)" />.
+            /// </summary>
+            /// <seealso cref="ScreensActions.UnregisterCallbacks(IScreensActions)" />
+            public void RemoveCallbacks(IScreensActions instance)
+            {
+                if (m_Wrapper.m_ScreensActionsCallbackInterfaces.Remove(instance))
+                    UnregisterCallbacks(instance);
+            }
+
+            /// <summary>
+            /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+            /// </summary>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+            /// </remarks>
+            /// <seealso cref="ScreensActions.AddCallbacks(IScreensActions)" />
+            /// <seealso cref="ScreensActions.RemoveCallbacks(IScreensActions)" />
+            /// <seealso cref="ScreensActions.UnregisterCallbacks(IScreensActions)" />
+            public void SetCallbacks(IScreensActions instance)
+            {
+                foreach (var item in m_Wrapper.m_ScreensActionsCallbackInterfaces)
+                    UnregisterCallbacks(item);
+                m_Wrapper.m_ScreensActionsCallbackInterfaces.Clear();
+                AddCallbacks(instance);
+            }
+        }
+        /// <summary>
+        /// Provides a new <see cref="ScreensActions" /> instance referencing this action map.
+        /// </summary>
+        public ScreensActions @Screens => new ScreensActions(this);
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
         /// </summary>
@@ -475,6 +670,35 @@ namespace Game.Unity.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnClick(InputAction.CallbackContext context);
+        }
+        /// <summary>
+        /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Screens" which allows adding and removing callbacks.
+        /// </summary>
+        /// <seealso cref="ScreensActions.AddCallbacks(IScreensActions)" />
+        /// <seealso cref="ScreensActions.RemoveCallbacks(IScreensActions)" />
+        public interface IScreensActions
+        {
+            /// <summary>
+            /// Method invoked when associated input action "QuickOpen" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnQuickOpen(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "ToggleInventory" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnToggleInventory(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Dismiss" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnDismiss(InputAction.CallbackContext context);
         }
     }
 }
