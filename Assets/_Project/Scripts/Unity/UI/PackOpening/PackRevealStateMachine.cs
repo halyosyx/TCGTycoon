@@ -4,12 +4,16 @@ using Game.Core.Packs;
 namespace Game.Unity.UI.PackOpening
 {
     /// <summary>
-    /// Presentation state of one pack reveal: Idle → Revealing → Row → Idle. Cards are revealed in
-    /// slot order. The pack's cards are already in the inventory when <see cref="Begin"/> is called,
-    /// so every transition here is display only; <see cref="Store"/> is legal at any point.
+    /// Presentation state of one pack reveal: Idle → Revealing → Row ⇄ Showcase, and back to Idle.
+    /// Cards are revealed in slot order. The pack's cards are already in the inventory when
+    /// <see cref="Begin"/> is called, so every transition here is display only; <see cref="Store"/>
+    /// is legal at any point.
     /// </summary>
     public sealed class PackRevealStateMachine
     {
+        /// <summary><see cref="ShowcasedSlot"/> while no card is showcased.</summary>
+        public const int NoSlot = -1;
+
         public PackRevealState State { get; private set; } = PackRevealState.Idle;
 
         /// <summary>The pack on screen; null while Idle.</summary>
@@ -17,6 +21,9 @@ namespace Game.Unity.UI.PackOpening
 
         /// <summary>How many cards are face up, counting from slot 1.</summary>
         public int RevealedCount { get; private set; }
+
+        /// <summary>Slot index of the card in the showcase, or <see cref="NoSlot"/>.</summary>
+        public int ShowcasedSlot { get; private set; } = NoSlot;
 
         public int CardCount => Pack == null ? 0 : Pack.Cards.Count;
 
@@ -30,6 +37,7 @@ namespace Game.Unity.UI.PackOpening
 
             Pack = pack;
             RevealedCount = 0;
+            ShowcasedSlot = NoSlot;
             State = pack.Cards.Count == 0 ? PackRevealState.Row : PackRevealState.Revealing;
         }
 
@@ -56,7 +64,29 @@ namespace Game.Unity.UI.PackOpening
             State = PackRevealState.Row;
         }
 
-        /// <summary>Closes the screen. Legal while revealing too: the cards are already owned.</summary>
+        /// <summary>Lifts one card out of the row into the showcase.</summary>
+        /// <exception cref="ArgumentOutOfRangeException">The slot isn't in the pack.</exception>
+        public void Showcase(int slotIndex)
+        {
+            RequireState(PackRevealState.Row, nameof(Showcase));
+            if (slotIndex < 0 || slotIndex >= CardCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(slotIndex), slotIndex, $"The pack has slots 0 to {CardCount - 1}.");
+            }
+
+            ShowcasedSlot = slotIndex;
+            State = PackRevealState.Showcase;
+        }
+
+        /// <summary>Puts the showcased card back in the row.</summary>
+        public void ReturnToRow()
+        {
+            RequireState(PackRevealState.Showcase, nameof(ReturnToRow));
+            ShowcasedSlot = NoSlot;
+            State = PackRevealState.Row;
+        }
+
+        /// <summary>Closes the screen. Legal at any point: the cards are already owned.</summary>
         public void Store()
         {
             if (State == PackRevealState.Idle)
@@ -66,6 +96,7 @@ namespace Game.Unity.UI.PackOpening
 
             Pack = null;
             RevealedCount = 0;
+            ShowcasedSlot = NoSlot;
             State = PackRevealState.Idle;
         }
 

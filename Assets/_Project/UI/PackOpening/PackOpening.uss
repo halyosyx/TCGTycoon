@@ -18,6 +18,19 @@
     bottom: 0;
 }
 
+/* Dims the row behind a showcased card. Code fades its opacity and turns picking on only while a
+   card is showcased, so it never swallows clicks meant for the row. */
+.pack-opening__showcase-backdrop {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(8, 9, 12, 0.78);
+    opacity: 0;
+    display: none;
+}
+
 /* Every card is centred on the layer; code moves it with translate and scale only, so animating
    never triggers a layout pass. Size matches .card in the generated card template. */
 .card-view {

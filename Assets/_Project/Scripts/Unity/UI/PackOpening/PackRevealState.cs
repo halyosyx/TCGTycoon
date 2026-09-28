@@ -11,5 +11,8 @@ namespace Game.Unity.UI.PackOpening
 
         /// <summary>Every card is face up in a row.</summary>
         Row,
+
+        /// <summary>One card from the row is shown large in the centre for inspection.</summary>
+        Showcase,
     }
 }

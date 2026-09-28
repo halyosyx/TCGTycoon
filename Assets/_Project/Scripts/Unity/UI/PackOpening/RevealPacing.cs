@@ -25,6 +25,12 @@ namespace Game.Unity.UI.PackOpening
         [SerializeField, Min(0f), Tooltip("Seconds the last card stays on the stack before the row appears (a click skips the wait).")]
         private float _lastCardHoldSeconds = 1.2f;
 
+        [SerializeField, Min(0.01f), Tooltip("Seconds for a card to move into or out of the showcase.")]
+        private float _showcaseSeconds = 0.25f;
+
+        [SerializeField, Min(0.01f), Tooltip("Seconds for a row card to grow or shrink when the pointer enters or leaves it.")]
+        private float _hoverSeconds = 0.1f;
+
         [SerializeField, Min(0), Tooltip("How many of the pack's last slots reveal slowly with a rarity tell (2 = slots 4 and 5 of 5).")]
         private int _slowSlotCount = 2;
 
@@ -39,6 +45,10 @@ namespace Game.Unity.UI.PackOpening
         public float RowLayoutSeconds => _rowLayoutSeconds;
 
         public float LastCardHoldSeconds => _lastCardHoldSeconds;
+
+        public float ShowcaseSeconds => _showcaseSeconds;
+
+        public float HoverSeconds => _hoverSeconds;
 
         public int SlowSlotCount => _slowSlotCount;
 

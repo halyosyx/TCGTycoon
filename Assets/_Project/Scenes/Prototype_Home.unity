@@ -962,6 +962,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 66754165}
     m_Modifications:
+    - target: {fileID: 4993204769915410590, guid: abec44f2b8be56243b0d35defa3f727e, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4291356402
+      objectReference: {fileID: 0}
+    - target: {fileID: 4993204769915410590, guid: abec44f2b8be56243b0d35defa3f727e, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 6411759360332155076, guid: abec44f2b8be56243b0d35defa3f727e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1597,11 +1605,16 @@ MonoBehaviour:
     _slideOutSeconds: 0.2
     _rowLayoutSeconds: 0.35
     _lastCardHoldSeconds: 1.2
+    _showcaseSeconds: 0.25
+    _hoverSeconds: 0.1
     _slowSlotCount: 2
   _layout:
     _stackStep: {x: 4, y: 5}
     _rowGap: 28
     _rowScale: 0.9
+    _hoverScale: 1
+    _showcaseHeightShare: 0.7
+    _showcaseCenterShare: 0.5
     _slideDistance: 900
     _dragThreshold: 80
     _clickSlop: 12
@@ -1635,7 +1648,9 @@ MonoBehaviour:
     _spread: 48
     _pulsesPerSecond: 3
   _revealHint: "Click or drag to reveal   \xB7   Space to skip"
-  _rowHint: Click outside the cards or press Store
+  _rowHint: "Click a card to inspect it   \xB7   Click outside the cards or press
+    Store"
+  _showcaseHint: Right click, click outside the card or press Esc to put it back
 --- !u!1 &1982535439
 GameObject:
   m_ObjectHideFlags: 0

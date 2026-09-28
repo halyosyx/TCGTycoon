@@ -16,6 +16,15 @@ namespace Game.Unity.UI.PackOpening
         [SerializeField, Min(0.1f), Tooltip("Scale of the cards in the final row.")]
         private float _rowScale = 0.9f;
 
+        [SerializeField, Min(0.1f), Tooltip("Scale of a row card while the pointer is over it.")]
+        private float _hoverScale = 1f;
+
+        [SerializeField, Range(0.1f, 1f), Tooltip("Height of the showcased card as a share of the screen height.")]
+        private float _showcaseHeightShare = 0.7f;
+
+        [SerializeField, Range(0f, 1f), Tooltip("Vertical centre of the showcased card as a share of the screen height (0 = top).")]
+        private float _showcaseCenterShare = 0.5f;
+
         [SerializeField, Min(0f), Tooltip("How far a revealed card slides when it leaves the stack.")]
         private float _slideDistance = 900f;
 
@@ -30,6 +39,12 @@ namespace Game.Unity.UI.PackOpening
         public float RowGap => _rowGap;
 
         public float RowScale => _rowScale;
+
+        public float HoverScale => _hoverScale;
+
+        public float ShowcaseHeightShare => _showcaseHeightShare;
+
+        public float ShowcaseCenterShare => _showcaseCenterShare;
 
         public float SlideDistance => _slideDistance;
 

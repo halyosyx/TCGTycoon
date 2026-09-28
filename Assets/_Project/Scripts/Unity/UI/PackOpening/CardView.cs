@@ -19,6 +19,9 @@ namespace Game.Unity.UI.PackOpening
         /// <summary>Card width in panel pixels; matches `.card-view` in PackOpening.uss and `.card` in the generated template.</summary>
         public const float Width = 250f;
 
+        /// <summary>Card height in panel pixels; the fallback when the element hasn't been laid out yet.</summary>
+        public const float Height = 350f;
+
         private const string FaceClassName = "card-view__face";
         private const string BackClassName = "card-view__back";
         private const string BackLabelClassName = "card-view__back-label";
@@ -55,6 +58,9 @@ namespace Game.Unity.UI.PackOpening
         private float _flipScaleX;
         private float _swell;
         private float _dragOffset;
+        private float _hoverFactor;
+        private float _hoverTarget;
+        private float _hoverRate;
 
         private float _glowIntensity;
         private float _glowPulsesPerSecond;
@@ -102,6 +108,9 @@ namespace Game.Unity.UI.PackOpening
 
         public Vector2 Position => _position;
 
+        /// <summary>The card's rest-layout rectangle in its parent, before translate and scale.</summary>
+        public Rect LayoutRect => _root.layout;
+
         /// <summary>Shows a new card face down at the given position, with every animation reset.</summary>
         public void Bind(Card card, RarityPaletteDefinition palette, TierTell tell, Vector2 position)
         {
@@ -138,6 +147,9 @@ namespace Game.Unity.UI.PackOpening
             _flipScaleX = 1f;
             _swell = 0f;
             _dragOffset = 0f;
+            _hoverFactor = 1f;
+            _hoverTarget = 1f;
+            _hoverRate = 0f;
             _isHiddenWhenMoved = false;
             _root.style.display = DisplayStyle.Flex;
             SetFaceUp(false);
@@ -214,6 +226,21 @@ namespace Game.Unity.UI.PackOpening
             Apply();
         }
 
+        /// <summary>
+        /// Eases an extra scale factor on top of the card's own scale (1 = none), reaching it in
+        /// <paramref name="seconds"/>. Used for the row hover; safe to call every frame.
+        /// </summary>
+        public void SetHoverTarget(float factor, float seconds)
+        {
+            if (Mathf.Approximately(factor, _hoverTarget))
+            {
+                return;
+            }
+
+            _hoverTarget = factor;
+            _hoverRate = Mathf.Abs(factor - _hoverFactor) / Mathf.Max(seconds, 0.001f);
+        }
+
         /// <summary>Jumps every running animation step to its end state.</summary>
         public void Finish()
         {
@@ -231,6 +258,7 @@ namespace Game.Unity.UI.PackOpening
         public void Tick(float deltaSeconds)
         {
             _glowClock += deltaSeconds;
+            _hoverFactor = Mathf.MoveTowards(_hoverFactor, _hoverTarget, _hoverRate * deltaSeconds);
             if (_phase != AnimationPhase.None)
             {
                 _elapsed += deltaSeconds;
@@ -299,7 +327,7 @@ namespace Game.Unity.UI.PackOpening
 
         private void Apply()
         {
-            float scale = _scale * (1f + _swell);
+            float scale = _scale * (1f + _swell) * _hoverFactor;
             _root.style.translate = new Translate(_position.x + _dragOffset, _position.y);
             _root.style.scale = new Scale(new Vector2(scale * _flipScaleX, scale));
             _root.style.opacity = _opacity;

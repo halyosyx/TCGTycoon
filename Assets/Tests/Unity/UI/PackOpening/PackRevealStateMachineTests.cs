@@ -133,6 +133,76 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [Test]
+        public void Showcase_FromRow_EntersShowcaseWithThatSlot()
+        {
+            PackRevealStateMachine reveal = CreateInRow();
+
+            reveal.Showcase(3);
+
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Showcase));
+            Assert.That(reveal.ShowcasedSlot, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void Showcase_WhileRevealing_Throws()
+        {
+            var reveal = new PackRevealStateMachine();
+            reveal.Begin(CreatePack(5));
+
+            Assert.Throws<InvalidOperationException>(() => reveal.Showcase(0));
+        }
+
+        [Test]
+        public void Showcase_WhileAnotherCardIsShowcased_Throws()
+        {
+            PackRevealStateMachine reveal = CreateInRow();
+            reveal.Showcase(1);
+
+            Assert.Throws<InvalidOperationException>(() => reveal.Showcase(2));
+        }
+
+        [TestCase(-1)]
+        [TestCase(5)]
+        public void Showcase_SlotOutsidePack_Throws(int slotIndex)
+        {
+            PackRevealStateMachine reveal = CreateInRow();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => reveal.Showcase(slotIndex));
+        }
+
+        [Test]
+        public void ReturnToRow_FromShowcase_BackToRowWithNoShowcasedSlot()
+        {
+            PackRevealStateMachine reveal = CreateInRow();
+            reveal.Showcase(4);
+
+            reveal.ReturnToRow();
+
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Row));
+            Assert.That(reveal.ShowcasedSlot, Is.EqualTo(PackRevealStateMachine.NoSlot));
+        }
+
+        [Test]
+        public void ReturnToRow_WhileInRow_Throws()
+        {
+            PackRevealStateMachine reveal = CreateInRow();
+
+            Assert.Throws<InvalidOperationException>(() => reveal.ReturnToRow());
+        }
+
+        [Test]
+        public void Store_FromShowcase_ReturnsToIdle()
+        {
+            PackRevealStateMachine reveal = CreateInRow();
+            reveal.Showcase(0);
+
+            reveal.Store();
+
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Idle));
+            Assert.That(reveal.ShowcasedSlot, Is.EqualTo(PackRevealStateMachine.NoSlot));
+        }
+
+        [Test]
         public void IsSlowSlot_DefaultPacingFiveCards_OnlyLastTwoSlotsAreSlow()
         {
             var pacing = new RevealPacing();
@@ -153,6 +223,14 @@ namespace Game.Unity.Tests.UI.PackOpening
 
             Assert.That(pacing.IsSlowSlot(5, 5), Is.False);
             Assert.That(pacing.IsSlowSlot(-1, 5), Is.False);
+        }
+
+        private static PackRevealStateMachine CreateInRow()
+        {
+            var reveal = new PackRevealStateMachine();
+            reveal.Begin(CreatePack(5));
+            reveal.ShowRow();
+            return reveal;
         }
 
         private static OpenedPack CreatePack(int cardCount)
