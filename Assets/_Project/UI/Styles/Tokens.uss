@@ -1,0 +1,140 @@
+/* ==========================================================================
+   Card Show UI Kit: design tokens
+   Source of truth for colour, type size, spacing, radii and opacity.
+   Spec: Docs/UI/UI_STYLE_GUIDE.md
+
+   Dark Grey is the default theme. Put .theme-light on a screen's root
+   element to switch that screen to Light Grey. The HUD always stays dark.
+   Never hard-code a hex value in another USS file: add or reuse a token.
+   ========================================================================== */
+
+:root {
+    /* ---- Surfaces ---- */
+    --color-surface: #3A3C40;
+    --color-surface-raised: #46494E;
+    --color-surface-hover: #505358;
+    --color-surface-pressed: #2F3134;
+    --color-border: #5A5D63;
+
+    /* ---- Text ---- */
+    --color-text: #F4F5F6;
+    --color-text-muted: #C3C6CB;
+    --color-text-on-accent: #0F2A25;
+
+    /* ---- Accent: the one filled colour (buttons, badges, active tab, selection) ---- */
+    --color-accent: #2BB59E;
+    --color-accent-hover: #3CC4AD;
+    --color-accent-pressed: #229985;
+    --color-cover: #1F7F70;              /* binder cover */
+
+    /* ---- Signal: always paired with a sign and a caret glyph, never colour alone ---- */
+    --color-positive: #8FE0A0;
+    --color-negative: #FF9A8F;
+
+    /* ---- Overlays ---- */
+    --color-scrim: rgba(20, 21, 23, 0.6);        /* behind full-screen UI */
+    --color-hud-plate: rgba(58, 60, 64, 0.3);    /* HUD backgrounds, 30% */
+    --color-track: rgba(0, 0, 0, 0.35);          /* empty part of bars */
+    --color-text-shadow: rgba(0, 0, 0, 0.55);    /* HUD text over the world */
+
+    /* ---- Fixed: binder pages and card faces. Identical in every theme. ---- */
+    --color-page: #1F1D1B;
+    --color-page-border: #3E3B37;
+    --color-card-body: #252321;
+    --color-card-text: #EDE7E1;
+    --color-card-muted: #A29A91;
+
+    /* ---- Rarity tiers: --color-tier-1..7 (tier 1 = lowest) live in RarityTokens.uss, generated
+            from the Rarity Palette asset, the single source of tier colours (TCG > UI > Export
+            Rarity Tokens; also runs when the palette changes). Glyphs by tier: circle, triangle,
+            square, pentagon, hexagon, star, crown. ---- */
+
+    /* ---- Type sizes (px at the 1920x1080 reference resolution) ---- */
+    --font-size-xs: 14px;       /* badges, counts, card ids */
+    --font-size-sm: 16px;       /* labels, captions */
+    --font-size-md: 18px;       /* body, buttons */
+    --font-size-lg: 20px;       /* subheadings */
+    --font-size-xl: 24px;       /* headings */
+    --font-size-2xl: 32px;      /* screen titles, big stats */
+    --font-size-hud: 44px;      /* HUD clock and cash */
+
+    /* ---- Spacing, 4 px base ---- */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* ---- Radii ---- */
+    --radius-sm: 4px;           /* chips, card faces, pockets */
+    --radius-md: 8px;           /* buttons, inputs, badges, tabs */
+    --radius-lg: 12px;          /* panels, HUD plates, binder cover */
+
+    /* ---- Borders ---- */
+    --border-width: 1px;
+    --border-width-focus: 2px;
+
+    /* ---- Component sizes (style guide §6) ---- */
+    --size-button-height: 44px;
+    --size-button-padding-x: 18px;
+    --size-icon: 18px;               /* button icons, card-face glyph */
+    --size-header-bar: 56px;         /* panel header */
+    --size-chip-height: 28px;
+    --size-glyph-sm: 14px;           /* tier chip glyph */
+    --size-keycap: 32px;             /* keycap minimum width and height */
+    --border-width-keycap-bottom: 3px;
+    --size-badge-width: 40px;        /* copy badge minimum */
+    --size-badge-height: 30px;
+    --offset-badge: -8px;            /* copy badge overhang past a card's corner */
+    --size-tab-height: 56px;
+    --size-tab-width: 140px;
+    --size-tab-width-active: 156px;
+    --size-pocket-card-width: 152px;  /* card face inside a binder pocket (style guide §8), 63:88 */
+    --size-pocket-card-height: 217px;
+
+    /* ---- HUD sizes (style guide §7). The HUD sits --space-10 (40px) in from the screen edges. ---- */
+    --font-size-hud-day: 26px;          /* "Day 8" */
+    --font-size-hud-alert: 17px;        /* "Closing soon" */
+    --size-day-clock-width: 320px;
+    --space-day-clock-y: 18px;          /* DayClock vertical padding (horizontal is --space-5) */
+    --size-cash-readout-width: 260px;
+    --size-toast-width: 340px;
+    --size-toast-status: 32px;          /* toast status square */
+    --size-crosshair-dot: 8px;
+    --size-crosshair-ring: 28px;        /* crosshair when aiming at something usable */
+    --size-crosshair-ring-dot: 6px;
+    --border-width-crosshair-ring: 2px;
+    --offset-interaction-prompt: 58px;  /* below the screen centre */
+
+    /* ---- Opacity ---- */
+    --opacity-disabled: 0.4;
+    --opacity-subdued: 0.64;
+
+    /* ---- Motion ---- */
+    --duration-fast: 120ms;     /* hover, press */
+    --duration-medium: 240ms;   /* toast in/out, page turn */
+}
+
+/* Light Grey: only the values that change. HUD roots never get this class. */
+.theme-light {
+    --color-surface: #E9EAEC;
+    --color-surface-raised: #DCDEE1;
+    --color-surface-hover: #D1D4D8;
+    --color-surface-pressed: #C5C8CD;
+    --color-border: #C0C3C8;
+    --color-text: #26282B;
+    --color-text-muted: #5C6066;
+    --color-text-on-accent: #FFFFFF;
+    --color-accent: #13806F;
+    --color-accent-hover: #1A907E;
+    --color-accent-pressed: #0F6B5D;
+    --color-cover: #13806F;
+    --color-positive: #2A7F47;
+    --color-negative: #C23B31;
+    --color-scrim: rgba(30, 32, 35, 0.45);
+}

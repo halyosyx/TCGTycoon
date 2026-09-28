@@ -75,21 +75,23 @@ namespace Game.Unity.Definitions
         public bool Defines(RarityTier tier) => Find(tier) != null;
 
         /// <summary>
-        /// Restores the proposed prototype palette: cool neutrals for Common and Uncommon, warm accents
-        /// for Rare and Holographic, saturated colours from Full Art up. Every tier colour keeps at least
-        /// 4.5:1 contrast against the card face so tier names stay readable.
+        /// Restores the UI kit's tier colours (Docs/UI mockups): lightness rises with rank, from a warm
+        /// grey Common to a pale gold Special Illustration. The palette is the single source of tier
+        /// colours; TCG > UI > Export Rarity Tokens turns it into the kit's --color-tier-1..7. Tier
+        /// colours are meant for borders and glyphs: Common is only about 3.7:1 against the card face,
+        /// so card names and tier names use the card text colour on kit card faces.
         /// </summary>
         public void ResetToDefaults()
         {
             _tiers = new List<RarityStyle>
             {
-                new RarityStyle(RarityTier.Common, "Common", new Color32(0x9A, 0xA3, 0xAD, 0xFF)),
-                new RarityStyle(RarityTier.Uncommon, "Uncommon", new Color32(0x6F, 0x8F, 0xAF, 0xFF)),
-                new RarityStyle(RarityTier.Rare, "Rare", new Color32(0xC2, 0x7A, 0x43, 0xFF)),
-                new RarityStyle(RarityTier.Holographic, "Holographic", new Color32(0xE3, 0xB2, 0x3C, 0xFF)),
-                new RarityStyle(RarityTier.FullArt, "Full Art", new Color32(0x2E, 0xC4, 0xB6, 0xFF)),
-                new RarityStyle(RarityTier.AlternateIllustration, "Alternate Illustration", new Color32(0x9B, 0x7B, 0xFF, 0xFF)),
-                new RarityStyle(RarityTier.SpecialIllustration, "Special Illustration", new Color32(0xFF, 0x3D, 0x8B, 0xFF)),
+                new RarityStyle(RarityTier.Common, "Common", new Color32(0x7C, 0x76, 0x71, 0xFF)),
+                new RarityStyle(RarityTier.Uncommon, "Uncommon", new Color32(0x55, 0x9A, 0x69, 0xFF)),
+                new RarityStyle(RarityTier.Rare, "Rare", new Color32(0x4D, 0xA4, 0xD3, 0xFF)),
+                new RarityStyle(RarityTier.Holographic, "Holographic", new Color32(0xAF, 0xA2, 0xE7, 0xFF)),
+                new RarityStyle(RarityTier.FullArt, "Full Art", new Color32(0xF2, 0xA5, 0xC7, 0xFF)),
+                new RarityStyle(RarityTier.AlternateIllustration, "Alternate Illustration", new Color32(0xF8, 0xC4, 0xA8, 0xFF)),
+                new RarityStyle(RarityTier.SpecialIllustration, "Special Illustration", new Color32(0xFD, 0xE0, 0x96, 0xFF)),
             };
             _cardFaceColor = new Color32(0x1B, 0x1F, 0x24, 0xFF);
             _cardTextColor = new Color32(0xF2, 0xF2, 0xF2, 0xFF);

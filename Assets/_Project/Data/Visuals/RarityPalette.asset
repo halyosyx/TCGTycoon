@@ -15,31 +15,31 @@ MonoBehaviour:
   _tiers:
   - _tier: 0
     _displayName: Common
-    _color: {r: 0.6039216, g: 0.6392157, b: 0.6784314, a: 1}
+    _color: {r: 0.4862745, g: 0.4627451, b: 0.44313726, a: 1}
     _material: {fileID: 2100000, guid: 6ca6a403341fd604b88bda6ce3767f9d, type: 2}
   - _tier: 1
     _displayName: Uncommon
-    _color: {r: 0.43529412, g: 0.56078434, b: 0.6862745, a: 1}
+    _color: {r: 0.33333334, g: 0.6039216, b: 0.4117647, a: 1}
     _material: {fileID: 2100000, guid: 03f2a3c9243e78d4083e2ac34d9de167, type: 2}
   - _tier: 2
     _displayName: Rare
-    _color: {r: 0.7607843, g: 0.47843137, b: 0.2627451, a: 1}
+    _color: {r: 0.3019608, g: 0.6431373, b: 0.827451, a: 1}
     _material: {fileID: 2100000, guid: 2e64ef4164ea48b47bf7ea209f7f3dec, type: 2}
   - _tier: 3
     _displayName: Holographic
-    _color: {r: 0.8901961, g: 0.69803923, b: 0.23529412, a: 1}
+    _color: {r: 0.6862745, g: 0.63529414, b: 0.90588236, a: 1}
     _material: {fileID: 2100000, guid: c23e12f1492c4b347ba007cbba16a729, type: 2}
   - _tier: 4
     _displayName: Full Art
-    _color: {r: 0.18039216, g: 0.76862746, b: 0.7137255, a: 1}
+    _color: {r: 0.9490196, g: 0.64705884, b: 0.78039217, a: 1}
     _material: {fileID: 2100000, guid: bdc2ba8d4c4d2d443b2376c6fdd02d13, type: 2}
   - _tier: 5
     _displayName: Alternate Illustration
-    _color: {r: 0.60784316, g: 0.48235294, b: 1, a: 1}
+    _color: {r: 0.972549, g: 0.76862746, b: 0.65882355, a: 1}
     _material: {fileID: 2100000, guid: 599a301fe4bd2bf43be8f32144ff80d1, type: 2}
   - _tier: 6
     _displayName: Special Illustration
-    _color: {r: 1, g: 0.23921569, b: 0.54509807, a: 1}
+    _color: {r: 0.99215686, g: 0.8784314, b: 0.5882353, a: 1}
     _material: {fileID: 2100000, guid: 29eeb3c69fad24449b873a543250197b, type: 2}
   _cardFaceColor: {r: 0.105882354, g: 0.12156863, b: 0.14117648, a: 1}
   _cardTextColor: {r: 0.9490196, g: 0.9490196, b: 0.9490196, a: 1}

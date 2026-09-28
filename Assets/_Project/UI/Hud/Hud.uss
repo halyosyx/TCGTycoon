@@ -1,0 +1,75 @@
+/* HUD layout (style guide §7). Always the dark theme: never add .theme-light here.
+   Plates are the translucent HUD fill with no border and no shadow; all text gets
+   .text-on-world from the root, which the text shadow inherits. Tokens only. */
+
+.hud {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding-top: var(--space-10);
+    padding-right: var(--space-10);
+    padding-bottom: var(--space-10);
+    padding-left: var(--space-10);
+}
+
+.hud__plate {
+    background-color: var(--color-hud-plate);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+}
+
+.hud__top {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.hud__right {
+    align-items: flex-end;
+}
+
+/* Right-aligned so a VendorLevel plate can slot in left of the cash later (margin-right: --space-3). */
+.hud__cluster {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.hud__toasts {
+    margin-top: var(--space-3);
+    align-items: flex-end;
+}
+
+.hud .toast {
+    background-color: var(--color-hud-plate);
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+}
+
+.hud__crosshair {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+}
+
+.hud__prompt {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    margin-top: var(--offset-interaction-prompt);
+    align-items: center;
+}
+
+.hud__hints {
+    position: absolute;
+    right: var(--space-10);
+    bottom: var(--space-10);
+}

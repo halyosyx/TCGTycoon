@@ -1,6 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <Style src="Crosshair.uss" />
-    <ui:VisualElement class="hud" picking-mode="Ignore">
-        <ui:VisualElement name="crosshair" class="hud__crosshair" picking-mode="Ignore" />
-    </ui:VisualElement>
-</ui:UXML>

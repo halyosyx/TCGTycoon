@@ -25,5 +25,35 @@ namespace Game.Core.Tests.Common
         {
             Assert.That(Money.FormatAverage(362.4), Is.EqualTo("$3.62"));
         }
+
+        [TestCase(0, "$0.00")]
+        [TestCase(5, "$0.05")]
+        [TestCase(128450, "$1,284.50")]
+        [TestCase(123456789, "$1,234,567.89")]
+        public void FormatDisplay_NonNegativeCents_GroupsThousands(long cents, string expected)
+        {
+            Assert.That(Money.FormatDisplay(cents), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void FormatDisplay_NegativeCents_UsesRealMinusSign()
+        {
+            Assert.That(Money.FormatDisplay(-15000), Is.EqualTo("−$150.00"));
+        }
+
+        [Test]
+        public void FormatDisplay_MinimumLong_DoesNotOverflow()
+        {
+            Assert.That(Money.FormatDisplay(long.MinValue), Does.StartWith("−$92,233,720,368,547,758.08"));
+        }
+
+        [TestCase(1400, "+$14.00")]
+        [TestCase(0, "+$0.00")]
+        [TestCase(-15000, "−$150.00")]
+        [TestCase(250000, "+$2,500.00")]
+        public void FormatDelta_AnyCents_AlwaysCarriesASign(long cents, string expected)
+        {
+            Assert.That(Money.FormatDelta(cents), Is.EqualTo(expected));
+        }
     }
 }

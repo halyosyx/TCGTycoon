@@ -32,6 +32,9 @@ namespace Game.Unity.Player
         /// </summary>
         public bool IsInGameplay => _isInGameplay;
 
+        /// <summary>The interactor this controller drives, or null when the player can't interact.</summary>
+        public PlayerInteractor Interactor => _interactor;
+
         private static bool IsCursorLocked => Cursor.lockState == CursorLockMode.Locked;
 
         private void Awake()

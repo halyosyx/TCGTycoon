@@ -6,7 +6,7 @@
     padding: 12px;
     border-width: 8px;
     border-radius: 16px;
-    border-color: rgb(154, 163, 173);
+    border-color: rgb(124, 118, 113);
     background-color: rgb(27, 31, 36);
 }
 
@@ -37,5 +37,5 @@
     font-size: 18px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    color: rgb(154, 163, 173);
+    color: rgb(124, 118, 113);
 }

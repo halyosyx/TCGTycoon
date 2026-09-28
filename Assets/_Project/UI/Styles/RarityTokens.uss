@@ -1,0 +1,11 @@
+/* GENERATED from the Rarity Palette (Assets/_Project/Data/Visuals/RarityPalette.asset) by TCG/UI/Export Rarity Tokens.
+   Do not edit: change the palette and this file is rewritten. Tier 1 is the lowest tier. */
+:root {
+    --color-tier-1: #7C7671;   /* Common */
+    --color-tier-2: #559A69;   /* Uncommon */
+    --color-tier-3: #4DA4D3;   /* Rare */
+    --color-tier-4: #AFA2E7;   /* Holographic */
+    --color-tier-5: #F2A5C7;   /* Full Art */
+    --color-tier-6: #F8C4A8;   /* Alternate Illustration */
+    --color-tier-7: #FDE096;   /* Special Illustration */
+}
