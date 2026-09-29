@@ -6,7 +6,7 @@ using static System.FormattableString;
 namespace Game.Unity.DebugTools
 {
     /// <summary>
-    /// Play Mode commands on the running session's inventory, for checking inventory screens without
+    /// Play Mode commands on the running session's inventory, for checking the binder without
     /// opening packs by hand. Plain C#, like <see cref="PackDebugCommands"/>, so the editor console and a
     /// future in-game console can host them. Granted cards cost their value, as if bought at market.
     /// </summary>
@@ -17,9 +17,9 @@ namespace Game.Unity.DebugTools
         public const string HelpText =
             "Inventory commands (Play Mode, on the scene's session):\n" +
             "  inventory.sample                 grant every card in the pool once, plus extra copies of Commons,\n" +
-            "                                   Uncommons and one hit (fills every singles tab and pages Bulk)";
+            "                                   Uncommons and one hit (fills the set tab past one spread)";
 
-        // Extra copies so copy badges show and Bulk runs past one spread.
+        // Extra copies so copy badges show on Commons, Uncommons and one hit.
         private const int ExtraCommonCopies = 2;
         private const int ExtraUncommonCopies = 1;
         private const int ExtraHitCopies = 1;

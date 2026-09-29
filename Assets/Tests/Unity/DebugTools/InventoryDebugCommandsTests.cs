@@ -17,7 +17,7 @@ namespace Game.Unity.Tests.DebugTools
         }
 
         [Test]
-        public void Execute_Sample_GrantsEveryCardWithExtraCopiesOfBulkAndOneHit()
+        public void Execute_Sample_GrantsEveryCardWithExtraCopiesOfCommonsUncommonsAndOneHit()
         {
             GameSession session = CreateSession();
 

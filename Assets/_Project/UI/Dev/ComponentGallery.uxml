@@ -92,7 +92,6 @@
             <kit:KitTab title="Set A" count="34" active="true" />
             <kit:KitTab title="Set B" count="0" class="gallery__stacked" />
             <kit:KitTab title="Sealed" count="3" class="kit-tab--hover gallery__stacked" />
-            <kit:KitTab title="Bulk" count="112" class="gallery__stacked" />
         </ui:VisualElement>
     </ui:ScrollView>
 </ui:UXML>
