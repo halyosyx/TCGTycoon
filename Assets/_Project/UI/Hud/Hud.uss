@@ -1,6 +1,8 @@
 /* HUD layout (style guide §7). Always the dark theme: never add .theme-light here.
    Plates are the translucent HUD fill with no border and no shadow; all text gets
-   .text-on-world from the root, which the text shadow inherits. Tokens only. */
+   .text-on-world from the root, which the text shadow inherits. Tokens only.
+   The day clock and cash plates sit flush in the top corners; toasts, key hints and
+   the centre elements keep the --space-10 inset. */
 
 .hud {
     position: absolute;
@@ -8,10 +10,6 @@
     top: 0;
     right: 0;
     bottom: 0;
-    padding-top: var(--space-10);
-    padding-right: var(--space-10);
-    padding-bottom: var(--space-10);
-    padding-left: var(--space-10);
 }
 
 .hud__plate {
@@ -20,6 +18,19 @@
     border-top-right-radius: var(--radius-lg);
     border-bottom-left-radius: var(--radius-lg);
     border-bottom-right-radius: var(--radius-lg);
+}
+
+/* A corner plate touches two screen edges, so only its inner corner is rounded. */
+.hud__plate--top-left {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.hud__plate--top-right {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .hud__top {
@@ -41,6 +52,7 @@
 
 .hud__toasts {
     margin-top: var(--space-3);
+    margin-right: var(--space-10);
     align-items: flex-end;
 }
 

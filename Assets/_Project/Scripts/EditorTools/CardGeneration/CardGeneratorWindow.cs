@@ -49,6 +49,7 @@ namespace Game.EditorTools.CardGeneration
             EditorGUILayout.LabelField("Set", EditorStyles.boldLabel);
             _settings.SetId = EditorGUILayout.TextField("Set id", _settings.SetId);
             _settings.SetDisplayName = EditorGUILayout.TextField("Display name", _settings.SetDisplayName);
+            _settings.SetShortName = EditorGUILayout.TextField(new GUIContent("Short name", "Tab label in the binder."), _settings.SetShortName);
             _settings.Seed = EditorGUILayout.IntField(new GUIContent("Seed", "Same seed, same names."), _settings.Seed);
 
             EditorGUILayout.Space();

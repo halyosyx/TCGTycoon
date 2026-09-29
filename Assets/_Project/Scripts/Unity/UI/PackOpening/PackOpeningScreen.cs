@@ -160,6 +160,8 @@ namespace Game.Unity.UI.PackOpening
                 _storeButton.clicked -= Store;
             }
 
+            // Disable before disposing, or the generated wrapper warns about a leak when it is finalized.
+            _controls.Screens.Disable();
             _controls.Dispose();
         }
 

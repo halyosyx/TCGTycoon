@@ -1,0 +1,37 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:kit="Game.Unity.UI.Controls" editor-extension-mode="False">
+    <!-- PROTOTYPE: temporary Binder UI. Replace, don't extend. See Docs/UI/UI_STYLE_GUIDE.md §8.
+         Pockets are added by BinderPrototypeScreen into the page rows, and tabs (one per card set, then
+         Sealed) into binder-tabs. Uses ScreensPanelSettings (GameTheme). -->
+    <Style src="Binder.uss" />
+    <ui:VisualElement name="binder" class="binder">
+        <ui:VisualElement class="binder__column">
+            <ui:VisualElement class="binder__body">
+                <ui:VisualElement class="binder__cover">
+                    <ui:VisualElement class="binder__page-column">
+                        <ui:VisualElement name="page-left" class="binder__page">
+                            <ui:VisualElement class="binder__row" />
+                            <ui:VisualElement class="binder__row binder__row--spaced" />
+                            <ui:VisualElement class="binder__row binder__row--spaced" />
+                        </ui:VisualElement>
+                        <ui:Label name="page-left-number" text="1" class="num-sm binder__page-number" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="binder__spine">
+                        <ui:VisualElement class="binder__ring" />
+                        <ui:VisualElement class="binder__ring" />
+                        <ui:VisualElement class="binder__ring" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="binder__page-column">
+                        <ui:VisualElement name="page-right" class="binder__page">
+                            <ui:VisualElement class="binder__row" />
+                            <ui:VisualElement class="binder__row binder__row--spaced" />
+                            <ui:VisualElement class="binder__row binder__row--spaced" />
+                        </ui:VisualElement>
+                        <ui:Label name="page-right-number" text="2" class="num-sm binder__page-number" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="binder-tabs" class="binder__tabs" />
+            </ui:VisualElement>
+            <kit:KeyHints name="binder-hints" hints="A/D:Page;Q/E:Tab;Enter:Card details;I:Close" class="binder__hints" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -259,6 +259,56 @@ namespace Game.Unity.Player
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""BinderPreviousTab"",
+                    ""type"": ""Button"",
+                    ""id"": ""fb41215a-37b7-4484-98f6-1e50a6dd0b72"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""BinderNextTab"",
+                    ""type"": ""Button"",
+                    ""id"": ""ee174dfa-c431-4985-b0fe-92cf33b3e42c"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""BinderPreviousPage"",
+                    ""type"": ""Button"",
+                    ""id"": ""0a2d685b-6863-46cb-ab4a-ff609735740b"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""BinderNextPage"",
+                    ""type"": ""Button"",
+                    ""id"": ""5b9ba747-9df2-43ad-bdc4-e2c019dd672d"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Submit"",
+                    ""type"": ""Button"",
+                    ""id"": ""d225e68b-9b4f-4f5f-b0cc-7a4281cdbd11"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -294,6 +344,72 @@ namespace Game.Unity.Player
                     ""action"": ""Dismiss"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4e4f6aa9-0061-456b-87ff-2d8a6826e542"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BinderPreviousTab"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f8ab6123-7ff2-4601-af73-458c59097875"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BinderNextTab"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""69e74f66-b616-45f5-8fc6-c834fa843ef1"",
+                    ""path"": ""<Keyboard>/a"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BinderPreviousPage"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7e44207d-f13e-471e-b291-69555becaaf1"",
+                    ""path"": ""<Keyboard>/d"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BinderNextPage"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1ebe0d5b-d6d8-41dd-8ba2-70b354cad70f"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Submit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6fa3f5b5-0e48-4818-abe4-cceb3a75868d"",
+                    ""path"": ""<Keyboard>/numpadEnter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Submit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -311,6 +427,11 @@ namespace Game.Unity.Player
             m_Screens_QuickOpen = m_Screens.FindAction("QuickOpen", throwIfNotFound: true);
             m_Screens_ToggleInventory = m_Screens.FindAction("ToggleInventory", throwIfNotFound: true);
             m_Screens_Dismiss = m_Screens.FindAction("Dismiss", throwIfNotFound: true);
+            m_Screens_BinderPreviousTab = m_Screens.FindAction("BinderPreviousTab", throwIfNotFound: true);
+            m_Screens_BinderNextTab = m_Screens.FindAction("BinderNextTab", throwIfNotFound: true);
+            m_Screens_BinderPreviousPage = m_Screens.FindAction("BinderPreviousPage", throwIfNotFound: true);
+            m_Screens_BinderNextPage = m_Screens.FindAction("BinderNextPage", throwIfNotFound: true);
+            m_Screens_Submit = m_Screens.FindAction("Submit", throwIfNotFound: true);
         }
 
         ~@PlayerControls()
@@ -524,6 +645,11 @@ namespace Game.Unity.Player
         private readonly InputAction m_Screens_QuickOpen;
         private readonly InputAction m_Screens_ToggleInventory;
         private readonly InputAction m_Screens_Dismiss;
+        private readonly InputAction m_Screens_BinderPreviousTab;
+        private readonly InputAction m_Screens_BinderNextTab;
+        private readonly InputAction m_Screens_BinderPreviousPage;
+        private readonly InputAction m_Screens_BinderNextPage;
+        private readonly InputAction m_Screens_Submit;
         /// <summary>
         /// Provides access to input actions defined in input action map "Screens".
         /// </summary>
@@ -547,6 +673,26 @@ namespace Game.Unity.Player
             /// Provides access to the underlying input action "Screens/Dismiss".
             /// </summary>
             public InputAction @Dismiss => m_Wrapper.m_Screens_Dismiss;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/BinderPreviousTab".
+            /// </summary>
+            public InputAction @BinderPreviousTab => m_Wrapper.m_Screens_BinderPreviousTab;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/BinderNextTab".
+            /// </summary>
+            public InputAction @BinderNextTab => m_Wrapper.m_Screens_BinderNextTab;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/BinderPreviousPage".
+            /// </summary>
+            public InputAction @BinderPreviousPage => m_Wrapper.m_Screens_BinderPreviousPage;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/BinderNextPage".
+            /// </summary>
+            public InputAction @BinderNextPage => m_Wrapper.m_Screens_BinderNextPage;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/Submit".
+            /// </summary>
+            public InputAction @Submit => m_Wrapper.m_Screens_Submit;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -582,6 +728,21 @@ namespace Game.Unity.Player
                 @Dismiss.started += instance.OnDismiss;
                 @Dismiss.performed += instance.OnDismiss;
                 @Dismiss.canceled += instance.OnDismiss;
+                @BinderPreviousTab.started += instance.OnBinderPreviousTab;
+                @BinderPreviousTab.performed += instance.OnBinderPreviousTab;
+                @BinderPreviousTab.canceled += instance.OnBinderPreviousTab;
+                @BinderNextTab.started += instance.OnBinderNextTab;
+                @BinderNextTab.performed += instance.OnBinderNextTab;
+                @BinderNextTab.canceled += instance.OnBinderNextTab;
+                @BinderPreviousPage.started += instance.OnBinderPreviousPage;
+                @BinderPreviousPage.performed += instance.OnBinderPreviousPage;
+                @BinderPreviousPage.canceled += instance.OnBinderPreviousPage;
+                @BinderNextPage.started += instance.OnBinderNextPage;
+                @BinderNextPage.performed += instance.OnBinderNextPage;
+                @BinderNextPage.canceled += instance.OnBinderNextPage;
+                @Submit.started += instance.OnSubmit;
+                @Submit.performed += instance.OnSubmit;
+                @Submit.canceled += instance.OnSubmit;
             }
 
             /// <summary>
@@ -602,6 +763,21 @@ namespace Game.Unity.Player
                 @Dismiss.started -= instance.OnDismiss;
                 @Dismiss.performed -= instance.OnDismiss;
                 @Dismiss.canceled -= instance.OnDismiss;
+                @BinderPreviousTab.started -= instance.OnBinderPreviousTab;
+                @BinderPreviousTab.performed -= instance.OnBinderPreviousTab;
+                @BinderPreviousTab.canceled -= instance.OnBinderPreviousTab;
+                @BinderNextTab.started -= instance.OnBinderNextTab;
+                @BinderNextTab.performed -= instance.OnBinderNextTab;
+                @BinderNextTab.canceled -= instance.OnBinderNextTab;
+                @BinderPreviousPage.started -= instance.OnBinderPreviousPage;
+                @BinderPreviousPage.performed -= instance.OnBinderPreviousPage;
+                @BinderPreviousPage.canceled -= instance.OnBinderPreviousPage;
+                @BinderNextPage.started -= instance.OnBinderNextPage;
+                @BinderNextPage.performed -= instance.OnBinderNextPage;
+                @BinderNextPage.canceled -= instance.OnBinderNextPage;
+                @Submit.started -= instance.OnSubmit;
+                @Submit.performed -= instance.OnSubmit;
+                @Submit.canceled -= instance.OnSubmit;
             }
 
             /// <summary>
@@ -699,6 +875,41 @@ namespace Game.Unity.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnDismiss(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "BinderPreviousTab" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnBinderPreviousTab(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "BinderNextTab" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnBinderNextTab(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "BinderPreviousPage" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnBinderPreviousPage(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "BinderNextPage" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnBinderNextPage(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Submit" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSubmit(InputAction.CallbackContext context);
         }
     }
 }

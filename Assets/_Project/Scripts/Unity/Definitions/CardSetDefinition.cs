@@ -10,6 +10,7 @@ namespace Game.Unity.Definitions
     {
         public const string IdField = nameof(_id);
         public const string DisplayNameField = nameof(_displayName);
+        public const string ShortNameField = nameof(_shortName);
         public const string CardsField = nameof(_cards);
 
         [SerializeField]
@@ -18,12 +19,18 @@ namespace Game.Unity.Definitions
         [SerializeField]
         private string _displayName;
 
+        [SerializeField, Tooltip("Short label for tight spots such as the binder's tabs (e.g. \"Set A\"). Empty: the display name is used.")]
+        private string _shortName;
+
         [SerializeField]
         private List<CardDefinition> _cards = new List<CardDefinition>();
 
         public string Id => _id;
 
         public string DisplayName => _displayName;
+
+        /// <summary>The short name, or the display name (then the id) when it is empty.</summary>
+        public string ShortName => !string.IsNullOrEmpty(_shortName) ? _shortName : !string.IsNullOrEmpty(_displayName) ? _displayName : _id;
 
         public IReadOnlyList<CardDefinition> Cards => _cards;
 

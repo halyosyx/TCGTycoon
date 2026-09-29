@@ -272,6 +272,7 @@ namespace Game.EditorTools.CardGeneration
             var serialized = new SerializedObject(set);
             serialized.FindProperty(CardSetDefinition.IdField).stringValue = settings.SetId;
             serialized.FindProperty(CardSetDefinition.DisplayNameField).stringValue = settings.SetDisplayName;
+            serialized.FindProperty(CardSetDefinition.ShortNameField).stringValue = settings.SetShortName;
             SerializedProperty cardList = serialized.FindProperty(CardSetDefinition.CardsField);
             cardList.arraySize = plan.Count;
             for (int index = 0; index < plan.Count; index++)

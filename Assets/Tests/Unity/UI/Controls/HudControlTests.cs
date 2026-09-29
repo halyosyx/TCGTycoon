@@ -1,6 +1,7 @@
 using Game.Core.Session;
 using Game.Unity.UI.Controls;
 using NUnit.Framework;
+using UnityEngine.UIElements;
 
 namespace Game.Unity.Tests.UI.Controls
 {
@@ -9,32 +10,52 @@ namespace Game.Unity.Tests.UI.Controls
         private const string Minus = "−";
 
         [Test]
-        public void DayClock_PrepNight_ShowsFixedTenPmAndTaglineWhateverTimeIsSet()
+        public void DayClock_PrepNight_ShowsFixedTenPmWhateverTimeIsSet()
         {
             var clock = new DayClock();
             clock.SetTime(14, 30);
 
             clock.SetDay(3, DayKind.PrepNight);
 
-            Assert.That(clock.DayText, Is.EqualTo("Day 3"));
+            Assert.That(clock.HeadlineText, Is.EqualTo("Day 3  10:00 PM"));
             Assert.That(clock.KindText, Is.EqualTo("Prep Night"));
-            Assert.That(clock.TimeText, Is.EqualTo("10:00"));
-            Assert.That(clock.MeridiemText, Is.EqualTo("PM"));
-            Assert.That(clock.IsTaglineShown, Is.True);
         }
 
         [Test]
-        public void DayClock_ShowDay_ShowsSetTimeWithoutTagline()
+        public void DayClock_ShowDay_ShowsSetTime()
         {
             var clock = new DayClock();
 
             clock.SetDay(4, DayKind.ShowDay);
             clock.SetTime(13, 5);
 
+            Assert.That(clock.HeadlineText, Is.EqualTo("Day 4  1:05 PM"));
             Assert.That(clock.KindText, Is.EqualTo("Show Day"));
-            Assert.That(clock.TimeText, Is.EqualTo("1:05"));
-            Assert.That(clock.MeridiemText, Is.EqualTo("PM"));
-            Assert.That(clock.IsTaglineShown, Is.False);
+        }
+
+        [Test]
+        public void DayClock_Layout_OneHeadlineInHudNumberStyleWithKindBelow()
+        {
+            var clock = new DayClock();
+
+            VisualElement line = clock.Q(className: DayClock.LineClassName);
+            VisualElement headline = clock.Q(className: DayClock.HeadlineClassName);
+
+            Assert.That(clock.childCount, Is.EqualTo(2));
+            Assert.That(clock[0], Is.SameAs(line));
+            Assert.That(line[0], Is.SameAs(headline));
+            Assert.That(clock[1].ClassListContains(DayClock.KindClassName), Is.True);
+
+            // Same text role as the cash amount, so the two corners read at one size.
+            Assert.That(headline.ClassListContains(KitClasses.NumberHud), Is.True);
+            Assert.That(new CashReadout().Q(className: CashReadout.AmountClassName).ClassListContains(KitClasses.NumberHud), Is.True);
+        }
+
+        [TestCase(1, 22, 0, "Day 1  10:00 PM")]
+        [TestCase(12, 9, 5, "Day 12  9:05 AM")]
+        public void DayClock_FormatHeadline_DayThenTwelveHourClock(int day, int hour, int minute, string expected)
+        {
+            Assert.That(DayClock.FormatHeadline(day, hour, minute), Is.EqualTo(expected));
         }
 
         [TestCase(0, 0, "12:00", "AM")]
@@ -74,6 +95,17 @@ namespace Game.Unity.Tests.UI.Controls
 
             Assert.That(cash.AmountText, Is.EqualTo("$1,284.50"));
             Assert.That(cash.IsEventShown, Is.False);
+        }
+
+        [Test]
+        public void CashReadout_New_EventLineCollapsedSoThePlateHugsTheAmount()
+        {
+            var cash = new CashReadout();
+
+            VisualElement eventLine = cash.Q(className: CashReadout.EventClassName);
+
+            Assert.That(cash.IsEventShown, Is.False);
+            Assert.That(eventLine.ClassListContains(CashReadout.EventCollapsedClassName), Is.True);
         }
 
         [Test]

@@ -280,8 +280,10 @@
 .tier-chip--tier-7 { border-top-color: var(--color-tier-7); border-right-color: var(--color-tier-7); border-bottom-color: var(--color-tier-7); border-left-color: var(--color-tier-7); }
 
 /* ---- Card face (placeholder). Border width is set in code from the card's
-        width (style guide: width / 40, min 3); the parent sets the size (63:88). ---- */
+        width (style guide: width / 40, never under --border-width-card-min, which
+        CardFace reads through --card-face-border-min); the parent sets the size (63:88). ---- */
 .card-face {
+    --card-face-border-min: var(--border-width-card-min);
     justify-content: space-between;
     padding-top: var(--space-2);
     padding-right: var(--space-2);
@@ -340,6 +342,14 @@
     font-size: var(--font-size-xs);
     color: var(--color-card-muted);
     white-space: normal;
+}
+
+/* Sealed-product placeholder: a neutral frame, so no tier colour is implied. */
+.card-face--neutral {
+    border-top-color: var(--color-border);
+    border-right-color: var(--color-border);
+    border-bottom-color: var(--color-border);
+    border-left-color: var(--color-border);
 }
 
 .card-face--tier-1 { border-top-color: var(--color-tier-1); border-right-color: var(--color-tier-1); border-bottom-color: var(--color-tier-1); border-left-color: var(--color-tier-1); }
@@ -479,8 +489,10 @@
 }
 
 /* ---- Day clock ---- */
+/* One headline, "Day 1  10:00 PM", in .num-hud like the cash amount; the day kind is its own line
+   beneath. The width hugs the content. */
 .day-clock {
-    width: var(--size-day-clock-width);
+    align-items: flex-start;
     padding-top: var(--space-day-clock-y);
     padding-bottom: var(--space-day-clock-y);
     padding-left: var(--space-5);
@@ -498,49 +510,25 @@
     padding-left: 0;
 }
 
-.day-clock__heading {
+.day-clock__line {
     flex-direction: row;
     align-items: flex-end;
-}
-
-.day-clock__day {
-    font-size: var(--font-size-hud-day);
-    color: var(--color-text);
 }
 
 .day-clock Label.day-clock__kind {
-    margin-left: var(--space-3);
-}
-
-.day-clock__clock {
-    flex-direction: row;
-    align-items: flex-end;
-    margin-top: var(--space-1);
-}
-
-.day-clock Label.day-clock__meridiem {
-    margin-left: var(--space-1);
-    margin-bottom: var(--space-2);
-    font-size: var(--font-size-lg);
-    color: var(--color-text-muted);
+    margin-top: var(--offset-day-clock-kind);
 }
 
 .day-clock Label.day-clock__closing {
     margin-left: var(--space-3);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--offset-day-clock-closing);
     font-size: var(--font-size-hud-alert);
     color: var(--color-negative);
 }
 
-.day-clock Label.day-clock__tagline {
-    margin-top: var(--space-1);
-    font-size: var(--font-size-md);
-    color: var(--color-accent);
-}
-
 /* ---- Cash readout ---- */
+/* Hugs the amount; the event line takes space only while it shows. */
 .cash-readout {
-    width: var(--size-cash-readout-width);
     align-items: flex-end;
     padding-top: var(--space-4);
     padding-bottom: var(--space-4);
@@ -556,7 +544,7 @@
     -unity-text-align: middle-right;
 }
 
-/* The event line keeps its space and fades, so the readout never jumps when it appears. */
+/* The event line fades in and out, and is collapsed (no space) while hidden. */
 .cash-readout__event {
     flex-direction: row;
     align-items: center;
@@ -568,6 +556,10 @@
 
 .cash-readout__event--visible {
     opacity: 1;
+}
+
+.cash-readout__event--collapsed {
+    display: none;
 }
 
 .cash-readout__event-label {

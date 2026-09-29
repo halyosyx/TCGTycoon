@@ -17,8 +17,6 @@ namespace Game.Unity.UI.Controls
         /// <summary>How long a toast stays up, in milliseconds.</summary>
         public const long ToastMilliseconds = 4000;
 
-        // Matches --duration-medium, the fade in Components.uss, so a toast leaves after it has faded.
-        private const long FadeMilliseconds = 240;
         private const int DefaultMaxToasts = 4;
 
         private readonly List<Toast> _toasts = new List<Toast>();
@@ -69,14 +67,16 @@ namespace Game.Unity.UI.Controls
                 return;
             }
 
-            if (isImmediate)
+            // The fade is the toast's USS transition (--duration-medium), so the token alone sets it.
+            long fadeMilliseconds = isImmediate ? 0 : UiTransitions.LongestMilliseconds(toast);
+            if (fadeMilliseconds <= 0)
             {
                 toast.RemoveFromHierarchy();
             }
             else
             {
                 toast.RemoveFromClassList(Toast.ShownClassName);
-                toast.schedule.Execute(toast.RemoveFromHierarchy).StartingIn(FadeMilliseconds);
+                toast.schedule.Execute(toast.RemoveFromHierarchy).StartingIn(fadeMilliseconds);
             }
 
             RefreshSpacing();

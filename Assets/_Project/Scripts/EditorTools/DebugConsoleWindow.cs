@@ -5,6 +5,7 @@ using Game.Core.Inventory;
 using Game.Core.Packs;
 using Game.Unity.DebugTools;
 using Game.Unity.Definitions;
+using Game.Unity.Flow;
 using Game.Unity.UI.Hud;
 using UnityEditor;
 using UnityEngine;
@@ -145,6 +146,12 @@ namespace Game.EditorTools
                 return;
             }
 
+            if (InventoryDebugCommands.Handles(command))
+            {
+                AppendLog($"> {command}\n{RunInventoryCommand(command)}");
+                return;
+            }
+
             if (_commands == null && !TryStartSession(out string error))
             {
                 AppendLog($"> {command}\n{error}");
@@ -154,7 +161,7 @@ namespace Game.EditorTools
             string output = _commands.Execute(command);
             if (string.Equals(command, "help", StringComparison.OrdinalIgnoreCase))
             {
-                output += "\n\n" + HudDebugCommands.HelpText;
+                output += "\n\n" + HudDebugCommands.HelpText + "\n\n" + InventoryDebugCommands.HelpText;
             }
 
             AppendLog($"> {command}\n{output}");
@@ -170,6 +177,20 @@ namespace Game.EditorTools
 
             var hud = UnityEngine.Object.FindFirstObjectByType<HudPresenter>();
             return hud == null ? "No HUD in the open scene." : new HudDebugCommands(hud).Execute(command);
+        }
+
+        // Inventory commands act on the scene's running session, which is what the binder shows.
+        private static string RunInventoryCommand(string command)
+        {
+            if (!EditorApplication.isPlaying)
+            {
+                return "Inventory commands need Play Mode.";
+            }
+
+            var bootstrap = UnityEngine.Object.FindFirstObjectByType<GameBootstrap>();
+            return bootstrap == null || bootstrap.Session == null
+                ? "No running session in the open scene."
+                : new InventoryDebugCommands(bootstrap.Session).Execute(command);
         }
 
         private bool TryStartSession(out string error)

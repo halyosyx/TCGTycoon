@@ -50,12 +50,58 @@ namespace Game.Unity.Tests.UI.Controls
             Assert.That(card.ClassListContains("card-face--tier-3"), Is.False);
         }
 
+        [Test]
+        public void CardFace_SetProduct_NeutralFaceWithDetailAndNoTierClass()
+        {
+            var card = new CardFace();
+            card.SetCard(5, "Orunos", "SetA_FullArt_01");
+
+            card.SetProduct("Booster Box", "Set A · 36 packs");
+
+            Assert.That(card.IsProduct, Is.True);
+            Assert.That(card.ClassListContains(CardFace.NeutralClassName), Is.True);
+            Assert.That(card.ClassListContains("card-face--tier-5"), Is.False);
+            Assert.That(card.CardName, Is.EqualTo("Booster Box"));
+            Assert.That(card.TierName, Is.EqualTo("Set A · 36 packs"));
+            Assert.That(card.CardId, Is.Empty);
+        }
+
+        [Test]
+        public void CardFace_SetCardAfterProduct_BackToTierColouredCard()
+        {
+            var card = new CardFace();
+            card.SetProduct("Booster Pack", "Set A · 1 pack");
+
+            card.SetCard(3, "Rynorth", "SetA_Rare_04");
+
+            Assert.That(card.IsProduct, Is.False);
+            Assert.That(card.ClassListContains("card-face--tier-3"), Is.True);
+            Assert.That(card.TierName, Is.EqualTo("Rare"));
+        }
+
         [TestCase(152f, 4f)]
         [TestCase(250f, 6f)]
         [TestCase(60f, 3f)]
-        public void CardFace_BorderWidthFor_IsFortiethOfWidthButAtLeastThree(float cardWidth, float expected)
+        public void CardFace_BorderWidthFor_IsFortiethOfWidthButAtLeastTheFloor(float cardWidth, float expected)
         {
-            Assert.That(CardFace.BorderWidthFor(cardWidth), Is.EqualTo(expected));
+            // 3 is the --border-width-card-min token's value.
+            Assert.That(CardFace.BorderWidthFor(cardWidth, 3f), Is.EqualTo(expected));
+        }
+
+        [TestCase("3px", true, 3f)]
+        [TestCase(" 2.5px ", true, 2.5f)]
+        [TestCase("4", true, 4f)]
+        [TestCase("wide", false, 0f)]
+        [TestCase(null, false, 0f)]
+        public void CardFace_TryParsePixels_ReadsUssLengths(string value, bool expectedParsed, float expectedPixels)
+        {
+            bool isParsed = CardFace.TryParsePixels(value, out float pixels);
+
+            Assert.That(isParsed, Is.EqualTo(expectedParsed));
+            if (expectedParsed)
+            {
+                Assert.That(pixels, Is.EqualTo(expectedPixels));
+            }
         }
 
         [Test]

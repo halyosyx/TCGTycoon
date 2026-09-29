@@ -1,0 +1,165 @@
+/* PROTOTYPE: temporary Binder UI. Replace, don't extend. See Docs/UI/UI_STYLE_GUIDE.md §8.
+   Layout only; the pieces are shared kit controls. Tokens only. */
+
+.binder {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-scrim);
+}
+
+.binder__column {
+    align-items: stretch;
+}
+
+.binder__body {
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.binder__cover {
+    flex-direction: row;
+    padding-top: var(--space-5);
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+    padding-bottom: 0;
+    background-color: var(--color-cover);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+}
+
+.binder__page-column {
+    align-items: center;
+}
+
+.binder__page {
+    padding-top: var(--space-5);
+    padding-right: var(--space-5);
+    padding-bottom: var(--space-5);
+    padding-left: var(--space-5);
+    background-color: var(--color-page);
+    border-top-left-radius: var(--radius-sm);
+    border-top-right-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-sm);
+}
+
+.binder__row {
+    flex-direction: row;
+}
+
+.binder__row--spaced {
+    margin-top: var(--space-3);
+}
+
+/* The cover's bottom padding holds the page numbers. */
+.binder__page-number {
+    height: var(--space-cover-bottom);
+    -unity-text-align: middle-center;
+    color: var(--color-text-muted);
+}
+
+.binder__spine {
+    width: var(--size-binder-spine);
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: var(--space-cover-bottom);
+}
+
+.binder__ring {
+    width: var(--size-binder-ring);
+    height: var(--size-binder-ring);
+    border-top-width: var(--border-width-focus);
+    border-right-width: var(--border-width-focus);
+    border-bottom-width: var(--border-width-focus);
+    border-left-width: var(--border-width-focus);
+    border-top-color: var(--color-page-border);
+    border-right-color: var(--color-page-border);
+    border-bottom-color: var(--color-page-border);
+    border-left-color: var(--color-page-border);
+    border-top-left-radius: 50%;
+    border-top-right-radius: 50%;
+    border-bottom-left-radius: 50%;
+    border-bottom-right-radius: 50%;
+}
+
+.binder__tabs {
+    margin-top: var(--space-8);
+}
+
+.binder__tab--spaced {
+    margin-top: var(--space-2);
+}
+
+.binder__hints {
+    margin-top: var(--space-3);
+    align-self: center;
+}
+
+/* ---- Pockets ---- */
+.binder-pocket {
+    position: relative;
+    width: var(--size-pocket-width);
+    height: var(--size-pocket-height);
+    align-items: center;
+    justify-content: center;
+    padding-top: var(--space-pocket);
+    padding-right: var(--space-pocket);
+    padding-bottom: var(--space-pocket);
+    padding-left: var(--space-pocket);
+    border-top-width: var(--border-width);
+    border-right-width: var(--border-width);
+    border-bottom-width: var(--border-width);
+    border-left-width: var(--border-width);
+    border-top-color: var(--color-page-border);
+    border-right-color: var(--color-page-border);
+    border-bottom-color: var(--color-page-border);
+    border-left-color: var(--color-page-border);
+    border-top-left-radius: var(--radius-sm);
+    border-top-right-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-sm);
+}
+
+.binder-pocket--spaced {
+    margin-left: var(--space-3);
+}
+
+.binder-pocket:hover {
+    border-top-color: var(--color-text-muted);
+    border-right-color: var(--color-text-muted);
+    border-bottom-color: var(--color-text-muted);
+    border-left-color: var(--color-text-muted);
+}
+
+.binder-pocket--empty {
+    opacity: var(--opacity-subdued);
+}
+
+.binder-pocket--selected,
+.binder-pocket--selected:hover {
+    top: var(--offset-pocket-selected);
+    border-top-width: var(--border-width-focus);
+    border-right-width: var(--border-width-focus);
+    border-bottom-width: var(--border-width-focus);
+    border-left-width: var(--border-width-focus);
+    border-top-color: var(--color-accent);
+    border-right-color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+    border-left-color: var(--color-accent);
+}
+
+.binder-pocket__card {
+    width: var(--size-pocket-card-width);
+    height: var(--size-pocket-card-height);
+}
+
+.binder-pocket__empty-label {
+    -unity-text-align: middle-center;
+}

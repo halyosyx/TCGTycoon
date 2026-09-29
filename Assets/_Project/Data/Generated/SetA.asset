@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Unity::Game.Unity.Definitions.CardSetDefinition
   _id: SetA
   _displayName: 'Mythbound: First Light'
+  _shortName: Set A
   _cards:
   - {fileID: 11400000, guid: 0c9df45f4659f5a448f3971a3038a264, type: 2}
   - {fileID: 11400000, guid: 55277f967dc81cf4f9ad495e6a69538c, type: 2}

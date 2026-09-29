@@ -84,6 +84,7 @@
             <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="5" card-name="Orunos Colossus" card-id="SetA_FullArt_01" class="gallery__card-face" /></ui:VisualElement>
             <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="6" card-name="Orawyn Herald" card-id="SetA_AltArt_01" class="gallery__card-face" /></ui:VisualElement>
             <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="7" card-name="Braolin Crowned in Ash" card-id="SetA_SpecialArt_01" class="gallery__card-face" /><kit:CopyBadge count="1" corner="true" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace card-name="Booster Box" product-detail="Set A · 36 packs" class="gallery__card-face" /><kit:CopyBadge count="2" corner="true" /></ui:VisualElement>
         </ui:VisualElement>
 
         <ui:Label text="Tab" class="text-heading gallery__section-title" />

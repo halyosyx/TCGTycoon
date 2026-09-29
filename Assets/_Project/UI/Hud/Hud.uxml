@@ -4,11 +4,11 @@
     <Style src="Hud.uss" />
     <ui:VisualElement name="hud" class="hud text-on-world">
         <ui:VisualElement class="hud__top">
-            <kit:DayClock name="day-clock" class="hud__plate" />
+            <kit:DayClock name="day-clock" class="hud__plate hud__plate--top-left" />
             <ui:VisualElement class="hud__right">
                 <ui:VisualElement class="hud__cluster">
                     <!-- VendorLevel (up for discussion, not v1) slots in here, left of the cash. -->
-                    <kit:CashReadout name="cash-readout" class="hud__plate" />
+                    <kit:CashReadout name="cash-readout" class="hud__plate hud__plate--top-right" />
                 </ui:VisualElement>
                 <kit:ToastStack name="toasts" class="hud__toasts" />
             </ui:VisualElement>

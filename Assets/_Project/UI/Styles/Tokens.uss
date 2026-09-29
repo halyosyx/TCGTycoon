@@ -94,15 +94,16 @@
     --size-tab-height: 56px;
     --size-tab-width: 140px;
     --size-tab-width-active: 156px;
+    --border-width-card-min: 3px;     /* card face border floor; above it the border is width / 40 (§6) */
     --size-pocket-card-width: 152px;  /* card face inside a binder pocket (style guide §8), 63:88 */
     --size-pocket-card-height: 217px;
 
-    /* ---- HUD sizes (style guide §7). The HUD sits --space-10 (40px) in from the screen edges. ---- */
-    --font-size-hud-day: 26px;          /* "Day 8" */
+    /* ---- HUD sizes (style guide §7). The day clock and cash plates sit flush in the top corners;
+            everything else sits --space-10 (40px) in from the screen edges. ---- */
     --font-size-hud-alert: 17px;        /* "Closing soon" */
-    --size-day-clock-width: 320px;
     --space-day-clock-y: 18px;          /* DayClock vertical padding (horizontal is --space-5) */
-    --size-cash-readout-width: 260px;
+    --offset-day-clock-closing: 5px;    /* lifts "Closing soon" onto the headline's baseline */
+    --offset-day-clock-kind: -12px;     /* pulls the day type up into the space under the headline */
     --size-toast-width: 340px;
     --size-toast-status: 32px;          /* toast status square */
     --size-crosshair-dot: 8px;
@@ -110,6 +111,15 @@
     --size-crosshair-ring-dot: 6px;
     --border-width-crosshair-ring: 2px;
     --offset-interaction-prompt: 58px;  /* below the screen centre */
+
+    /* ---- Binder sizes (style guide §8). Pages use --space-5 padding and --space-3 between pockets. ---- */
+    --size-pocket-width: 164px;
+    --size-pocket-height: 229px;
+    --space-pocket: 6px;                /* pocket padding around the card */
+    --size-binder-spine: 40px;
+    --size-binder-ring: 20px;           /* ring outline on the spine */
+    --space-cover-bottom: 44px;         /* room under the pages for page numbers */
+    --offset-pocket-selected: -8px;     /* selected pocket lifts by this much */
 
     /* ---- Opacity ---- */
     --opacity-disabled: 0.4;

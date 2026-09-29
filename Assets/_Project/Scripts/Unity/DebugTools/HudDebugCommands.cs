@@ -20,7 +20,7 @@ namespace Game.Unity.DebugTools
 
         public const string HelpText =
             "HUD commands (Play Mode; display only, no economy yet):\n" +
-            "  hud.prepnight [day]              Prep Night: fixed 10:00 PM and \"It's Investin' time\"\n" +
+            "  hud.prepnight [day]              Prep Night: clock fixed at 10:00 PM\n" +
             "  hud.showday <hour> <min> [day]   Show Day at a 24-hour time\n" +
             "  hud.closing [off]                show (or hide) \"Closing soon\" on a Show Day\n" +
             "  hud.sale <cents>                 cash goes up, with a Sale event line\n" +

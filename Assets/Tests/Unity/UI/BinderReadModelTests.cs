@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Core.Content;
 using Game.Core.Inventory;
@@ -10,6 +11,10 @@ namespace Game.Unity.Tests.UI
     {
         private const string SetA = "SetA";
         private const string SetB = "SetB";
+        private const string SetC = "SetC";
+        private const int SetATab = 0;
+        private const int SetBTab = 1;
+        private const int SealedTab = 2;
 
         private static readonly Card s_aCommon = CreateCard("SetA_Common_01", "Zenkin", SetA, RarityTier.Common);
         private static readonly Card s_aUncommon = CreateCard("SetA_Uncommon_01", "Silmir", SetA, RarityTier.Uncommon);
@@ -19,6 +24,9 @@ namespace Game.Unity.Tests.UI
         private static readonly Card s_aSpecial = CreateCard("SetA_SpecialArt_01", "Braolin", SetA, RarityTier.SpecialIllustration);
         private static readonly Card s_bCommon = CreateCard("SetB_Common_01", "Ember", SetB, RarityTier.Common);
         private static readonly Card s_bFullArt = CreateCard("SetB_FullArt_01", "Titan", SetB, RarityTier.FullArt);
+        private static readonly Card s_cRare = CreateCard("SetC_Rare_01", "Vesk", SetC, RarityTier.Rare);
+
+        private static readonly CardPool s_allCards = new CardPool(new[] { s_aCommon, s_aUncommon, s_aRare2, s_aRare1, s_aHolo, s_aSpecial, s_bCommon, s_bFullArt, s_cRare });
 
         private InventoryService _inventory;
         private InventoryBinderReadModel _binder;
@@ -27,69 +35,110 @@ namespace Game.Unity.Tests.UI
         public void SetUp()
         {
             _inventory = new InventoryService();
-            var pool = new CardPool(new[] { s_aCommon, s_aUncommon, s_aRare2, s_aRare1, s_aHolo, s_aSpecial, s_bCommon, s_bFullArt });
-            _binder = new InventoryBinderReadModel(_inventory, pool, SetA, SetB);
+            _binder = CreateBinder(new BinderSet(SetA, "Set A"), new BinderSet(SetB, "Set B"));
         }
 
         [TearDown]
         public void TearDown() => _binder.Dispose();
 
         [Test]
-        public void Tabs_Always_SetASetBSealedBulkInOrder()
+        public void Tabs_TwoSets_OneTabPerSetInOrderThenSealed()
         {
             IReadOnlyList<BinderTabInfo> tabs = _binder.Tabs;
 
-            Assert.That(tabs.Count, Is.EqualTo(4));
-            Assert.That(tabs[0].Tab, Is.EqualTo(BinderTab.SetA));
-            Assert.That(tabs[0].Title, Is.EqualTo("Set A"));
-            Assert.That(tabs[1].Title, Is.EqualTo("Set B"));
-            Assert.That(tabs[2].Title, Is.EqualTo("Sealed"));
-            Assert.That(tabs[3].Title, Is.EqualTo("Bulk"));
+            Assert.That(tabs.Count, Is.EqualTo(3));
+            AssertTab(tabs[SetATab], BinderTabKind.CardSet, SetA, "Set A");
+            AssertTab(tabs[SetBTab], BinderTabKind.CardSet, SetB, "Set B");
+            AssertTab(tabs[SealedTab], BinderTabKind.Sealed, InventoryBinderReadModel.SealedTabId, "Sealed");
+        }
+
+        [Test]
+        public void Tabs_OneSet_SetThenSealed()
+        {
+            using (InventoryBinderReadModel binder = CreateBinder(new BinderSet(SetA, "Set A")))
+            {
+                Assert.That(binder.Tabs.Count, Is.EqualTo(2));
+                AssertTab(binder.Tabs[0], BinderTabKind.CardSet, SetA, "Set A");
+                AssertTab(binder.Tabs[1], BinderTabKind.Sealed, InventoryBinderReadModel.SealedTabId, "Sealed");
+            }
+        }
+
+        [Test]
+        public void Tabs_NoSets_OnlySealed()
+        {
+            using (InventoryBinderReadModel binder = CreateBinder())
+            {
+                Own(s_aRare1);
+
+                Assert.That(binder.Tabs.Count, Is.EqualTo(1));
+                Assert.That(binder.Tabs[0].Kind, Is.EqualTo(BinderTabKind.Sealed));
+                Assert.That(binder.GetEntries(0), Is.Empty);
+            }
+        }
+
+        [Test]
+        public void Tabs_RepeatedOrEmptySets_Skipped()
+        {
+            using (InventoryBinderReadModel binder = CreateBinder(new BinderSet(SetB, "Set B"), null, new BinderSet(SetB, "Again"), new BinderSet(SetA, "Set A")))
+            {
+                Assert.That(binder.Tabs.Count, Is.EqualTo(3));
+                AssertTab(binder.Tabs[0], BinderTabKind.CardSet, SetB, "Set B");
+                AssertTab(binder.Tabs[1], BinderTabKind.CardSet, SetA, "Set A");
+            }
+        }
+
+        [Test]
+        public void BinderSet_NoTitle_UsesSetId()
+        {
+            Assert.That(new BinderSet(SetC, null).Title, Is.EqualTo(SetC));
         }
 
         [Test]
         public void GetEntries_EmptyInventory_EveryTabEmptyWithZeroCount()
         {
-            foreach (BinderTabInfo tab in _binder.Tabs)
+            for (int i = 0; i < _binder.Tabs.Count; i++)
             {
-                Assert.That(tab.Count, Is.EqualTo(0), tab.Title);
-                Assert.That(_binder.GetEntries(tab.Tab), Is.Empty, tab.Title);
+                Assert.That(_binder.Tabs[i].Count, Is.EqualTo(0), _binder.Tabs[i].Title);
+                Assert.That(_binder.GetEntries(i), Is.Empty, _binder.Tabs[i].Title);
             }
         }
 
         [Test]
-        public void GetEntries_SetA_OnlyRareAndAboveOfSetA()
+        public void GetEntries_SetTab_EveryTierOfThatSetIncludingCommons()
         {
             Own(s_aCommon, s_aUncommon, s_aRare1, s_bFullArt);
 
-            IReadOnlyList<BinderEntry> entries = _binder.GetEntries(BinderTab.SetA);
-
-            Assert.That(Ids(entries), Is.EqualTo(new[] { "SetA_Rare_01" }));
+            Assert.That(Ids(_binder.GetEntries(SetATab)), Is.EqualTo(new[] { "SetA_Rare_01", "SetA_Uncommon_01", "SetA_Common_01" }));
+            Assert.That(Ids(_binder.GetEntries(SetBTab)), Is.EqualTo(new[] { "SetB_FullArt_01" }));
         }
 
         [Test]
-        public void GetEntries_SetB_OnlyRareAndAboveOfSetB()
+        public void GetEntries_SetTab_RarestFirstDownToCommonThenCardId()
         {
-            Own(s_bCommon, s_bFullArt, s_aHolo);
+            Own(s_aCommon, s_aRare2, s_aUncommon, s_aHolo, s_aRare1, s_aSpecial);
 
-            Assert.That(Ids(_binder.GetEntries(BinderTab.SetB)), Is.EqualTo(new[] { "SetB_FullArt_01" }));
+            Assert.That(
+                Ids(_binder.GetEntries(SetATab)),
+                Is.EqualTo(new[] { "SetA_SpecialArt_01", "SetA_Holo_01", "SetA_Rare_01", "SetA_Rare_02", "SetA_Uncommon_01", "SetA_Common_01" }));
         }
 
         [Test]
-        public void GetEntries_SetBWithNoCardsOwned_IsEmptyWithZeroCount()
+        public void GetEntries_SetWithNoCardsOwned_IsEmptyWithZeroCount()
         {
             Own(s_aRare1, s_aCommon);
 
-            Assert.That(_binder.GetEntries(BinderTab.SetB), Is.Empty);
-            Assert.That(CountOf(BinderTab.SetB), Is.EqualTo(0));
+            Assert.That(_binder.GetEntries(SetBTab), Is.Empty);
+            Assert.That(_binder.Tabs[SetBTab].Count, Is.EqualTo(0));
         }
 
         [Test]
-        public void GetEntries_Bulk_CommonsAndUncommonsFromBothSets()
+        public void GetEntries_CardOfSetWithoutTab_LeftOut()
         {
-            Own(s_aCommon, s_aUncommon, s_bCommon, s_aRare1, s_bFullArt);
+            Own(s_cRare, s_aRare1);
 
-            Assert.That(Ids(_binder.GetEntries(BinderTab.Bulk)), Is.EqualTo(new[] { "SetA_Uncommon_01", "SetA_Common_01", "SetB_Common_01" }));
+            Assert.That(Ids(_binder.GetEntries(SetATab)), Is.EqualTo(new[] { "SetA_Rare_01" }));
+            Assert.That(_binder.GetEntries(SetBTab), Is.Empty);
+            Assert.That(_binder.GetEntries(SealedTab), Is.Empty);
         }
 
         [Test]
@@ -97,18 +146,15 @@ namespace Game.Unity.Tests.UI
         {
             Own(s_aRare1, s_aCommon);
 
-            Assert.That(_binder.GetEntries(BinderTab.Sealed), Is.Empty);
-            Assert.That(CountOf(BinderTab.Sealed), Is.EqualTo(0));
+            Assert.That(_binder.GetEntries(SealedTab), Is.Empty);
+            Assert.That(_binder.Tabs[SealedTab].Count, Is.EqualTo(0));
         }
 
-        [Test]
-        public void GetEntries_SetA_OrdersTierHighToLowThenCardId()
+        [TestCase(-1)]
+        [TestCase(3)]
+        public void GetEntries_IndexOutsideTabs_Throws(int tabIndex)
         {
-            Own(s_aRare2, s_aHolo, s_aRare1, s_aSpecial);
-
-            Assert.That(
-                Ids(_binder.GetEntries(BinderTab.SetA)),
-                Is.EqualTo(new[] { "SetA_SpecialArt_01", "SetA_Holo_01", "SetA_Rare_01", "SetA_Rare_02" }));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _binder.GetEntries(tabIndex));
         }
 
         [Test]
@@ -116,7 +162,7 @@ namespace Game.Unity.Tests.UI
         {
             Own(s_aRare1, s_aRare1, s_aRare1);
 
-            IReadOnlyList<BinderEntry> entries = _binder.GetEntries(BinderTab.SetA);
+            IReadOnlyList<BinderEntry> entries = _binder.GetEntries(SetATab);
 
             Assert.That(entries.Count, Is.EqualTo(1));
             Assert.That(entries[0].Copies, Is.EqualTo(3));
@@ -129,25 +175,24 @@ namespace Game.Unity.Tests.UI
         {
             Own(s_aRare1, s_aRare1, s_aHolo, s_aCommon, s_aCommon, s_bCommon, s_bFullArt);
 
-            Assert.That(CountOf(BinderTab.SetA), Is.EqualTo(2));
-            Assert.That(CountOf(BinderTab.SetB), Is.EqualTo(1));
-            Assert.That(CountOf(BinderTab.Sealed), Is.EqualTo(0));
-            Assert.That(CountOf(BinderTab.Bulk), Is.EqualTo(2));
+            Assert.That(_binder.Tabs[SetATab].Count, Is.EqualTo(3));
+            Assert.That(_binder.Tabs[SetBTab].Count, Is.EqualTo(2));
+            Assert.That(_binder.Tabs[SealedTab].Count, Is.EqualTo(0));
         }
 
         [Test]
         public void Changed_InventoryGainsCard_RaisedOnceAndEntriesRefresh()
         {
             Own(s_aRare1);
-            _binder.GetEntries(BinderTab.SetA);
+            _binder.GetEntries(SetATab);
             int raised = 0;
             _binder.Changed += () => raised++;
 
             Own(s_aHolo);
 
             Assert.That(raised, Is.EqualTo(1));
-            Assert.That(Ids(_binder.GetEntries(BinderTab.SetA)), Is.EqualTo(new[] { "SetA_Holo_01", "SetA_Rare_01" }));
-            Assert.That(CountOf(BinderTab.SetA), Is.EqualTo(2));
+            Assert.That(Ids(_binder.GetEntries(SetATab)), Is.EqualTo(new[] { "SetA_Holo_01", "SetA_Rare_01" }));
+            Assert.That(_binder.Tabs[SetATab].Count, Is.EqualTo(2));
         }
 
         [Test]
@@ -162,6 +207,11 @@ namespace Game.Unity.Tests.UI
             Assert.That(raised, Is.EqualTo(0));
         }
 
+        private InventoryBinderReadModel CreateBinder(params BinderSet[] sets)
+        {
+            return new InventoryBinderReadModel(_inventory, s_allCards, sets);
+        }
+
         private void Own(params Card[] cards)
         {
             foreach (Card card in cards)
@@ -170,17 +220,11 @@ namespace Game.Unity.Tests.UI
             }
         }
 
-        private int CountOf(BinderTab tab)
+        private static void AssertTab(BinderTabInfo tab, BinderTabKind kind, string id, string title)
         {
-            foreach (BinderTabInfo info in _binder.Tabs)
-            {
-                if (info.Tab == tab)
-                {
-                    return info.Count;
-                }
-            }
-
-            return -1;
+            Assert.That(tab.Kind, Is.EqualTo(kind));
+            Assert.That(tab.Id, Is.EqualTo(id));
+            Assert.That(tab.Title, Is.EqualTo(title));
         }
 
         private static List<string> Ids(IReadOnlyList<BinderEntry> entries)

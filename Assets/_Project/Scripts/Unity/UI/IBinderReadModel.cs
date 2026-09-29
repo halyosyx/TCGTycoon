@@ -14,10 +14,16 @@ namespace Game.Unity.UI
         /// <summary>Raised after the owned items change; re-read <see cref="Tabs"/> and entries then.</summary>
         event Action Changed;
 
-        /// <summary>Every tab in display order (Set A, Set B, Sealed, Bulk), with counts.</summary>
+        /// <summary>
+        /// Every tab in display order, with counts: one per card set the binder was given, then Sealed.
+        /// The list of tabs is fixed for the model's lifetime; only the counts change.
+        /// </summary>
         IReadOnlyList<BinderTabInfo> Tabs { get; }
 
-        /// <summary>A tab's entries: tier high to low, then item id. Empty when the tab holds nothing.</summary>
-        IReadOnlyList<BinderEntry> GetEntries(BinderTab tab);
+        /// <summary>
+        /// The entries of the tab at <paramref name="tabIndex"/> (an index into <see cref="Tabs"/>):
+        /// tier high to low, then item id. Empty when the tab holds nothing.
+        /// </summary>
+        IReadOnlyList<BinderEntry> GetEntries(int tabIndex);
     }
 }

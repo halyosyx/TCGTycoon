@@ -8,7 +8,7 @@ namespace Game.Unity.UI
     /// </summary>
     public sealed class BinderEntry
     {
-        public BinderEntry(string itemId, string displayName, int? tier, int copies)
+        public BinderEntry(string itemId, string displayName, int? tier, int copies, string detail = null)
         {
             if (string.IsNullOrEmpty(itemId)) throw new ArgumentException("An entry needs an item id.", nameof(itemId));
 
@@ -16,6 +16,7 @@ namespace Game.Unity.UI
             DisplayName = string.IsNullOrEmpty(displayName) ? itemId : displayName;
             Tier = tier;
             Copies = copies;
+            Detail = detail ?? string.Empty;
         }
 
         /// <summary>Card id for singles; product id for sealed items.</summary>
@@ -27,5 +28,8 @@ namespace Game.Unity.UI
         public int? Tier { get; }
 
         public int Copies { get; }
+
+        /// <summary>Second line for sealed products, e.g. "Set A · 36 packs". Empty for singles.</summary>
+        public string Detail { get; }
     }
 }

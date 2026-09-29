@@ -11,6 +11,7 @@ namespace Game.EditorTools.CardGeneration
 
         public string SetId = "SetA";
         public string SetDisplayName = "Mythbound: First Light";
+        public string SetShortName = "Set A";
         public int Seed = 1;
         public string OutputFolder = DefaultOutputFolder;
 

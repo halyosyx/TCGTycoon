@@ -7,43 +7,56 @@ using Game.Unity.UI.Controls;
 namespace Game.Unity.UI
 {
     /// <summary>
-    /// <see cref="IBinderReadModel"/> over the player's <see cref="InventoryService"/>. Sorts owned
-    /// singles into tabs: Rare and above go to their set's tab, Commons and Uncommons of either set to
-    /// Bulk (GDD: they are bulk). Rebuilds lazily after the inventory raises Changed, so reading is
-    /// cheap and nothing is rebuilt while the binder is closed. Holds no game rules of its own; the
-    /// bulk rule is <see cref="RarityTiers.IsBulk"/>. Dispose it to stop listening to the inventory.
+    /// <see cref="IBinderReadModel"/> over the player's <see cref="InventoryService"/>. One tab per card
+    /// set it is given, in that order, then Sealed. Every owned single of a set, Common included, goes
+    /// on that set's tab, rarest first; cards of sets without a tab are left out. Rebuilds lazily after
+    /// the inventory raises Changed, so reading is cheap and nothing is rebuilt while the binder is
+    /// closed. Holds no game rules. Dispose it to stop listening to the inventory.
     /// </summary>
     public sealed class InventoryBinderReadModel : IBinderReadModel, IDisposable
     {
-        private static readonly BinderTab[] s_tabOrder = { BinderTab.SetA, BinderTab.SetB, BinderTab.Sealed, BinderTab.Bulk };
-        private static readonly string[] s_tabTitles = { "Set A", "Set B", "Sealed", "Bulk" };
+        /// <summary>The Sealed tab's <see cref="BinderTabInfo.Id"/>.</summary>
+        public const string SealedTabId = "Sealed";
+
+        private const string SealedTitle = "Sealed";
+
         private static readonly Comparison<BinderEntry> s_byTierThenId = CompareEntries;
 
         private readonly InventoryService _inventory;
-        private readonly CardPool _pool;
-        private readonly string _setAId;
-        private readonly string _setBId;
+        private readonly CardPool _cards;
+        private readonly List<BinderSet> _sets = new List<BinderSet>();
+        private readonly Dictionary<string, int> _tabIndexBySetId = new Dictionary<string, int>(StringComparer.Ordinal);
         private readonly List<BinderEntry>[] _entriesByTab;
         private readonly BinderTabInfo[] _tabs;
+        private readonly int _sealedTabIndex;
         private bool _isStale;
         private bool _isDisposed;
 
-        /// <param name="setAId">Card set id shown on the Set A tab (e.g. "SetA").</param>
-        /// <param name="setBId">Card set id shown on the Set B tab; its tab stays empty while no such cards exist.</param>
-        public InventoryBinderReadModel(InventoryService inventory, CardPool pool, string setAId, string setBId)
+        /// <param name="cards">Looks up each owned card's set and name; holds the cards of every binder set.</param>
+        /// <param name="sets">The card sets that get a tab, in tab order. Empty entries and repeated ids are skipped.</param>
+        public InventoryBinderReadModel(InventoryService inventory, CardPool cards, IEnumerable<BinderSet> sets)
         {
             _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
-            _pool = pool ?? throw new ArgumentNullException(nameof(pool));
-            _setAId = setAId ?? string.Empty;
-            _setBId = setBId ?? string.Empty;
+            _cards = cards ?? throw new ArgumentNullException(nameof(cards));
+            if (sets == null) throw new ArgumentNullException(nameof(sets));
 
-            _entriesByTab = new List<BinderEntry>[s_tabOrder.Length];
+            foreach (BinderSet set in sets)
+            {
+                if (set != null && !_tabIndexBySetId.ContainsKey(set.SetId))
+                {
+                    _tabIndexBySetId.Add(set.SetId, _sets.Count);
+                    _sets.Add(set);
+                }
+            }
+
+            _sealedTabIndex = _sets.Count;
+            _entriesByTab = new List<BinderEntry>[_sets.Count + 1];
             for (int i = 0; i < _entriesByTab.Length; i++)
             {
                 _entriesByTab[i] = new List<BinderEntry>();
             }
 
-            _tabs = new BinderTabInfo[s_tabOrder.Length];
+            _tabs = new BinderTabInfo[_entriesByTab.Length];
             _isStale = true;
             _inventory.Changed += OnInventoryChanged;
         }
@@ -59,10 +72,15 @@ namespace Game.Unity.UI
             }
         }
 
-        public IReadOnlyList<BinderEntry> GetEntries(BinderTab tab)
+        public IReadOnlyList<BinderEntry> GetEntries(int tabIndex)
         {
+            if (tabIndex < 0 || tabIndex >= _entriesByTab.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(tabIndex), tabIndex, $"The binder has {_entriesByTab.Length} tabs.");
+            }
+
             RebuildIfStale();
-            return _entriesByTab[(int)tab];
+            return _entriesByTab[tabIndex];
         }
 
         public void Dispose()
@@ -94,55 +112,28 @@ namespace Game.Unity.UI
                 entries.Clear();
             }
 
+            // Stacks don't record their set, so the card lookup supplies it (and the name).
             foreach (InventoryStack stack in _inventory.Stacks)
             {
-                if (stack.Count <= 0 || !TryGetTab(stack, out BinderTab tab, out string name))
+                if (stack.Count > 0
+                    && _cards.TryGetCard(stack.CardId, out Card card)
+                    && _tabIndexBySetId.TryGetValue(card.SetId, out int tabIndex))
                 {
-                    continue;
+                    _entriesByTab[tabIndex].Add(new BinderEntry(stack.CardId, card.DisplayName, TierDisplay.FromRarity(stack.Tier), stack.Count));
                 }
-
-                _entriesByTab[(int)tab].Add(new BinderEntry(stack.CardId, name, TierDisplay.FromRarity(stack.Tier), stack.Count));
             }
 
             // TODO(sealed products): the inventory holds only singles today. When owned packs, bundles and
             // boxes exist, add them to the Sealed tab here with a null tier.
-            for (int i = 0; i < s_tabOrder.Length; i++)
+            for (int i = 0; i < _entriesByTab.Length; i++)
             {
                 _entriesByTab[i].Sort(s_byTierThenId);
-                _tabs[i] = new BinderTabInfo(s_tabOrder[i], s_tabTitles[i], _entriesByTab[i].Count);
+                _tabs[i] = i == _sealedTabIndex
+                    ? new BinderTabInfo(BinderTabKind.Sealed, SealedTabId, SealedTitle, _entriesByTab[i].Count)
+                    : new BinderTabInfo(BinderTabKind.CardSet, _sets[i].SetId, _sets[i].Title, _entriesByTab[i].Count);
             }
 
             _isStale = false;
-        }
-
-        // Stacks don't record their set, so the card pool supplies it (and the name).
-        private bool TryGetTab(InventoryStack stack, out BinderTab tab, out string name)
-        {
-            bool isKnown = _pool.TryGetCard(stack.CardId, out Card card);
-            name = isKnown ? card.DisplayName : stack.CardId;
-            string setId = isKnown ? card.SetId : string.Empty;
-            bool isFromBinderSet = string.Equals(setId, _setAId, StringComparison.Ordinal) || string.Equals(setId, _setBId, StringComparison.Ordinal);
-
-            if (RarityTiers.IsBulk(stack.Tier) && isFromBinderSet)
-            {
-                tab = BinderTab.Bulk;
-                return true;
-            }
-
-            if (string.Equals(setId, _setAId, StringComparison.Ordinal))
-            {
-                tab = BinderTab.SetA;
-                return true;
-            }
-
-            if (string.Equals(setId, _setBId, StringComparison.Ordinal))
-            {
-                tab = BinderTab.SetB;
-                return true;
-            }
-
-            tab = default;
-            return false;
         }
 
         private static int CompareEntries(BinderEntry left, BinderEntry right)
