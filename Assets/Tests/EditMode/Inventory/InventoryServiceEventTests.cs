@@ -9,8 +9,8 @@ namespace Game.Core.Tests.Inventory
 {
     public sealed class InventoryServiceEventTests
     {
-        private static readonly Card s_rare = TestContent.CreateCard("SetA_R01", RarityTier.Rare, 60);
-        private static readonly Card s_common = TestContent.CreateCard("SetA_C01", RarityTier.Common, 5);
+        private static readonly Card s_holo = TestContent.CreateCard("RC_HFA_01", RarityTier.HoloFullArt, 240);
+        private static readonly Card s_common = TestContent.CreateCard("RC_C_001", RarityTier.Common, 5);
 
         [Test]
         public void Add_OneCard_RaisesChangedOnce()
@@ -19,7 +19,7 @@ namespace Game.Core.Tests.Inventory
             int raised = 0;
             inventory.Changed += () => raised++;
 
-            inventory.Add(s_rare, 60);
+            inventory.Add(s_holo, 60);
 
             Assert.That(raised, Is.EqualTo(1));
         }
@@ -33,9 +33,9 @@ namespace Game.Core.Tests.Inventory
             inventory.Changed += () =>
             {
                 raised++;
-                cardsWhenRaised = inventory.CountOf(s_rare.Id, RarityTier.Rare) + inventory.CountOf(s_common.Id, RarityTier.Common);
+                cardsWhenRaised = inventory.CountOf(s_holo.Id, RarityTier.HoloFullArt) + inventory.CountOf(s_common.Id, RarityTier.Common);
             };
-            var pack = new OpenedPack("test-pack", new[] { s_common, s_common, s_common, s_common, s_rare });
+            var pack = new OpenedPack("test-pack", new[] { s_common, s_common, s_common, s_common, s_holo });
 
             inventory.AddPack(pack, 425);
 
@@ -59,11 +59,11 @@ namespace Game.Core.Tests.Inventory
         public void Remove_OwnedCopy_RaisesChangedOnce()
         {
             var inventory = new InventoryService();
-            inventory.Add(s_rare, 60);
+            inventory.Add(s_holo, 60);
             int raised = 0;
             inventory.Changed += () => raised++;
 
-            inventory.Remove(s_rare.Id, RarityTier.Rare);
+            inventory.Remove(s_holo.Id, RarityTier.HoloFullArt);
 
             Assert.That(raised, Is.EqualTo(1));
         }
@@ -75,7 +75,7 @@ namespace Game.Core.Tests.Inventory
             int raised = 0;
             inventory.Changed += () => raised++;
 
-            Assert.Throws<InvalidOperationException>(() => inventory.Remove(s_rare.Id, RarityTier.Rare));
+            Assert.Throws<InvalidOperationException>(() => inventory.Remove(s_holo.Id, RarityTier.HoloFullArt));
             Assert.That(raised, Is.EqualTo(0));
         }
 
@@ -83,7 +83,7 @@ namespace Game.Core.Tests.Inventory
         public void Clear_WithCards_RaisesChangedOnce()
         {
             var inventory = new InventoryService();
-            inventory.Add(s_rare, 60);
+            inventory.Add(s_holo, 60);
             inventory.Add(s_common, 5);
             int raised = 0;
             inventory.Changed += () => raised++;

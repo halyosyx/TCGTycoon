@@ -27,7 +27,7 @@ namespace Game.EditorTools.Tests.CardGeneration
             int matches = 0;
             for (int index = 0; index < NamesPerTier; index++)
             {
-                if (CardNameGenerator.Generate(1, RarityTier.Rare, index) == CardNameGenerator.Generate(2, RarityTier.Rare, index)) matches++;
+                if (CardNameGenerator.Generate(1, RarityTier.HoloFullArt, index) == CardNameGenerator.Generate(2, RarityTier.HoloFullArt, index)) matches++;
             }
 
             Assert.That(matches, Is.LessThan(5));
@@ -41,9 +41,7 @@ namespace Game.EditorTools.Tests.CardGeneration
 
         [TestCase(RarityTier.Common)]
         [TestCase(RarityTier.Uncommon)]
-        [TestCase(RarityTier.Rare)]
-        [TestCase(RarityTier.Holographic)]
-        public void Generate_BelowFullArt_IsOneCapitalisedWord(RarityTier tier)
+        public void Generate_Bulk_IsOneCapitalisedWord(RarityTier tier)
         {
             for (int index = 0; index < NamesPerTier; index++)
             {
@@ -53,10 +51,9 @@ namespace Game.EditorTools.Tests.CardGeneration
             }
         }
 
-        [TestCase(RarityTier.FullArt)]
-        [TestCase(RarityTier.AlternateIllustration)]
-        [TestCase(RarityTier.SpecialIllustration)]
-        public void Generate_FullArtAndAbove_AddsATitle(RarityTier tier)
+        [TestCase(RarityTier.HoloFullArt)]
+        [TestCase(RarityTier.SpecialFullArtHolo)]
+        public void Generate_HoloFullArtAndAbove_AddsATitle(RarityTier tier)
         {
             for (int index = 0; index < NamesPerTier; index++)
             {

@@ -797,7 +797,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Unity::Game.Unity.Flow.GameBootstrap
   _pack: {fileID: 11400000, guid: be0abd5a6ed06324cb11762239028474, type: 2}
   _palette: {fileID: 11400000, guid: 531cf8c25e434564c8ea4ce4c6657434, type: 2}
-  _binderSets: []
+  _binderSets:
+  - {fileID: 11400000, guid: 241544cab128f1d448774f83dd8e1ead, type: 2}
+  - {fileID: 11400000, guid: cc476e7a447e7204ab88570b6b803154, type: 2}
   _useRandomSeed: 1
   _seed: 1
   _player: {fileID: 1932743208}
@@ -1617,8 +1619,8 @@ MonoBehaviour:
     _slowSlotCount: 2
   _layout:
     _stackStep: {x: 4, y: 5}
-    _rowGap: 28
-    _rowScale: 0.9
+    _rowGap: 24
+    _rowScale: 0.8
     _hoverScale: 1
     _showcaseHeightShare: 0.7
     _showcaseCenterShare: 0.5
@@ -1634,23 +1636,11 @@ MonoBehaviour:
     _intensity: 0
     _spread: 0
     _pulsesPerSecond: 0
-  - _tier: 2
-    _intensity: 0.3
-    _spread: 14
-    _pulsesPerSecond: 1
-  - _tier: 3
-    _intensity: 0.5
-    _spread: 20
-    _pulsesPerSecond: 1.5
-  - _tier: 4
+  - _tier: 7
     _intensity: 0.8
     _spread: 32
     _pulsesPerSecond: 2
-  - _tier: 5
-    _intensity: 0.9
-    _spread: 38
-    _pulsesPerSecond: 2.5
-  - _tier: 6
+  - _tier: 8
     _intensity: 1
     _spread: 48
     _pulsesPerSecond: 3

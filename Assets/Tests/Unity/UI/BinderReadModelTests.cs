@@ -16,17 +16,17 @@ namespace Game.Unity.Tests.UI
         private const int SetBTab = 1;
         private const int SealedTab = 2;
 
-        private static readonly Card s_aCommon = CreateCard("SetA_Common_01", "Zenkin", SetA, RarityTier.Common);
-        private static readonly Card s_aUncommon = CreateCard("SetA_Uncommon_01", "Silmir", SetA, RarityTier.Uncommon);
-        private static readonly Card s_aRare2 = CreateCard("SetA_Rare_02", "Rynorth", SetA, RarityTier.Rare);
-        private static readonly Card s_aRare1 = CreateCard("SetA_Rare_01", "Myraeth", SetA, RarityTier.Rare);
-        private static readonly Card s_aHolo = CreateCard("SetA_Holo_01", "Coralin", SetA, RarityTier.Holographic);
-        private static readonly Card s_aSpecial = CreateCard("SetA_SpecialArt_01", "Braolin", SetA, RarityTier.SpecialIllustration);
-        private static readonly Card s_bCommon = CreateCard("SetB_Common_01", "Ember", SetB, RarityTier.Common);
-        private static readonly Card s_bFullArt = CreateCard("SetB_FullArt_01", "Titan", SetB, RarityTier.FullArt);
-        private static readonly Card s_cRare = CreateCard("SetC_Rare_01", "Vesk", SetC, RarityTier.Rare);
+        private static readonly Card s_aCommon = CreateCard("RC_C_001", "Zenkin", SetA, RarityTier.Common);
+        private static readonly Card s_aUncommon = CreateCard("RC_U_001", "Silmir", SetA, RarityTier.Uncommon);
+        private static readonly Card s_aUncommon2 = CreateCard("RC_U_002", "Coralin", SetA, RarityTier.Uncommon);
+        private static readonly Card s_aHolo2 = CreateCard("RC_HFA_02", "Rynorth", SetA, RarityTier.HoloFullArt);
+        private static readonly Card s_aHolo1 = CreateCard("RC_HFA_01", "Myraeth", SetA, RarityTier.HoloFullArt);
+        private static readonly Card s_aSpecial = CreateCard("RC_SFAH_01", "Braolin", SetA, RarityTier.SpecialFullArtHolo);
+        private static readonly Card s_bCommon = CreateCard("MO_C_001", "Ember", SetB, RarityTier.Common);
+        private static readonly Card s_bHolo = CreateCard("MO_HFA_01", "Titan", SetB, RarityTier.HoloFullArt);
+        private static readonly Card s_cHolo = CreateCard("XX_HFA_01", "Vesk", SetC, RarityTier.HoloFullArt);
 
-        private static readonly CardPool s_allCards = new CardPool(new[] { s_aCommon, s_aUncommon, s_aRare2, s_aRare1, s_aHolo, s_aSpecial, s_bCommon, s_bFullArt, s_cRare });
+        private static readonly CardPool s_allCards = new CardPool(new[] { s_aCommon, s_aUncommon, s_aUncommon2, s_aHolo2, s_aHolo1, s_aSpecial, s_bCommon, s_bHolo, s_cHolo });
 
         private InventoryService _inventory;
         private InventoryBinderReadModel _binder;
@@ -68,7 +68,7 @@ namespace Game.Unity.Tests.UI
         {
             using (InventoryBinderReadModel binder = CreateBinder())
             {
-                Own(s_aRare1);
+                Own(s_aHolo1);
 
                 Assert.That(binder.Tabs.Count, Is.EqualTo(1));
                 Assert.That(binder.Tabs[0].Kind, Is.EqualTo(BinderTabKind.Sealed));
@@ -106,26 +106,26 @@ namespace Game.Unity.Tests.UI
         [Test]
         public void GetEntries_SetTab_EveryTierOfThatSetIncludingCommons()
         {
-            Own(s_aCommon, s_aUncommon, s_aRare1, s_bFullArt);
+            Own(s_aCommon, s_aUncommon, s_aHolo1, s_bHolo);
 
-            Assert.That(Ids(_binder.GetEntries(SetATab)), Is.EqualTo(new[] { "SetA_Rare_01", "SetA_Uncommon_01", "SetA_Common_01" }));
-            Assert.That(Ids(_binder.GetEntries(SetBTab)), Is.EqualTo(new[] { "SetB_FullArt_01" }));
+            Assert.That(Ids(_binder.GetEntries(SetATab)), Is.EqualTo(new[] { "RC_HFA_01", "RC_U_001", "RC_C_001" }));
+            Assert.That(Ids(_binder.GetEntries(SetBTab)), Is.EqualTo(new[] { "MO_HFA_01" }));
         }
 
         [Test]
         public void GetEntries_SetTab_RarestFirstDownToCommonThenCardId()
         {
-            Own(s_aCommon, s_aRare2, s_aUncommon, s_aHolo, s_aRare1, s_aSpecial);
+            Own(s_aCommon, s_aHolo2, s_aUncommon, s_aUncommon2, s_aHolo1, s_aSpecial);
 
             Assert.That(
                 Ids(_binder.GetEntries(SetATab)),
-                Is.EqualTo(new[] { "SetA_SpecialArt_01", "SetA_Holo_01", "SetA_Rare_01", "SetA_Rare_02", "SetA_Uncommon_01", "SetA_Common_01" }));
+                Is.EqualTo(new[] { "RC_SFAH_01", "RC_HFA_01", "RC_HFA_02", "RC_U_001", "RC_U_002", "RC_C_001" }));
         }
 
         [Test]
         public void GetEntries_SetWithNoCardsOwned_IsEmptyWithZeroCount()
         {
-            Own(s_aRare1, s_aCommon);
+            Own(s_aHolo1, s_aCommon);
 
             Assert.That(_binder.GetEntries(SetBTab), Is.Empty);
             Assert.That(_binder.Tabs[SetBTab].Count, Is.EqualTo(0));
@@ -134,9 +134,9 @@ namespace Game.Unity.Tests.UI
         [Test]
         public void GetEntries_CardOfSetWithoutTab_LeftOut()
         {
-            Own(s_cRare, s_aRare1);
+            Own(s_cHolo, s_aHolo1);
 
-            Assert.That(Ids(_binder.GetEntries(SetATab)), Is.EqualTo(new[] { "SetA_Rare_01" }));
+            Assert.That(Ids(_binder.GetEntries(SetATab)), Is.EqualTo(new[] { "RC_HFA_01" }));
             Assert.That(_binder.GetEntries(SetBTab), Is.Empty);
             Assert.That(_binder.GetEntries(SealedTab), Is.Empty);
         }
@@ -144,7 +144,7 @@ namespace Game.Unity.Tests.UI
         [Test]
         public void GetEntries_Sealed_EmptyUntilSealedProductsExist()
         {
-            Own(s_aRare1, s_aCommon);
+            Own(s_aHolo1, s_aCommon);
 
             Assert.That(_binder.GetEntries(SealedTab), Is.Empty);
             Assert.That(_binder.Tabs[SealedTab].Count, Is.EqualTo(0));
@@ -160,7 +160,7 @@ namespace Game.Unity.Tests.UI
         [Test]
         public void GetEntries_CopiesOfOneCard_OneEntryWithQuantity()
         {
-            Own(s_aRare1, s_aRare1, s_aRare1);
+            Own(s_aHolo1, s_aHolo1, s_aHolo1);
 
             IReadOnlyList<BinderEntry> entries = _binder.GetEntries(SetATab);
 
@@ -173,7 +173,7 @@ namespace Game.Unity.Tests.UI
         [Test]
         public void Tabs_Counts_AreDistinctItemsPerTab()
         {
-            Own(s_aRare1, s_aRare1, s_aHolo, s_aCommon, s_aCommon, s_bCommon, s_bFullArt);
+            Own(s_aHolo1, s_aHolo1, s_aUncommon2, s_aCommon, s_aCommon, s_bCommon, s_bHolo);
 
             Assert.That(_binder.Tabs[SetATab].Count, Is.EqualTo(3));
             Assert.That(_binder.Tabs[SetBTab].Count, Is.EqualTo(2));
@@ -183,15 +183,15 @@ namespace Game.Unity.Tests.UI
         [Test]
         public void Changed_InventoryGainsCard_RaisedOnceAndEntriesRefresh()
         {
-            Own(s_aRare1);
+            Own(s_aHolo1);
             _binder.GetEntries(SetATab);
             int raised = 0;
             _binder.Changed += () => raised++;
 
-            Own(s_aHolo);
+            Own(s_aUncommon2);
 
             Assert.That(raised, Is.EqualTo(1));
-            Assert.That(Ids(_binder.GetEntries(SetATab)), Is.EqualTo(new[] { "SetA_Holo_01", "SetA_Rare_01" }));
+            Assert.That(Ids(_binder.GetEntries(SetATab)), Is.EqualTo(new[] { "RC_HFA_01", "RC_U_002" }));
             Assert.That(_binder.Tabs[SetATab].Count, Is.EqualTo(2));
         }
 
@@ -202,7 +202,7 @@ namespace Game.Unity.Tests.UI
             _binder.Changed += () => raised++;
 
             _binder.Dispose();
-            Own(s_aRare1);
+            Own(s_aHolo1);
 
             Assert.That(raised, Is.EqualTo(0));
         }

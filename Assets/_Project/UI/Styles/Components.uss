@@ -238,11 +238,8 @@
 
 .tier-glyph--1 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/circle-bold.svg");   -unity-background-image-tint-color: var(--color-tier-1); }
 .tier-glyph--2 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/triangle-bold.svg"); -unity-background-image-tint-color: var(--color-tier-2); }
-.tier-glyph--3 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/square-bold.svg");   -unity-background-image-tint-color: var(--color-tier-3); }
-.tier-glyph--4 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/pentagon-bold.svg"); -unity-background-image-tint-color: var(--color-tier-4); }
-.tier-glyph--5 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/hexagon-bold.svg");  -unity-background-image-tint-color: var(--color-tier-5); }
-.tier-glyph--6 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/star-bold.svg");     -unity-background-image-tint-color: var(--color-tier-6); }
-.tier-glyph--7 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/crown-bold.svg");    -unity-background-image-tint-color: var(--color-tier-7); }
+.tier-glyph--3 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/hexagon-bold.svg");  -unity-background-image-tint-color: var(--color-tier-3); }
+.tier-glyph--4 { background-image: url("/Assets/_Project/UI/Icons/Phosphor/crown-bold.svg");    -unity-background-image-tint-color: var(--color-tier-4); }
 
 /* ---- Tier chip ---- */
 .tier-chip {
@@ -275,9 +272,6 @@
 .tier-chip--tier-2 { border-top-color: var(--color-tier-2); border-right-color: var(--color-tier-2); border-bottom-color: var(--color-tier-2); border-left-color: var(--color-tier-2); }
 .tier-chip--tier-3 { border-top-color: var(--color-tier-3); border-right-color: var(--color-tier-3); border-bottom-color: var(--color-tier-3); border-left-color: var(--color-tier-3); }
 .tier-chip--tier-4 { border-top-color: var(--color-tier-4); border-right-color: var(--color-tier-4); border-bottom-color: var(--color-tier-4); border-left-color: var(--color-tier-4); }
-.tier-chip--tier-5 { border-top-color: var(--color-tier-5); border-right-color: var(--color-tier-5); border-bottom-color: var(--color-tier-5); border-left-color: var(--color-tier-5); }
-.tier-chip--tier-6 { border-top-color: var(--color-tier-6); border-right-color: var(--color-tier-6); border-bottom-color: var(--color-tier-6); border-left-color: var(--color-tier-6); }
-.tier-chip--tier-7 { border-top-color: var(--color-tier-7); border-right-color: var(--color-tier-7); border-bottom-color: var(--color-tier-7); border-left-color: var(--color-tier-7); }
 
 /* ---- Card face (placeholder). Border width is set in code from the card's
         width (style guide: width / 40, never under --border-width-card-min, which
@@ -356,9 +350,6 @@
 .card-face--tier-2 { border-top-color: var(--color-tier-2); border-right-color: var(--color-tier-2); border-bottom-color: var(--color-tier-2); border-left-color: var(--color-tier-2); }
 .card-face--tier-3 { border-top-color: var(--color-tier-3); border-right-color: var(--color-tier-3); border-bottom-color: var(--color-tier-3); border-left-color: var(--color-tier-3); }
 .card-face--tier-4 { border-top-color: var(--color-tier-4); border-right-color: var(--color-tier-4); border-bottom-color: var(--color-tier-4); border-left-color: var(--color-tier-4); }
-.card-face--tier-5 { border-top-color: var(--color-tier-5); border-right-color: var(--color-tier-5); border-bottom-color: var(--color-tier-5); border-left-color: var(--color-tier-5); }
-.card-face--tier-6 { border-top-color: var(--color-tier-6); border-right-color: var(--color-tier-6); border-bottom-color: var(--color-tier-6); border-left-color: var(--color-tier-6); }
-.card-face--tier-7 { border-top-color: var(--color-tier-7); border-right-color: var(--color-tier-7); border-bottom-color: var(--color-tier-7); border-left-color: var(--color-tier-7); }
 
 /* ---- Copy badge ---- */
 .copy-badge {

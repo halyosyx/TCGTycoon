@@ -30,7 +30,7 @@ namespace Game.Core.Tests.Session
         }
 
         [Test]
-        public void OpenPack_ThreePacks_InventoryHoldsFifteenCards()
+        public void OpenPack_ThreePacks_InventoryHoldsTwentyOneCards()
         {
             var session = CreateSession();
 
@@ -38,7 +38,7 @@ namespace Game.Core.Tests.Session
             session.OpenPack();
             session.OpenPack();
 
-            Assert.That(TotalCards(session.Inventory), Is.EqualTo(15));
+            Assert.That(TotalCards(session.Inventory), Is.EqualTo(21));
         }
 
         [Test]

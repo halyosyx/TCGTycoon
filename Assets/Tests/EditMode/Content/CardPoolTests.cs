@@ -9,10 +9,10 @@ namespace Game.Core.Tests.Content
         [Test]
         public void TryGetCard_KnownId_ReturnsThatCard()
         {
-            Card holo = TestContent.CreateCard("SetA_Holo_01", RarityTier.Holographic);
-            var pool = new CardPool(new[] { TestContent.CreateCard("SetA_Common_01", RarityTier.Common), holo });
+            Card holo = TestContent.CreateCard("RC_HFA_01", RarityTier.HoloFullArt);
+            var pool = new CardPool(new[] { TestContent.CreateCard("RC_C_001", RarityTier.Common), holo });
 
-            bool isFound = pool.TryGetCard("SetA_Holo_01", out Card card);
+            bool isFound = pool.TryGetCard("RC_HFA_01", out Card card);
 
             Assert.That(isFound, Is.True);
             Assert.That(card, Is.SameAs(holo));
@@ -27,18 +27,6 @@ namespace Game.Core.Tests.Content
 
             Assert.That(isFound, Is.False);
             Assert.That(card, Is.Null);
-        }
-
-        [TestCase(RarityTier.Common, true)]
-        [TestCase(RarityTier.Uncommon, true)]
-        [TestCase(RarityTier.Rare, false)]
-        [TestCase(RarityTier.Holographic, false)]
-        [TestCase(RarityTier.FullArt, false)]
-        [TestCase(RarityTier.AlternateIllustration, false)]
-        [TestCase(RarityTier.SpecialIllustration, false)]
-        public void RarityTiers_IsBulk_OnlyCommonAndUncommon(RarityTier tier, bool expected)
-        {
-            Assert.That(RarityTiers.IsBulk(tier), Is.EqualTo(expected));
         }
 
         [Test]

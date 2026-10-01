@@ -11,18 +11,24 @@ using Object = UnityEngine.Object;
 namespace Game.EditorTools.CardGeneration
 {
     /// <summary>
-    /// Writes the prototype card pool and its placeholder visuals through the AssetDatabase: cards, the
-    /// set, tier materials, pack and card prefabs, the UI Toolkit card template and a README.
-    /// Idempotent: assets are matched by card id or path and written only when a value differs, so a
-    /// repeat run with the same settings changes no files. Everything is validated before anything is
-    /// written, so a bad configuration never leaves a half-generated set.
+    /// TCG > Generate Card Data's pipeline: reads the CSV manifests (<see cref="CardDataPlan"/>) and
+    /// upserts the generated assets through the AssetDatabase: cards, card sets, the Tier Price Table,
+    /// tier materials, pack and card prefabs, the UI Toolkit card template and a README.
+    /// <list type="bullet">
+    /// <item>Upsert by id: new rows create assets, changed rows update the existing asset in place.</item>
+    /// <item>Never deletes or re-creates, so GUIDs (and every reference to them) are stable. Assets no
+    /// manifest produces any more are reported as orphans.</item>
+    /// <item>Idempotent: values are written only when they differ, so a repeat run changes no files.</item>
+    /// <item>Everything is validated first; any error means nothing is written.</item>
+    /// </list>
     /// </summary>
     public static class CardAssetGenerator
     {
         public const string DefaultPalettePath = "Assets/_Project/Data/Visuals/RarityPalette.asset";
-        public const string DefaultPriceTablePath = "Assets/_Project/Data/Balance/TierPrices.asset";
 
         private const string AssetsRoot = "Assets";
+        private const string TierMaterialPrefix = "Tier_";
+        private const string MaterialExtension = ".mat";
 
         /// <summary>World text needs TextMesh Pro's essentials (default font and shaders) in the project.</summary>
         public static bool HasTmpEssentials() => AssetDatabase.FindAssets("t:TMP_Settings").Length > 0;
@@ -32,66 +38,36 @@ namespace Game.EditorTools.CardGeneration
             return LoadOrCreate<RarityPaletteDefinition>(DefaultPalettePath, palette => palette.ResetToDefaults(), out created);
         }
 
-        public static TierPriceTableDefinition LoadOrCreateDefaultPriceTable(out bool created)
-        {
-            return LoadOrCreate<TierPriceTableDefinition>(DefaultPriceTablePath, prices => prices.ResetToDefaults(), out created);
-        }
+        /// <summary>The generated card template's path for an output folder.</summary>
+        public static string CardTemplatePath(string outputFolder) => outputFolder.TrimEnd('/') + "/UI/" + CardTemplateFiles.UxmlFileName;
 
-        /// <param name="packToLink">
-        /// Optional pack to validate against and point at the generated set. It's only touched when its
-        /// card set is missing or has the same set id, so packs for other sets are left alone.
-        /// </param>
-        public static CardGenerationReport Generate(
-            CardGenerationSettings settings,
-            RarityPaletteDefinition palette,
-            TierPriceTableDefinition prices,
-            PackConfigDefinition packToLink)
+        public static CardGenerationReport Generate(CardGenerationOptions options)
         {
-            if (settings == null) throw new ArgumentNullException(nameof(settings));
+            if (options == null) throw new ArgumentNullException(nameof(options));
 
             var report = new CardGenerationReport();
-            string folder = (settings.OutputFolder ?? string.Empty).Trim().TrimEnd('/');
+            string folder = (options.OutputFolder ?? string.Empty).Trim().TrimEnd('/');
+            RarityPaletteDefinition palette = options.Palette;
             if (palette == null) report.AddError("No Rarity Palette is assigned.");
-            if (prices == null) report.AddError("No Tier Price Table is assigned.");
-            if (!folder.StartsWith(AssetsRoot + "/", StringComparison.Ordinal)) report.AddError($"The output folder '{settings.OutputFolder}' must be inside Assets/.");
+            if (!folder.StartsWith(AssetsRoot + "/", StringComparison.Ordinal)) report.AddError($"The output folder '{options.OutputFolder}' must be inside Assets/.");
+            if (!(options.PriceTablePath ?? string.Empty).StartsWith(AssetsRoot + "/", StringComparison.Ordinal)) report.AddError($"The price table path '{options.PriceTablePath}' must be inside Assets/.");
             if (!HasTmpEssentials()) report.AddError("TextMesh Pro Essential Resources aren't imported (Window > TextMeshPro > Import TMP Essential Resources).");
+            if (palette != null)
+            {
+                foreach (string problem in palette.FindTierProblems()) report.AddError(problem);
+            }
+
+            CardDataPlan plan = CardDataPlan.LoadFolder(options.ManifestFolder);
+            foreach (string error in plan.Errors) report.AddError(error);
+            if (report.Succeeded && options.IncludeProjectReferences)
+            {
+                CheckPacks(plan, report);
+            }
+
+            Dictionary<string, CardDefinition> existingCards = report.Succeeded ? FindExistingCards(folder + "/Cards", report) : null;
             if (!report.Succeeded)
             {
                 return report;
-            }
-
-            IReadOnlyList<Card> plan;
-            try
-            {
-                plan = CardGenerationPlan.Build(settings, prices.PriceCentsOf);
-            }
-            catch (ArgumentException exception)
-            {
-                report.AddError(exception.Message);
-                return report;
-            }
-            catch (InvalidOperationException exception)
-            {
-                report.AddError(exception.Message);
-                return report;
-            }
-
-            bool linkPack = packToLink != null && ShouldLink(packToLink, settings.SetId);
-            if (linkPack)
-            {
-                foreach (string problem in CardGenerationPlan.FindPackProblems(plan, packToLink.ToPackConfig()))
-                {
-                    report.AddError(problem);
-                }
-
-                if (!report.Succeeded)
-                {
-                    return report;
-                }
-            }
-            else if (packToLink != null)
-            {
-                report.AddNote($"Pack '{packToLink.name}' uses another set, so it was neither validated nor linked.");
             }
 
             string cardsFolder = EnsureFolder(folder + "/Cards");
@@ -99,42 +75,142 @@ namespace Game.EditorTools.CardGeneration
             string prefabsFolder = EnsureFolder(folder + "/Prefabs");
             string uiFolder = EnsureFolder(folder + "/UI");
 
-            EnsureMaterials(materialsFolder, palette, settings.Overwrite, report);
-            Dictionary<string, CardDefinition> cards = EnsureCards(cardsFolder, plan, settings.Overwrite, report);
-            CardSetDefinition set = EnsureSet(folder, settings, plan, cards, report);
-            EnsurePrefab(prefabsFolder + "/BoosterPack.prefab", "BoosterPack", settings.Overwrite, root => CardPrefabBuilder.BuildBoosterPack(root, palette), report);
-            EnsurePrefab(prefabsFolder + "/WorldCard.prefab", "WorldCard", settings.Overwrite, root => CardPrefabBuilder.BuildWorldCard(root, palette), report);
+            EnsureTierPrices(options.PriceTablePath, plan.Prices, report);
+            EnsureMaterials(materialsFolder, palette, report);
+            Dictionary<string, CardDefinition> cards = EnsureCards(cardsFolder, existingCards, plan, report);
+            Dictionary<string, CardSetDefinition> sets = EnsureSets(folder, plan, cards, report);
+            EnsurePrefab(prefabsFolder + "/BoosterPack.prefab", "BoosterPack", root => CardPrefabBuilder.BuildBoosterPack(root, palette), report);
+            EnsurePrefab(prefabsFolder + "/WorldCard.prefab", "WorldCard", root => CardPrefabBuilder.BuildWorldCard(root, palette), report);
             // Stylesheet first: the UXML references it, and importing the UXML before the USS exists logs an error.
-            EnsureTextFile(uiFolder + "/" + CardTemplateFiles.UssFileName, CardTemplateFiles.Uss(palette), settings.Overwrite, report);
-            EnsureTextFile(uiFolder + "/" + CardTemplateFiles.UxmlFileName, CardTemplateFiles.Uxml(), settings.Overwrite, report);
-            EnsureTextFile(folder + "/" + CardTemplateFiles.ReadmeFileName, CardTemplateFiles.Readme(settings.SetId), settings.Overwrite, report);
+            EnsureTextFile(uiFolder + "/" + CardTemplateFiles.UssFileName, CardTemplateFiles.Uss(palette), report);
+            EnsureTextFile(uiFolder + "/" + CardTemplateFiles.UxmlFileName, CardTemplateFiles.Uxml(), report);
+            EnsureTextFile(folder + "/" + CardTemplateFiles.ReadmeFileName, CardTemplateFiles.Readme(), report);
 
-            if (linkPack)
+            ReportOrphanMaterials(materialsFolder, report);
+            if (options.IncludeProjectReferences)
             {
-                LinkPack(packToLink, set, report);
+                GeneratedReferenceLinker.Relink(sets, CardTemplatePath(folder), report);
             }
 
             AssetDatabase.SaveAssets();
             return report;
         }
 
-        private static bool ShouldLink(PackConfigDefinition pack, string setId)
+        /// <summary>
+        /// Fills empty card names in the manifests (<see cref="ManifestNameFiller"/>) and writes back the
+        /// files that changed. Names already present are never touched.
+        /// </summary>
+        public static string FillMissingNames(string manifestFolder, out bool succeeded)
         {
-            return pack.CardSet == null || string.Equals(pack.CardSet.Id, setId, StringComparison.Ordinal);
+            CardDataPlan plan = CardDataPlan.LoadFolder(manifestFolder, requireNames: false);
+            if (!plan.IsValid)
+            {
+                succeeded = false;
+                return "Fill missing names stopped; fix these first:\n" + string.Join("\n", plan.Errors);
+            }
+
+            var sets = new List<SetManifestEntry>();
+            var cardsBySetId = new Dictionary<string, IReadOnlyList<CardManifestEntry>>(StringComparer.Ordinal);
+            foreach (PlannedSet set in plan.Sets)
+            {
+                sets.Add(set.Entry);
+                var entries = new List<CardManifestEntry>(set.Cards.Count);
+                foreach (PlannedCard card in set.Cards) entries.Add(card.Entry);
+                cardsBySetId.Add(set.SetId, entries);
+            }
+
+            Dictionary<string, List<CardManifestEntry>> filled;
+            try
+            {
+                filled = ManifestNameFiller.Fill(sets, cardsBySetId, out int filledCount);
+                if (filledCount == 0)
+                {
+                    succeeded = true;
+                    return "Every card already has a name; nothing to fill.";
+                }
+            }
+            catch (InvalidOperationException exception)
+            {
+                succeeded = false;
+                return exception.Message;
+            }
+
+            int written = 0;
+            foreach (SetManifestEntry set in sets)
+            {
+                string path = manifestFolder.TrimEnd('/') + "/" + set.CardManifest;
+                if (GeneratedTextFiles.WriteIfChanged(path, CardManifest.WriteCards(filled[set.SetId]))) written++;
+            }
+
+            succeeded = true;
+            return $"Filled missing names; {written} manifest file(s) written. Review the names, then Generate.";
         }
 
-        private static void EnsureMaterials(string folder, RarityPaletteDefinition palette, bool overwrite, CardGenerationReport report)
+        // A pack that rolls a tier its set has no cards for can't open; catch it before writing the set.
+        private static void CheckPacks(CardDataPlan plan, CardGenerationReport report)
+        {
+            foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(PackConfigDefinition)))
+            {
+                var pack = AssetDatabase.LoadAssetAtPath<PackConfigDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+                if (pack == null || pack.CardSet == null)
+                {
+                    continue;
+                }
+
+                PlannedSet set = plan.FindSet(pack.CardSet.Id);
+                if (set == null)
+                {
+                    continue;
+                }
+
+                foreach (string problem in pack.FindTierProblems()) report.AddError(problem);
+                foreach (ValidationIssue issue in PackConfigValidator.Validate(pack.ToPackConfig(), set.ToCardPool()))
+                {
+                    if (issue.Severity == ValidationSeverity.Error)
+                    {
+                        report.AddError($"Pack '{pack.name}': {issue}");
+                    }
+                }
+            }
+        }
+
+        private static void EnsureTierPrices(string path, IReadOnlyList<TierPriceEntry> prices, CardGenerationReport report)
+        {
+            var table = AssetDatabase.LoadAssetAtPath<TierPriceTableDefinition>(path);
+            bool created = table == null;
+            if (created)
+            {
+                EnsureFolder(Path.GetDirectoryName(path)?.Replace('\\', '/'));
+                table = ScriptableObject.CreateInstance<TierPriceTableDefinition>();
+            }
+
+            var serialized = new SerializedObject(table);
+            SerializedProperty list = serialized.FindProperty(TierPriceTableDefinition.PricesField);
+            list.arraySize = prices.Count;
+            for (int index = 0; index < prices.Count; index++)
+            {
+                SerializedProperty entry = list.GetArrayElementAtIndex(index);
+                entry.FindPropertyRelative(TierPrice.TierField).intValue = (int)prices[index].Tier;
+                entry.FindPropertyRelative(TierPrice.PriceCentsField).longValue = prices[index].BasePriceCents;
+                entry.FindPropertyRelative(TierPrice.VolatilityField).intValue = (int)prices[index].Volatility;
+            }
+
+            bool changed = serialized.ApplyModifiedPropertiesWithoutUndo();
+            if (created)
+            {
+                AssetDatabase.CreateAsset(table, path);
+            }
+
+            report.Count(created ? AssetChange.Created : changed ? AssetChange.Updated : AssetChange.Unchanged);
+        }
+
+        private static void EnsureMaterials(string folder, RarityPaletteDefinition palette, CardGenerationReport report)
         {
             var serializedPalette = new SerializedObject(palette);
             SerializedProperty styles = serializedPalette.FindProperty(RarityPaletteDefinition.TiersField);
             foreach (RarityTier tier in RarityTiers.All)
             {
-                if (!palette.Defines(tier))
-                {
-                    report.AddNote($"The palette has no entry for {tier}; its material uses the missing-tier colour.");
-                }
-
-                Material material = EnsureMaterial($"{folder}/Tier_{tier}.mat", palette.ColorOf(tier), overwrite, report);
+                Material material = EnsureMaterial(TierMaterialPath(folder, tier), palette.ColorOf(tier), report);
                 SerializedProperty style = FindStyle(styles, tier);
                 if (style != null)
                 {
@@ -143,9 +219,9 @@ namespace Game.EditorTools.CardGeneration
             }
 
             serializedPalette.FindProperty(RarityPaletteDefinition.CardFaceMaterialField).objectReferenceValue =
-                EnsureMaterial(folder + "/CardFace.mat", palette.CardFaceColor, overwrite, report);
+                EnsureMaterial(folder + "/CardFace.mat", palette.CardFaceColor, report);
             serializedPalette.FindProperty(RarityPaletteDefinition.PackMaterialField).objectReferenceValue =
-                EnsureMaterial(folder + "/BoosterPack.mat", palette.PackColor, overwrite, report);
+                EnsureMaterial(folder + "/BoosterPack.mat", palette.PackColor, report);
 
             if (serializedPalette.ApplyModifiedPropertiesWithoutUndo())
             {
@@ -153,7 +229,9 @@ namespace Game.EditorTools.CardGeneration
             }
         }
 
-        private static Material EnsureMaterial(string path, Color color, bool overwrite, CardGenerationReport report)
+        private static string TierMaterialPath(string folder, RarityTier tier) => $"{folder}/{TierMaterialPrefix}{tier}{MaterialExtension}";
+
+        private static Material EnsureMaterial(string path, Color color, CardGenerationReport report)
         {
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material == null)
@@ -165,8 +243,7 @@ namespace Game.EditorTools.CardGeneration
                 return material;
             }
 
-            bool changed = overwrite && PaletteMaterialSync.ApplyFlatColor(material, color);
-            report.Count(changed ? AssetChange.Updated : AssetChange.Unchanged);
+            report.Count(PaletteMaterialSync.ApplyFlatColor(material, color) ? AssetChange.Updated : AssetChange.Unchanged);
             return material;
         }
 
@@ -184,120 +261,172 @@ namespace Game.EditorTools.CardGeneration
             return null;
         }
 
-        private static Dictionary<string, CardDefinition> EnsureCards(string folder, IReadOnlyList<Card> plan, bool overwrite, CardGenerationReport report)
+        // Matched by id anywhere under Cards/, so a card keeps its asset (and GUID) wherever it sits.
+        // Runs before anything is written: two assets with one id is an error that stops the run.
+        private static Dictionary<string, CardDefinition> FindExistingCards(string folder, CardGenerationReport report)
         {
-            var existing = new Dictionary<string, CardDefinition>();
+            var existing = new Dictionary<string, CardDefinition>(StringComparer.Ordinal);
+            if (!AssetDatabase.IsValidFolder(folder))
+            {
+                return existing;
+            }
+
             foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(CardDefinition), new[] { folder }))
             {
-                var card = AssetDatabase.LoadAssetAtPath<CardDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var card = AssetDatabase.LoadAssetAtPath<CardDefinition>(path);
                 if (card == null || string.IsNullOrEmpty(card.Id))
                 {
+                    report.AddOrphan($"{path} (no id)");
                     continue;
                 }
 
-                if (!existing.ContainsKey(card.Id))
+                if (existing.ContainsKey(card.Id))
                 {
-                    existing.Add(card.Id, card);
+                    report.AddError($"Two generated card assets share the id {card.Id}: {AssetDatabase.GetAssetPath(existing[card.Id])} and {path}. Delete one.");
+                    continue;
                 }
-                else
-                {
-                    report.AddNote($"Two generated card assets share the id {card.Id}; the second was ignored.");
-                }
+
+                existing.Add(card.Id, card);
             }
 
-            var result = new Dictionary<string, CardDefinition>(plan.Count);
-            foreach (Card planned in plan)
-            {
-                if (existing.TryGetValue(planned.Id, out CardDefinition definition))
-                {
-                    report.Count(overwrite && Apply(definition, planned) ? AssetChange.Updated : AssetChange.Unchanged);
-                }
-                else
-                {
-                    definition = ScriptableObject.CreateInstance<CardDefinition>();
-                    Apply(definition, planned);
-                    AssetDatabase.CreateAsset(definition, $"{folder}/{planned.Id}.asset");
-                    report.Count(AssetChange.Created);
-                }
+            return existing;
+        }
 
-                result.Add(planned.Id, definition);
-            }
-
-            if (overwrite)
+        private static Dictionary<string, CardDefinition> EnsureCards(
+            string folder,
+            Dictionary<string, CardDefinition> existing,
+            CardDataPlan plan,
+            CardGenerationReport report)
+        {
+            var result = new Dictionary<string, CardDefinition>(StringComparer.Ordinal);
+            foreach (PlannedSet set in plan.Sets)
             {
-                foreach (KeyValuePair<string, CardDefinition> stale in existing)
+                string setFolder = null;
+                foreach (PlannedCard planned in set.Cards)
                 {
-                    if (!result.ContainsKey(stale.Key))
+                    if (existing.TryGetValue(planned.Id, out CardDefinition definition))
                     {
-                        AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(stale.Value));
-                        report.CountDeleted();
+                        report.Count(Apply(definition, planned) ? AssetChange.Updated : AssetChange.Unchanged);
                     }
+                    else
+                    {
+                        setFolder = setFolder ?? EnsureFolder(folder + "/" + set.SetId);
+                        definition = ScriptableObject.CreateInstance<CardDefinition>();
+                        Apply(definition, planned);
+                        AssetDatabase.CreateAsset(definition, $"{setFolder}/{planned.Id}.asset");
+                        report.Count(AssetChange.Created);
+                    }
+
+                    result.Add(planned.Id, definition);
+                }
+            }
+
+            foreach (KeyValuePair<string, CardDefinition> card in existing)
+            {
+                if (!result.ContainsKey(card.Key))
+                {
+                    report.AddOrphan($"{AssetDatabase.GetAssetPath(card.Value)} (card {card.Key}, in no manifest)");
                 }
             }
 
             return result;
         }
 
-        private static bool Apply(CardDefinition definition, Card card)
+        private static bool Apply(CardDefinition definition, PlannedCard card)
         {
             var serialized = new SerializedObject(definition);
             serialized.FindProperty(CardDefinition.IdField).stringValue = card.Id;
-            serialized.FindProperty(CardDefinition.DisplayNameField).stringValue = card.DisplayName;
+            serialized.FindProperty(CardDefinition.DisplayNameField).stringValue = card.Entry.Name;
             serialized.FindProperty(CardDefinition.TierField).intValue = (int)card.Tier;
             serialized.FindProperty(CardDefinition.ValueCentsField).longValue = card.ValueCents;
+            serialized.FindProperty(CardDefinition.FlavourField).stringValue = card.Entry.Flavour;
+            serialized.FindProperty(CardDefinition.ArtHintField).stringValue = card.Entry.ArtHint;
             return serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static CardSetDefinition EnsureSet(
+        private static Dictionary<string, CardSetDefinition> EnsureSets(
             string folder,
-            CardGenerationSettings settings,
-            IReadOnlyList<Card> plan,
+            CardDataPlan plan,
             Dictionary<string, CardDefinition> cards,
             CardGenerationReport report)
         {
-            string path = $"{folder}/{settings.SetId}.asset";
-            var set = AssetDatabase.LoadAssetAtPath<CardSetDefinition>(path);
-            bool created = set == null;
-            if (!created && !settings.Overwrite)
+            var existing = new Dictionary<string, CardSetDefinition>(StringComparer.Ordinal);
+            foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(CardSetDefinition), new[] { folder }))
             {
-                report.Count(AssetChange.Unchanged);
-                return set;
+                var set = AssetDatabase.LoadAssetAtPath<CardSetDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+                if (set != null && !string.IsNullOrEmpty(set.Id) && !existing.ContainsKey(set.Id))
+                {
+                    existing.Add(set.Id, set);
+                }
             }
 
-            if (created)
+            var result = new Dictionary<string, CardSetDefinition>(StringComparer.Ordinal);
+            foreach (PlannedSet planned in plan.Sets)
             {
-                set = ScriptableObject.CreateInstance<CardSetDefinition>();
+                bool created = !existing.TryGetValue(planned.SetId, out CardSetDefinition set);
+                if (created)
+                {
+                    set = ScriptableObject.CreateInstance<CardSetDefinition>();
+                }
+
+                SetManifestEntry entry = planned.Entry;
+                var serialized = new SerializedObject(set);
+                serialized.FindProperty(CardSetDefinition.IdField).stringValue = entry.SetId;
+                serialized.FindProperty(CardSetDefinition.DisplayNameField).stringValue = entry.DisplayName;
+                serialized.FindProperty(CardSetDefinition.ShortNameField).stringValue = entry.ShortName;
+                serialized.FindProperty(CardSetDefinition.IdPrefixField).stringValue = entry.IdPrefix;
+                serialized.FindProperty(CardSetDefinition.LifecycleField).intValue = (int)entry.Lifecycle;
+                serialized.FindProperty(CardSetDefinition.PriceScalePercentField).intValue = entry.PriceScalePercent;
+                SerializedProperty cardList = serialized.FindProperty(CardSetDefinition.CardsField);
+                cardList.arraySize = planned.Cards.Count;
+                for (int index = 0; index < planned.Cards.Count; index++)
+                {
+                    cardList.GetArrayElementAtIndex(index).objectReferenceValue = cards[planned.Cards[index].Id];
+                }
+
+                bool changed = serialized.ApplyModifiedPropertiesWithoutUndo();
+                if (created)
+                {
+                    AssetDatabase.CreateAsset(set, $"{folder}/{entry.SetId}.asset");
+                }
+
+                report.Count(created ? AssetChange.Created : changed ? AssetChange.Updated : AssetChange.Unchanged);
+                result.Add(planned.SetId, set);
             }
 
-            var serialized = new SerializedObject(set);
-            serialized.FindProperty(CardSetDefinition.IdField).stringValue = settings.SetId;
-            serialized.FindProperty(CardSetDefinition.DisplayNameField).stringValue = settings.SetDisplayName;
-            serialized.FindProperty(CardSetDefinition.ShortNameField).stringValue = settings.SetShortName;
-            SerializedProperty cardList = serialized.FindProperty(CardSetDefinition.CardsField);
-            cardList.arraySize = plan.Count;
-            for (int index = 0; index < plan.Count; index++)
+            foreach (KeyValuePair<string, CardSetDefinition> set in existing)
             {
-                cardList.GetArrayElementAtIndex(index).objectReferenceValue = cards[plan[index].Id];
+                if (!result.ContainsKey(set.Key))
+                {
+                    report.AddOrphan($"{AssetDatabase.GetAssetPath(set.Value)} (set {set.Key}, not in {CardManifest.SetsFileName})");
+                }
             }
 
-            bool changed = serialized.ApplyModifiedPropertiesWithoutUndo();
-            if (created)
-            {
-                AssetDatabase.CreateAsset(set, path);
-            }
-
-            report.Count(created ? AssetChange.Created : changed ? AssetChange.Updated : AssetChange.Unchanged);
-            return set;
+            return result;
         }
 
-        private static void EnsurePrefab(string path, string rootName, bool overwrite, Func<GameObject, bool> build, CardGenerationReport report)
+        private static void ReportOrphanMaterials(string folder, CardGenerationReport report)
+        {
+            var expected = new HashSet<string>(StringComparer.Ordinal);
+            foreach (RarityTier tier in RarityTiers.All)
+            {
+                expected.Add(TierMaterialPath(folder, tier));
+            }
+
+            foreach (string guid in AssetDatabase.FindAssets("t:Material", new[] { folder }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (Path.GetFileName(path).StartsWith(TierMaterialPrefix, StringComparison.Ordinal) && !expected.Contains(path))
+                {
+                    report.AddOrphan($"{path} (material for a tier that no longer exists)");
+                }
+            }
+        }
+
+        private static void EnsurePrefab(string path, string rootName, Func<GameObject, bool> build, CardGenerationReport report)
         {
             bool exists = AssetDatabase.LoadAssetAtPath<GameObject>(path) != null;
-            if (exists && !overwrite)
-            {
-                report.Count(AssetChange.Unchanged);
-                return;
-            }
 
             // Existing prefabs are edited in place: rebuilding from scratch would regenerate their
             // internal file ids and rewrite the file on every run.
@@ -330,36 +459,11 @@ namespace Game.EditorTools.CardGeneration
             }
         }
 
-        private static void EnsureTextFile(string path, string content, bool overwrite, CardGenerationReport report)
+        private static void EnsureTextFile(string path, string content, CardGenerationReport report)
         {
             bool exists = File.Exists(path);
-            if (exists && !overwrite)
-            {
-                report.Count(AssetChange.Unchanged);
-                return;
-            }
-
             bool isWritten = GeneratedTextFiles.WriteIfChanged(path, content);
             report.Count(!isWritten ? AssetChange.Unchanged : exists ? AssetChange.Updated : AssetChange.Created);
-        }
-
-        private static void LinkPack(PackConfigDefinition pack, CardSetDefinition set, CardGenerationReport report)
-        {
-            var serialized = new SerializedObject(pack);
-            serialized.FindProperty(PackConfigDefinition.CardSetField).objectReferenceValue = set;
-            if (serialized.ApplyModifiedPropertiesWithoutUndo())
-            {
-                report.AddNote($"Pointed pack '{pack.name}' at the generated set '{set.name}'.");
-            }
-
-            // Checked again against the written assets, not just the plan.
-            foreach (ValidationIssue issue in PackConfigValidator.Validate(pack.ToPackConfig(), set.ToCardPool()))
-            {
-                if (issue.Severity == ValidationSeverity.Error)
-                {
-                    report.AddError($"{pack.name}: {issue}");
-                }
-            }
         }
 
         /// <summary>Creates any missing folders along <paramref name="path"/> and returns it.</summary>

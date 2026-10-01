@@ -11,16 +11,16 @@ namespace Game.Core.Tests.Inventory
 {
     public sealed class InventoryServiceTests
     {
-        private static readonly Card s_rare = TestContent.CreateCard("SetA_R01", RarityTier.Rare, 60);
-        private static readonly Card s_common = TestContent.CreateCard("SetA_C01", RarityTier.Common, 5);
+        private static readonly Card s_holo = TestContent.CreateCard("RC_HFA_01", RarityTier.HoloFullArt, 240);
+        private static readonly Card s_common = TestContent.CreateCard("RC_C_001", RarityTier.Common, 5);
 
         [Test]
         public void Add_SameCardAndTierTwice_MergesIntoOneStack()
         {
             var inventory = new InventoryService();
 
-            inventory.Add(s_rare, 100);
-            inventory.Add(s_rare, 50);
+            inventory.Add(s_holo, 100);
+            inventory.Add(s_holo, 50);
 
             Assert.That(inventory.Stacks.Count, Is.EqualTo(1));
             Assert.That(inventory.Stacks[0].Count, Is.EqualTo(2));
@@ -32,11 +32,11 @@ namespace Game.Core.Tests.Inventory
         {
             var inventory = new InventoryService();
 
-            inventory.Add(s_rare, 10);
+            inventory.Add(s_holo, 10);
             inventory.Add(s_common, 10);
 
             Assert.That(inventory.Stacks.Count, Is.EqualTo(2));
-            Assert.That(inventory.CountOf(s_rare.Id, RarityTier.Rare), Is.EqualTo(1));
+            Assert.That(inventory.CountOf(s_holo.Id, RarityTier.HoloFullArt), Is.EqualTo(1));
             Assert.That(inventory.CountOf(s_common.Id, RarityTier.Common), Is.EqualTo(1));
         }
 
@@ -45,7 +45,7 @@ namespace Game.Core.Tests.Inventory
         {
             var inventory = new InventoryService();
             OpenedPack pack = PackOf(TestContent.CreateCard("A", RarityTier.Common), TestContent.CreateCard("B", RarityTier.Common),
-                TestContent.CreateCard("C", RarityTier.Common), TestContent.CreateCard("D", RarityTier.Uncommon), TestContent.CreateCard("E", RarityTier.Rare));
+                TestContent.CreateCard("C", RarityTier.Common), TestContent.CreateCard("D", RarityTier.Uncommon), TestContent.CreateCard("E", RarityTier.HoloFullArt));
 
             inventory.AddPack(pack, 425);
 
@@ -57,7 +57,7 @@ namespace Game.Core.Tests.Inventory
         {
             var inventory = new InventoryService();
             OpenedPack pack = PackOf(TestContent.CreateCard("First", RarityTier.Common), TestContent.CreateCard("Second", RarityTier.Common),
-                TestContent.CreateCard("Third", RarityTier.Rare));
+                TestContent.CreateCard("Third", RarityTier.HoloFullArt));
 
             inventory.AddPack(pack, 425);
 
@@ -79,17 +79,17 @@ namespace Game.Core.Tests.Inventory
             }
 
             Assert.That(inventory.TotalCostBasisCents, Is.EqualTo(unevenPriceCents * packCount));
-            Assert.That(inventory.Stacks.Sum(stack => stack.Count), Is.EqualTo(packCount * 5));
+            Assert.That(inventory.Stacks.Sum(stack => stack.Count), Is.EqualTo(packCount * TestContent.StartingPack().Slots.Count));
         }
 
         [Test]
         public void Remove_OneOfSeveral_ReducesCountAndCostBasisByAverageCost()
         {
             var inventory = new InventoryService();
-            inventory.Add(s_rare, 100);
-            inventory.Add(s_rare, 50);
+            inventory.Add(s_holo, 100);
+            inventory.Add(s_holo, 50);
 
-            long removed = inventory.Remove(s_rare.Id, RarityTier.Rare);
+            long removed = inventory.Remove(s_holo.Id, RarityTier.HoloFullArt);
 
             Assert.That(removed, Is.EqualTo(75));
             Assert.That(inventory.Stacks[0].Count, Is.EqualTo(1));
@@ -100,9 +100,9 @@ namespace Game.Core.Tests.Inventory
         public void Remove_LastCopy_RemovesStackAndReturnsRemainingBasis()
         {
             var inventory = new InventoryService();
-            inventory.Add(s_rare, 85);
+            inventory.Add(s_holo, 85);
 
-            long removed = inventory.Remove(s_rare.Id, RarityTier.Rare);
+            long removed = inventory.Remove(s_holo.Id, RarityTier.HoloFullArt);
 
             Assert.That(removed, Is.EqualTo(85));
             Assert.That(inventory.Stacks, Is.Empty);
@@ -112,14 +112,14 @@ namespace Game.Core.Tests.Inventory
         public void Remove_AllCopiesOneByOne_BasisReachesExactlyZero()
         {
             var inventory = new InventoryService();
-            inventory.Add(s_rare, 100);
-            inventory.Add(s_rare, 0);
-            inventory.Add(s_rare, 0);
+            inventory.Add(s_holo, 100);
+            inventory.Add(s_holo, 0);
+            inventory.Add(s_holo, 0);
             long totalRemoved = 0;
 
             for (int i = 0; i < 3; i++)
             {
-                totalRemoved += inventory.Remove(s_rare.Id, RarityTier.Rare);
+                totalRemoved += inventory.Remove(s_holo.Id, RarityTier.HoloFullArt);
             }
 
             Assert.That(totalRemoved, Is.EqualTo(100));
@@ -130,17 +130,17 @@ namespace Game.Core.Tests.Inventory
         public void Remove_MoreThanOwned_Throws()
         {
             var inventory = new InventoryService();
-            inventory.Add(s_rare, 10);
+            inventory.Add(s_holo, 10);
 
-            Assert.Throws<InvalidOperationException>(() => inventory.Remove(s_rare.Id, RarityTier.Rare, count: 2));
-            Assert.That(inventory.CountOf(s_rare.Id, RarityTier.Rare), Is.EqualTo(1), "A failed removal must not change the stack.");
+            Assert.Throws<InvalidOperationException>(() => inventory.Remove(s_holo.Id, RarityTier.HoloFullArt, count: 2));
+            Assert.That(inventory.CountOf(s_holo.Id, RarityTier.HoloFullArt), Is.EqualTo(1), "A failed removal must not change the stack.");
         }
 
         [Test]
         public void Clear_WithStacks_EmptiesInventory()
         {
             var inventory = new InventoryService();
-            inventory.Add(s_rare, 10);
+            inventory.Add(s_holo, 10);
             inventory.Add(s_common, 10);
 
             inventory.Clear();

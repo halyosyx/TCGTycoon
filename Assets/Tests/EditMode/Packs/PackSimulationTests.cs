@@ -55,7 +55,7 @@ namespace Game.Core.Tests.Packs
             PackTally tally = PackSimulation.Run(CreateStartingOpener(), 250);
 
             Assert.That(tally.PackCount, Is.EqualTo(250));
-            Assert.That(tally.SlotCount, Is.EqualTo(5));
+            Assert.That(tally.SlotCount, Is.EqualTo(7));
         }
 
         private static PackTally SimulateStartingPack() => PackSimulation.Run(CreateStartingOpener(), ManyPacks);

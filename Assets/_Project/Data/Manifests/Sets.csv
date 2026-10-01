@@ -1,0 +1,3 @@
+setId,displayName,shortName,idPrefix,lifecycle,priceScalePercent,cardManifest
+SetA,Mythbound: Reigning Champions,Champions,RC,InPrint,100,Champions.csv
+SetB,Mythbound: Mythical Origins,Origins,MO,OutOfPrint,180,Origins.csv

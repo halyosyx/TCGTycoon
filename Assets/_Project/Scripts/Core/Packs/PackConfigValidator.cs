@@ -65,7 +65,8 @@ namespace Game.Core.Packs
             {
                 if (!RarityTiers.IsDefined(entry.Tier))
                 {
-                    issues.Add(SlotIssue(ValidationSeverity.Error, slotIndex, $"Unknown tier value {(int)entry.Tier}."));
+                    // Names stale seven-tier data ("removed tier FullArt (4)") so it can't pass unnoticed.
+                    issues.Add(SlotIssue(ValidationSeverity.Error, slotIndex, $"Uses {RarityTiers.Describe(entry.Tier)}."));
                     continue;
                 }
 

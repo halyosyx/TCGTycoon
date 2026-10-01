@@ -3,9 +3,6 @@
 :root {
     --color-tier-1: #7C7671;   /* Common */
     --color-tier-2: #559A69;   /* Uncommon */
-    --color-tier-3: #4DA4D3;   /* Rare */
-    --color-tier-4: #AFA2E7;   /* Holographic */
-    --color-tier-5: #F2A5C7;   /* Full Art */
-    --color-tier-6: #F8C4A8;   /* Alternate Illustration */
-    --color-tier-7: #FDE096;   /* Special Illustration */
+    --color-tier-3: #F2A5C7;   /* Holographic Full Art */
+    --color-tier-4: #FDE096;   /* Special Full Art Holo */
 }

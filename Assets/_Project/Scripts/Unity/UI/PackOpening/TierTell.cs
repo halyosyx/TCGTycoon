@@ -43,18 +43,15 @@ namespace Game.Unity.UI.PackOpening
 
         public float PulsesPerSecond => _pulsesPerSecond;
 
-        /// <summary>Starting values: nothing for bulk, a hint for Rare and Holo, strong from FullArt up.</summary>
+        /// <summary>Starting values: nothing for bulk, a strong glow for Holo Full Art, strongest for Special.</summary>
         public static TierTell[] CreateDefaults()
         {
             return new[]
             {
                 new TierTell(RarityTier.Common, 0f, 0f, 0f),
                 new TierTell(RarityTier.Uncommon, 0f, 0f, 0f),
-                new TierTell(RarityTier.Rare, 0.3f, 14f, 1f),
-                new TierTell(RarityTier.Holographic, 0.5f, 20f, 1.5f),
-                new TierTell(RarityTier.FullArt, 0.8f, 32f, 2f),
-                new TierTell(RarityTier.AlternateIllustration, 0.9f, 38f, 2.5f),
-                new TierTell(RarityTier.SpecialIllustration, 1f, 48f, 3f),
+                new TierTell(RarityTier.HoloFullArt, 0.8f, 32f, 2f),
+                new TierTell(RarityTier.SpecialFullArtHolo, 1f, 48f, 3f),
             };
         }
     }

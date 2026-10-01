@@ -72,12 +72,46 @@ namespace Game.Unity.Definitions
             return style == null ? null : style.Material;
         }
 
+        /// <summary>The tier's short name for chips and tabs ("Holo FA"), falling back to its display name.</summary>
+        public string ShortNameOf(RarityTier tier)
+        {
+            RarityStyle style = Find(tier);
+            return style == null ? tier.ToString() : style.ShortName;
+        }
+
         public bool Defines(RarityTier tier) => Find(tier) != null;
 
         /// <summary>
-        /// Restores the UI kit's tier colours (Docs/UI mockups): lightness rises with rank, from a warm
-        /// grey Common to a pale gold Special Illustration. The palette is the single source of tier
-        /// colours; TCG > UI > Export Rarity Tokens turns it into the kit's --color-tier-1..7. Tier
+        /// Entries holding a removed or unknown tier, and defined tiers with no entry, each naming this
+        /// asset. Empty when the palette matches the four-tier ladder.
+        /// </summary>
+        public List<string> FindTierProblems()
+        {
+            var problems = new List<string>();
+            foreach (RarityStyle style in _tiers)
+            {
+                if (style != null && !RarityTiers.IsDefined(style.Tier))
+                {
+                    problems.Add($"Rarity palette '{name}' has an entry for {RarityTiers.Describe(style.Tier)}.");
+                }
+            }
+
+            foreach (RarityTier tier in RarityTiers.All)
+            {
+                if (!Defines(tier))
+                {
+                    problems.Add($"Rarity palette '{name}' has no entry for {tier}.");
+                }
+            }
+
+            return problems;
+        }
+
+        /// <summary>
+        /// Restores the four-tier colours (GDD v1.7): Common and Uncommon keep the UI kit's colours;
+        /// Holographic Full Art and Special Full Art Holo start from the old Full Art pink and Special
+        /// Illustration gold until the designer's new token sheet lands. The palette is the single
+        /// source of tier colours; TCG > UI > Export Rarity Tokens turns it into --color-tier-1..4. Tier
         /// colours are meant for borders and glyphs: Common is only about 3.7:1 against the card face,
         /// so card names and tier names use the card text colour on kit card faces.
         /// </summary>
@@ -85,13 +119,10 @@ namespace Game.Unity.Definitions
         {
             _tiers = new List<RarityStyle>
             {
-                new RarityStyle(RarityTier.Common, "Common", new Color32(0x7C, 0x76, 0x71, 0xFF)),
-                new RarityStyle(RarityTier.Uncommon, "Uncommon", new Color32(0x55, 0x9A, 0x69, 0xFF)),
-                new RarityStyle(RarityTier.Rare, "Rare", new Color32(0x4D, 0xA4, 0xD3, 0xFF)),
-                new RarityStyle(RarityTier.Holographic, "Holographic", new Color32(0xAF, 0xA2, 0xE7, 0xFF)),
-                new RarityStyle(RarityTier.FullArt, "Full Art", new Color32(0xF2, 0xA5, 0xC7, 0xFF)),
-                new RarityStyle(RarityTier.AlternateIllustration, "Alternate Illustration", new Color32(0xF8, 0xC4, 0xA8, 0xFF)),
-                new RarityStyle(RarityTier.SpecialIllustration, "Special Illustration", new Color32(0xFD, 0xE0, 0x96, 0xFF)),
+                new RarityStyle(RarityTier.Common, "Common", "Common", new Color32(0x7C, 0x76, 0x71, 0xFF)),
+                new RarityStyle(RarityTier.Uncommon, "Uncommon", "Uncommon", new Color32(0x55, 0x9A, 0x69, 0xFF)),
+                new RarityStyle(RarityTier.HoloFullArt, "Holographic Full Art", "Holo FA", new Color32(0xF2, 0xA5, 0xC7, 0xFF)),
+                new RarityStyle(RarityTier.SpecialFullArtHolo, "Special Full Art Holo", "Special", new Color32(0xFD, 0xE0, 0x96, 0xFF)),
             };
             _cardFaceColor = new Color32(0x1B, 0x1F, 0x24, 0xFF);
             _cardTextColor = new Color32(0xF2, 0xF2, 0xF2, 0xFF);

@@ -12,6 +12,7 @@ namespace Game.Unity.Definitions
     [CreateAssetMenu(menuName = "TCG/Pack Configuration", fileName = "NewPackConfiguration")]
     public sealed class PackConfigDefinition : ScriptableObject
     {
+        public const string DisplayNameField = nameof(_displayName);
         public const string PriceField = nameof(_priceCents);
         public const string CardSetField = nameof(_cardSet);
         public const string SlotsField = nameof(_slots);
@@ -32,6 +33,28 @@ namespace Game.Unity.Definitions
         private List<PackSlotData> _slots = new List<PackSlotData>();
 
         public CardSetDefinition CardSet => _cardSet;
+
+        /// <summary>
+        /// Slot entries holding a removed or unknown tier (stale seven-tier data), each naming this
+        /// asset and the slot. The full rule check is <see cref="Game.Core.Packs.PackConfigValidator"/>.
+        /// </summary>
+        public List<string> FindTierProblems()
+        {
+            var problems = new List<string>();
+            PackConfig config = ToPackConfig();
+            for (int slotIndex = 0; slotIndex < config.Slots.Count; slotIndex++)
+            {
+                foreach (TierWeight entry in config.Slots[slotIndex].Entries)
+                {
+                    if (!RarityTiers.IsDefined(entry.Tier))
+                    {
+                        problems.Add($"Pack '{name}': slot {slotIndex + 1} uses {RarityTiers.Describe(entry.Tier)}.");
+                    }
+                }
+            }
+
+            return problems;
+        }
 
         public PackConfig ToPackConfig()
         {

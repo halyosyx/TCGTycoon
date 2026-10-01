@@ -27,7 +27,10 @@ namespace Game.Unity.UI.PackOpening
         private const string HintName = "hint";
         private const string ShowcaseBackdropName = "showcase-backdrop";
         private const string ShowcaseLayerName = "showcase-layer";
-        private const int PrewarmedCardViews = 5;
+        /// <summary>Serialized name of the card template field, for the card data generator's re-link step.</summary>
+        public const string CardTemplateField = nameof(_cardTemplate);
+
+        private const int PrewarmedCardViews = 7;
         private const int MaxPooledCardViews = 40;
         private const int PrimaryPointerButton = 0;
         private const int SecondaryPointerButton = 1;
@@ -96,6 +99,8 @@ namespace Game.Unity.UI.PackOpening
             {
                 Debug.LogError($"{name}: Card Template is not assigned on {nameof(PackOpeningScreen)}.", this);
             }
+
+            ReportStaleTierTells();
 
             // Private fields survive between Play sessions when scene reload is disabled, so every
             // runtime object is created here rather than in field initialisers.
@@ -560,6 +565,23 @@ namespace Game.Unity.UI.PackOpening
             }
 
             return false;
+        }
+
+        // A tell saved under the seven-tier ladder never matches a card, so that tier would silently lose its glow.
+        private void ReportStaleTierTells()
+        {
+            if (_tierTells == null)
+            {
+                return;
+            }
+
+            foreach (TierTell tell in _tierTells)
+            {
+                if (tell != null && !RarityTiers.IsDefined(tell.Tier))
+                {
+                    Debug.LogError($"{name}: a Tier Tell on {nameof(PackOpeningScreen)} uses {RarityTiers.Describe(tell.Tier)}; reset the Tier Tells to the four tiers.", this);
+                }
+            }
         }
 
         private TierTell TellFor(RarityTier tier)

@@ -15,15 +15,13 @@ MonoBehaviour:
   _prices:
   - _tier: 0
     _priceCents: 5
+    _volatility: 0
   - _tier: 1
     _priceCents: 15
-  - _tier: 2
-    _priceCents: 60
-  - _tier: 3
-    _priceCents: 250
-  - _tier: 4
-    _priceCents: 800
-  - _tier: 5
-    _priceCents: 2500
-  - _tier: 6
-    _priceCents: 9000
+    _volatility: 0
+  - _tier: 7
+    _priceCents: 240
+    _volatility: 1
+  - _tier: 8
+    _priceCents: 7000
+    _volatility: 2
