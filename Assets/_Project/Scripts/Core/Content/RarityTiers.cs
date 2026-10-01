@@ -51,6 +51,17 @@ namespace Game.Core.Content
         }
 
         /// <summary>
+        /// The next rarer tier, or the rarest when <paramref name="tier"/> is already the rarest. An
+        /// undefined value gives <see cref="RarityTier.Common"/>, so callers never get a retired value
+        /// (adding 1 to a tier's value would: Uncommon + 1 is the retired Rare).
+        /// </summary>
+        public static RarityTier NextRarer(RarityTier tier)
+        {
+            int index = Array.IndexOf(s_all, tier);
+            return index < 0 ? s_all[0] : s_all[Math.Min(index + 1, s_all.Length - 1)];
+        }
+
+        /// <summary>
         /// The tier's name, or what is wrong with it: "HoloFullArt", "removed tier FullArt (4)" or
         /// "unknown tier value 12". Used in validation messages so stale data names itself.
         /// </summary>

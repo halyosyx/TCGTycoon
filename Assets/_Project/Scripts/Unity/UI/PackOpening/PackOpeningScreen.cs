@@ -604,8 +604,7 @@ namespace Game.Unity.UI.PackOpening
 
         private Vector2 RowPosition(int slotIndex, int cardCount)
         {
-            float step = CardView.Width * _layout.RowScale + _layout.RowGap;
-            return new Vector2((slotIndex - (cardCount - 1) * 0.5f) * step, 0f);
+            return _layout.RowPosition(slotIndex, cardCount, new Vector2(CardView.Width, CardView.Height));
         }
 
         private void UpdateHint()

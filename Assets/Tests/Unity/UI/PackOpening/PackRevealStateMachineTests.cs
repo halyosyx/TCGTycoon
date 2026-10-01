@@ -8,25 +8,29 @@ namespace Game.Unity.Tests.UI.PackOpening
 {
     public sealed class PackRevealStateMachineTests
     {
+        // The default pack's size (GDD v1.7). Tests that don't care about the size use it; the
+        // size-specific tests below cover other counts so nothing depends on seven.
+        private const int PackSize = 7;
+
         [Test]
         public void Begin_FromIdle_EntersRevealingWithNothingRevealed()
         {
             var reveal = new PackRevealStateMachine();
 
-            reveal.Begin(CreatePack(5));
+            reveal.Begin(CreatePack(PackSize));
 
             Assert.That(reveal.State, Is.EqualTo(PackRevealState.Revealing));
             Assert.That(reveal.RevealedCount, Is.EqualTo(0));
-            Assert.That(reveal.CardCount, Is.EqualTo(5));
+            Assert.That(reveal.CardCount, Is.EqualTo(PackSize));
         }
 
         [Test]
         public void Begin_WhilePackOnScreen_Throws()
         {
             var reveal = new PackRevealStateMachine();
-            reveal.Begin(CreatePack(5));
+            reveal.Begin(CreatePack(PackSize));
 
-            Assert.Throws<InvalidOperationException>(() => reveal.Begin(CreatePack(5)));
+            Assert.Throws<InvalidOperationException>(() => reveal.Begin(CreatePack(PackSize)));
         }
 
         [Test]
@@ -43,9 +47,9 @@ namespace Game.Unity.Tests.UI.PackOpening
         public void RevealNext_WholePack_ReturnsSlotsInOrder()
         {
             var reveal = new PackRevealStateMachine();
-            reveal.Begin(CreatePack(5));
+            reveal.Begin(CreatePack(PackSize));
 
-            for (int expectedSlot = 0; expectedSlot < 5; expectedSlot++)
+            for (int expectedSlot = 0; expectedSlot < PackSize; expectedSlot++)
             {
                 Assert.That(reveal.RevealNext(), Is.EqualTo(expectedSlot));
             }
@@ -73,11 +77,11 @@ namespace Game.Unity.Tests.UI.PackOpening
 
         [TestCase(0)]
         [TestCase(2)]
-        [TestCase(5)]
+        [TestCase(PackSize)]
         public void ShowRow_AtAnyRevealPoint_EntersRowWithEveryCardRevealed(int revealedBefore)
         {
             var reveal = new PackRevealStateMachine();
-            reveal.Begin(CreatePack(5));
+            reveal.Begin(CreatePack(PackSize));
             for (int i = 0; i < revealedBefore; i++)
             {
                 reveal.RevealNext();
@@ -86,14 +90,14 @@ namespace Game.Unity.Tests.UI.PackOpening
             reveal.ShowRow();
 
             Assert.That(reveal.State, Is.EqualTo(PackRevealState.Row));
-            Assert.That(reveal.RevealedCount, Is.EqualTo(5));
+            Assert.That(reveal.RevealedCount, Is.EqualTo(PackSize));
         }
 
         [Test]
         public void ShowRow_WhileInRow_Throws()
         {
             var reveal = new PackRevealStateMachine();
-            reveal.Begin(CreatePack(5));
+            reveal.Begin(CreatePack(PackSize));
             reveal.ShowRow();
 
             Assert.Throws<InvalidOperationException>(() => reveal.ShowRow());
@@ -103,7 +107,7 @@ namespace Game.Unity.Tests.UI.PackOpening
         public void Store_MidReveal_ReturnsToIdle()
         {
             var reveal = new PackRevealStateMachine();
-            reveal.Begin(CreatePack(5));
+            reveal.Begin(CreatePack(PackSize));
             reveal.RevealNext();
 
             reveal.Store();
@@ -117,11 +121,11 @@ namespace Game.Unity.Tests.UI.PackOpening
         public void Store_FromRow_ReturnsToIdleAndAcceptsNextPack()
         {
             var reveal = new PackRevealStateMachine();
-            reveal.Begin(CreatePack(5));
+            reveal.Begin(CreatePack(PackSize));
             reveal.ShowRow();
 
             reveal.Store();
-            reveal.Begin(CreatePack(5));
+            reveal.Begin(CreatePack(PackSize));
 
             Assert.That(reveal.State, Is.EqualTo(PackRevealState.Revealing));
         }
@@ -147,7 +151,7 @@ namespace Game.Unity.Tests.UI.PackOpening
         public void Showcase_WhileRevealing_Throws()
         {
             var reveal = new PackRevealStateMachine();
-            reveal.Begin(CreatePack(5));
+            reveal.Begin(CreatePack(PackSize));
 
             Assert.Throws<InvalidOperationException>(() => reveal.Showcase(0));
         }
@@ -162,7 +166,7 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [TestCase(-1)]
-        [TestCase(5)]
+        [TestCase(PackSize)]
         public void Showcase_SlotOutsidePack_Throws(int slotIndex)
         {
             PackRevealStateMachine reveal = CreateInRow();
@@ -203,17 +207,48 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [Test]
-        public void IsSlowSlot_DefaultPacingFiveCards_OnlyLastTwoSlotsAreSlow()
+        public void IsSlowSlot_DefaultPacingSevenCards_OnlySlotsSixAndSevenAreSlow()
         {
             var pacing = new RevealPacing();
 
-            bool[] isSlow = new bool[5];
-            for (int slot = 0; slot < 5; slot++)
+            bool[] isSlow = new bool[PackSize];
+            for (int slot = 0; slot < PackSize; slot++)
             {
-                isSlow[slot] = pacing.IsSlowSlot(slot, 5);
+                isSlow[slot] = pacing.IsSlowSlot(slot, PackSize);
             }
 
-            Assert.That(isSlow, Is.EqualTo(new[] { false, false, false, true, true }));
+            Assert.That(isSlow, Is.EqualTo(new[] { false, false, false, false, false, true, true }));
+        }
+
+        [TestCase(3)]
+        [TestCase(12)]
+        public void IsSlowSlot_AnyPackSize_LastTwoSlotsCountedFromTheEnd(int cardCount)
+        {
+            var pacing = new RevealPacing();
+
+            for (int slot = 0; slot < cardCount; slot++)
+            {
+                Assert.That(pacing.IsSlowSlot(slot, cardCount), Is.EqualTo(slot >= cardCount - 2), $"Slot {slot + 1} of {cardCount}");
+            }
+        }
+
+        [TestCase(3)]
+        [TestCase(7)]
+        [TestCase(12)]
+        public void RevealNext_PackOfAnySize_RevealsEverySlotInOrderThenShowsTheRow(int cardCount)
+        {
+            var reveal = new PackRevealStateMachine();
+            reveal.Begin(CreatePack(cardCount));
+
+            for (int expectedSlot = 0; expectedSlot < cardCount; expectedSlot++)
+            {
+                Assert.That(reveal.RevealNext(), Is.EqualTo(expectedSlot));
+            }
+
+            reveal.ShowRow();
+
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Row));
+            Assert.That(reveal.RevealedCount, Is.EqualTo(cardCount));
         }
 
         [Test]
@@ -221,14 +256,14 @@ namespace Game.Unity.Tests.UI.PackOpening
         {
             var pacing = new RevealPacing();
 
-            Assert.That(pacing.IsSlowSlot(5, 5), Is.False);
-            Assert.That(pacing.IsSlowSlot(-1, 5), Is.False);
+            Assert.That(pacing.IsSlowSlot(PackSize, PackSize), Is.False);
+            Assert.That(pacing.IsSlowSlot(-1, PackSize), Is.False);
         }
 
         private static PackRevealStateMachine CreateInRow()
         {
             var reveal = new PackRevealStateMachine();
-            reveal.Begin(CreatePack(5));
+            reveal.Begin(CreatePack(PackSize));
             reveal.ShowRow();
             return reveal;
         }

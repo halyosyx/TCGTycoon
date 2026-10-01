@@ -88,6 +88,24 @@ namespace Game.Core.Tests.Session
             Assert.That(session.Inventory.Stacks, Is.Empty);
         }
 
+        [TestCase(3)]
+        [TestCase(12)]
+        public void OpenPack_PackOfNSlots_InventoryGainsNCardsAtOnce(int slotCount)
+        {
+            var slots = new PackSlot[slotCount];
+            for (int slot = 0; slot < slotCount; slot++)
+            {
+                slots[slot] = TestContent.Slot(TestContent.Weight(RarityTier.Common, 1));
+            }
+
+            var session = new GameSession(TestContent.Pack(100, slots), TestContent.SetAPool(), Seed);
+
+            OpenedPack pack = session.OpenPack();
+
+            Assert.That(pack.Cards.Count, Is.EqualTo(slotCount));
+            Assert.That(TotalCards(session.Inventory), Is.EqualTo(slotCount), "Every card is owned as soon as OpenPack returns.");
+        }
+
         private static GameSession CreateSession()
         {
             return new GameSession(TestContent.StartingPack(), TestContent.SetAPool(), Seed);

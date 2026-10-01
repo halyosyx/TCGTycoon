@@ -86,6 +86,23 @@ namespace Game.Core.Tests.Content
             Assert.That(RarityTiers.IsRemovedName(name), Is.EqualTo(expected));
         }
 
+        [TestCase(RarityTier.Common, RarityTier.Uncommon)]
+        [TestCase(RarityTier.Uncommon, RarityTier.HoloFullArt)]
+        [TestCase(RarityTier.HoloFullArt, RarityTier.SpecialFullArtHolo)]
+        [TestCase(RarityTier.SpecialFullArtHolo, RarityTier.SpecialFullArtHolo)]
+        public void NextRarer_StepsUpTheLadderAndStopsAtTheTop(RarityTier tier, RarityTier expected)
+        {
+            Assert.That(RarityTiers.NextRarer(tier), Is.EqualTo(expected));
+        }
+
+        [TestCase(2)]
+        [TestCase(12)]
+        public void NextRarer_UndefinedValue_StartsFromCommon(int value)
+        {
+            // Never hands back a retired value: an undefined input restarts at the bottom of the ladder.
+            Assert.That(RarityTiers.NextRarer((RarityTier)value), Is.EqualTo(RarityTier.Common));
+        }
+
         [TestCase(RarityTier.Common, true)]
         [TestCase(RarityTier.Uncommon, true)]
         [TestCase(RarityTier.HoloFullArt, false)]

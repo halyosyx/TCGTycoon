@@ -8,9 +8,21 @@ namespace Game.EditorTools
     /// <summary>Shared editor helpers for finding pack assets and converting them to Core types.</summary>
     internal static class PackAssets
     {
-        /// <summary>The first pack configuration in the project, or null when there is none.</summary>
+        /// <summary>The in-print default pack, which the scene opens.</summary>
+        public const string DefaultPackPath = "Assets/_Project/Data/Products/SetA_BoosterPack.asset";
+
+        /// <summary>
+        /// The default pack (<see cref="DefaultPackPath"/>), else the first pack configuration found, or
+        /// null when there is none. With more than one pack the search order alone isn't a default.
+        /// </summary>
         public static PackConfigDefinition FindDefault()
         {
+            var defaultPack = AssetDatabase.LoadAssetAtPath<PackConfigDefinition>(DefaultPackPath);
+            if (defaultPack != null)
+            {
+                return defaultPack;
+            }
+
             string[] guids = AssetDatabase.FindAssets("t:" + nameof(PackConfigDefinition));
             return guids.Length == 0
                 ? null

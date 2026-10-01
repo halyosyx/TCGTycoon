@@ -99,6 +99,29 @@ namespace Game.Core.Tests.Packs
             }
         }
 
+        [TestCase(3)]
+        [TestCase(12)]
+        public void Open_PackOfNSlots_OneEligibleCardPerSlotInOrder(int slotCount)
+        {
+            // Slot count is data: alternating single-tier slots, so each card's slot is checkable.
+            var slots = new List<PackSlot>();
+            for (int slot = 0; slot < slotCount; slot++)
+            {
+                RarityTier tier = slot % 2 == 0 ? RarityTier.Common : RarityTier.HoloFullArt;
+                slots.Add(TestContent.Slot(TestContent.Weight(tier, 1)));
+            }
+
+            PackConfig config = TestContent.Pack(100, slots.ToArray());
+            PackOpener opener = CreateOpener(config);
+
+            for (int i = 0; i < 1_000; i++)
+            {
+                OpenedPack pack = opener.Open();
+                Assert.That(pack.Cards.Count, Is.EqualTo(slotCount));
+                AssertCardsMatchSlots(config, pack);
+            }
+        }
+
         [Test]
         public void Open_TenSlotPackWithUnusualTiers_ReturnsTenEligibleCards()
         {

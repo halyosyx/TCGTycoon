@@ -10,30 +10,50 @@ using UnityEditor;
 namespace Game.Data.Tests
 {
     /// <summary>
-    /// Checks the real default pack asset, not a code copy. Fails if the asset stops validating, or
-    /// if tuning pushes Rip EV outside the GDD's 80–95% band.
+    /// Checks the real pack assets, not code copies: the in-print default (500 cents, Champions) and
+    /// the out-of-print pack (900 cents, Origins), both 7 slots on the same table. Fails if a pack stops
+    /// validating, or if tuning pushes Rip EV outside the GDD's 80–95% band.
     /// </summary>
+    [TestFixture(DefaultPackPath, 500L)]
+    [TestFixture(OutOfPrintPackPath, 900L)]
     public sealed class DefaultPackAssetTests
     {
         private const string DefaultPackPath = "Assets/_Project/Data/Products/SetA_BoosterPack.asset";
+        private const string OutOfPrintPackPath = "Assets/_Project/Data/Products/SetB_BoosterPack.asset";
         private const int Seed = 777;
         private const int ManyPacks = 100_000;
+        private const int ExpectedSlotCount = 7;
         private const double MinimumRipEvShare = 0.80;
         private const double MaximumRipEvShare = 0.95;
 
+        private readonly string _packPath;
+        private readonly long _expectedPriceCents;
         private PackConfig _config;
         private CardPool _pool;
+
+        public DefaultPackAssetTests(string packPath, long expectedPriceCents)
+        {
+            _packPath = packPath;
+            _expectedPriceCents = expectedPriceCents;
+        }
 
         [SetUp]
         public void LoadDefaultPack()
         {
-            var pack = AssetDatabase.LoadAssetAtPath<PackConfigDefinition>(DefaultPackPath);
-            Assert.That(pack != null, $"Default pack asset not found at {DefaultPackPath}.");
+            var pack = AssetDatabase.LoadAssetAtPath<PackConfigDefinition>(_packPath);
+            Assert.That(pack != null, $"Pack asset not found at {_packPath}.");
             Assert.That(pack.CardSet != null, "Default pack has no card set assigned.");
             Assert.That(pack.CardSet.MissingCardCount, Is.EqualTo(0), "The card set has empty entries.");
 
             _config = pack.ToPackConfig();
             _pool = pack.CardSet.ToCardPool();
+        }
+
+        [Test]
+        public void Pack_PriceAndSlotCount_MatchTheDoc()
+        {
+            Assert.That(_config.PriceCents, Is.EqualTo(_expectedPriceCents));
+            Assert.That(_config.Slots.Count, Is.EqualTo(ExpectedSlotCount));
         }
 
         [Test]

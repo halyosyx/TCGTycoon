@@ -31,7 +31,7 @@ namespace Game.Unity.UI.PackOpening
         [SerializeField, Min(0.01f), Tooltip("Seconds for a row card to grow or shrink when the pointer enters or leaves it.")]
         private float _hoverSeconds = 0.1f;
 
-        [SerializeField, Min(0), Tooltip("How many of the pack's last slots reveal slowly with a rarity tell (2 = slots 4 and 5 of 5).")]
+        [SerializeField, Min(0), Tooltip("How many of the pack's LAST slots reveal slowly with a rarity tell, counted from the end whatever the pack size (2 = slots 6 and 7 of 7).")]
         private int _slowSlotCount = 2;
 
         public float FastFlipSeconds => _fastFlipSeconds;

@@ -190,16 +190,17 @@ namespace Game.EditorTools
         private static void AddEntry(SerializedProperty entries)
         {
             // New entries start at weight 0 (no effect until tuned) on the next tier up, to avoid a duplicate-tier warning.
-            int nextTier = 0;
+            // Stepping through the ladder, not "value + 1": tier values skip the retired 2-6.
+            RarityTier nextTier = RarityTiers.All[0];
             if (entries.arraySize > 0)
             {
-                int lastTier = entries.GetArrayElementAtIndex(entries.arraySize - 1).FindPropertyRelative(TierWeightData.TierField).intValue;
-                nextTier = Mathf.Min(lastTier + 1, RarityTiers.Count - 1);
+                var lastTier = (RarityTier)entries.GetArrayElementAtIndex(entries.arraySize - 1).FindPropertyRelative(TierWeightData.TierField).intValue;
+                nextTier = RarityTiers.NextRarer(lastTier);
             }
 
             entries.arraySize++;
             SerializedProperty added = entries.GetArrayElementAtIndex(entries.arraySize - 1);
-            added.FindPropertyRelative(TierWeightData.TierField).intValue = nextTier;
+            added.FindPropertyRelative(TierWeightData.TierField).intValue = (int)nextTier;
             added.FindPropertyRelative(TierWeightData.WeightField).intValue = 0;
         }
 

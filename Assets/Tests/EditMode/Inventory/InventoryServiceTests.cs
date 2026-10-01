@@ -66,6 +66,25 @@ namespace Game.Core.Tests.Inventory
         }
 
         [Test]
+        public void AddPack_FiveHundredCentsSevenCards_SharesSumToPriceWithLeftoverToEarliestSlots()
+        {
+            // 500 / 7 = 71 remainder 3: integer shares, one leftover cent each to the first three slots.
+            var cards = new Card[7];
+            for (int slot = 0; slot < cards.Length; slot++)
+            {
+                cards[slot] = TestContent.CreateCard($"RC_C_{slot + 1:000}", RarityTier.Common);
+            }
+
+            var inventory = new InventoryService();
+            inventory.AddPack(new OpenedPack("test-pack", cards), TestContent.StartingPackPriceCents);
+
+            long[] shares = cards.Select(card => inventory.Stacks.Single(stack => stack.CardId == card.Id).CostBasisCents).ToArray();
+            Assert.That(shares, Is.EqualTo(new long[] { 72, 72, 72, 71, 71, 71, 71 }));
+            Assert.That(shares.Sum(), Is.EqualTo(500));
+            Assert.That(inventory.TotalCostBasisCents, Is.EqualTo(500));
+        }
+
+        [Test]
         public void AddPack_ThousandSeededPacksAtUnevenPrice_TotalCostBasisEqualsTotalSpent()
         {
             const long unevenPriceCents = 424;
