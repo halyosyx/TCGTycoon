@@ -4,17 +4,26 @@ using Game.Core.Content;
 namespace Game.Core.Tests.TestUtilities
 {
     /// <summary>
-    /// Builds the F1a starting pack and a small Set A pool in code. The pack mirrors the default asset
-    /// (Data/Products/SetA_BoosterPack) and the cards mirror its tier values, not the exact generated
-    /// cards (Data/Generated), so expected values match while card names and counts may differ.
-    /// Game.Data.Tests checks the real assets separately, so drift between the two is caught.
+    /// Builds the default pack (GDD v1.7, 7 slots, 500 cents) and a small Set A pool in code. The pack
+    /// mirrors the default asset (Data/Products/SetA_BoosterPack) and the cards mirror the in-print tier
+    /// values (Data/Manifests/TierPrices.csv), not the exact generated cards, so expected values match
+    /// while card names and counts may differ. Game.Data.Tests checks the real assets separately, so
+    /// drift between the two is caught.
     /// </summary>
     public static class TestContent
     {
-        public const long StartingPackPriceCents = 425;
+        public const long StartingPackPriceCents = 500;
 
-        /// <summary>Exact expected pull value of the starting pack: 15 + 19.5 + 327.5 cents.</summary>
-        public const double StartingExpectedValueCents = 362.0;
+        public const long CommonValueCents = 5;
+        public const long UncommonValueCents = 15;
+        public const long HoloFullArtValueCents = 240;
+        public const long SpecialFullArtHoloValueCents = 7000;
+
+        /// <summary>
+        /// Exact expected pull value of the default pack: slots 1-4 20 + slot 5 15 + slot 6 42 (Uncommon 88,
+        /// Holo FA 12) + slot 7 341.4 (Holo FA 985, Special 15) = 418.4 cents, 83.7% of the price.
+        /// </summary>
+        public const double StartingExpectedValueCents = 418.4;
 
         public const string SetId = "SetA";
 
@@ -25,26 +34,20 @@ namespace Game.Core.Tests.TestUtilities
                 Slot(Weight(RarityTier.Common, 100)),
                 Slot(Weight(RarityTier.Common, 100)),
                 Slot(Weight(RarityTier.Common, 100)),
-                Slot(Weight(RarityTier.Uncommon, 90), Weight(RarityTier.Rare, 10)),
-                Slot(
-                    Weight(RarityTier.Rare, 600),
-                    Weight(RarityTier.Holographic, 250),
-                    Weight(RarityTier.FullArt, 105),
-                    Weight(RarityTier.AlternateIllustration, 40),
-                    Weight(RarityTier.SpecialIllustration, 5)));
+                Slot(Weight(RarityTier.Common, 100)),
+                Slot(Weight(RarityTier.Uncommon, 100)),
+                Slot(Weight(RarityTier.Uncommon, 88), Weight(RarityTier.HoloFullArt, 12)),
+                Slot(Weight(RarityTier.HoloFullArt, 985), Weight(RarityTier.SpecialFullArtHolo, 15)));
         }
 
-        /// <summary>30 placeholder cards with the brief's per-tier values.</summary>
+        /// <summary>A 20-card pool with every tier, at the in-print tier values.</summary>
         public static CardPool SetAPool()
         {
             var cards = new List<Card>();
-            AddCards(cards, RarityTier.Common, "C", count: 10, valueCents: 5);
-            AddCards(cards, RarityTier.Uncommon, "U", count: 7, valueCents: 15);
-            AddCards(cards, RarityTier.Rare, "R", count: 5, valueCents: 60);
-            AddCards(cards, RarityTier.Holographic, "H", count: 3, valueCents: 250);
-            AddCards(cards, RarityTier.FullArt, "FA", count: 2, valueCents: 800);
-            AddCards(cards, RarityTier.AlternateIllustration, "AI", count: 2, valueCents: 2500);
-            AddCards(cards, RarityTier.SpecialIllustration, "SI", count: 1, valueCents: 9000);
+            AddCards(cards, RarityTier.Common, "C", count: 10, valueCents: CommonValueCents);
+            AddCards(cards, RarityTier.Uncommon, "U", count: 6, valueCents: UncommonValueCents);
+            AddCards(cards, RarityTier.HoloFullArt, "HFA", count: 3, valueCents: HoloFullArtValueCents);
+            AddCards(cards, RarityTier.SpecialFullArtHolo, "SFAH", count: 1, valueCents: SpecialFullArtHoloValueCents);
             return new CardPool(cards);
         }
 
@@ -66,7 +69,7 @@ namespace Game.Core.Tests.TestUtilities
         {
             for (int number = 1; number <= count; number++)
             {
-                string id = $"{SetId}_{code}{number:00}";
+                string id = $"RC_{code}_{number:000}";
                 cards.Add(new Card(id, id, SetId, tier, valueCents));
             }
         }

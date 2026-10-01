@@ -20,8 +20,8 @@ namespace Game.EditorTools.UIStyles
         public const string OutputPath = "Assets/_Project/UI/Styles/RarityTokens.uss";
         public const string MenuPath = "TCG/UI/Export Rarity Tokens";
 
-        /// <summary>Token for a tier: tier 1 is the lowest (Common), so the number is the enum value plus one.</summary>
-        public static string TokenName(RarityTier tier) => "--color-tier-" + ((int)tier + 1).ToString(CultureInfo.InvariantCulture);
+        /// <summary>Token for a tier: tier 1 is the lowest (Common), so the number is the tier's position in the ladder plus one.</summary>
+        public static string TokenName(RarityTier tier) => "--color-tier-" + (RarityTiers.IndexOf(tier) + 1).ToString(CultureInfo.InvariantCulture);
 
         /// <summary>The full stylesheet text for a palette, with LF line endings.</summary>
         public static string BuildUss(RarityPaletteDefinition palette)

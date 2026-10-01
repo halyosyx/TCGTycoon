@@ -44,19 +44,19 @@ namespace Game.EditorTools.CardGeneration
         /// <param name="attempt">Bump to get a different name for the same card (used to resolve duplicates).</param>
         public static string Generate(int seed, RarityTier tier, int index, int attempt = 0)
         {
-            var rng = new SeededRng(((seed * SeedMultiplier + (int)tier) * TierMultiplier + index) * IndexMultiplier + attempt);
+            var rng = new SeededRng(((seed * SeedMultiplier + RarityTiers.IndexOf(tier)) * TierMultiplier + index) * IndexMultiplier + attempt);
 
-            // Common and Uncommon get two syllables; Rare and up get three.
+            // Common and Uncommon get two syllables; Holo Full Art and up get three and a title.
             string name = tier <= RarityTier.Uncommon
                 ? Pick(s_openings, rng) + Pick(s_endings, rng)
                 : Pick(s_openings, rng) + Pick(s_middles, rng) + Pick(s_endings, rng);
 
-            if (tier == RarityTier.SpecialIllustration)
+            if (tier == RarityTier.SpecialFullArtHolo)
             {
                 return name + " " + Pick(s_ornateTitles, rng);
             }
 
-            return tier >= RarityTier.FullArt ? name + " " + Pick(s_titles, rng) : name;
+            return tier >= RarityTier.HoloFullArt ? name + " " + Pick(s_titles, rng) : name;
         }
 
         private static string Pick(string[] options, IRng rng) => options[rng.NextInt(options.Length)];

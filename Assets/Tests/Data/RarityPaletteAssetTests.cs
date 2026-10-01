@@ -20,10 +20,12 @@ namespace Game.Data.Tests
             var palette = AssetDatabase.LoadAssetAtPath<RarityPaletteDefinition>(PalettePath);
             Assert.That(palette != null, $"Rarity Palette not found at {PalettePath}.");
 
+            Assert.That(palette.FindTierProblems(), Is.Empty);
             foreach (RarityTier tier in RarityTiers.All)
             {
-                Assert.That(palette.Defines(tier), Is.True, $"The palette has no entry for {tier}.");
-                Assert.That(palette.DisplayNameOf(tier), Is.EqualTo(TierDisplay.NameOf(TierDisplay.FromRarity(tier))), tier.ToString());
+                int uiTier = TierDisplay.FromRarity(tier);
+                Assert.That(palette.DisplayNameOf(tier), Is.EqualTo(TierDisplay.NameOf(uiTier)), tier.ToString());
+                Assert.That(palette.ShortNameOf(tier), Is.EqualTo(TierDisplay.ShortNameOf(uiTier)), tier.ToString());
             }
         }
     }

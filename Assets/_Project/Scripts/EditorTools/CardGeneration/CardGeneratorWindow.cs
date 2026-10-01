@@ -1,4 +1,3 @@
-using Game.Core.Content;
 using Game.Unity.Definitions;
 using TMPro;
 using UnityEditor;
@@ -7,37 +6,27 @@ using UnityEngine;
 namespace Game.EditorTools.CardGeneration
 {
     /// <summary>
-    /// TCG > Generate Prototype Card Data: options for the placeholder card generator and a report of
-    /// the last run. Failures are shown here and logged as errors, never as blocking dialogs.
+    /// TCG > Generate Card Data: generates every card set from the CSV manifests in Data/Manifests and
+    /// reports the run (counts, orphans, re-links). Fill missing names writes generated names into empty
+    /// name cells only, so names typed into the CSVs stick. Failures are shown here and logged as errors,
+    /// never as blocking dialogs.
     /// </summary>
     public sealed class CardGeneratorWindow : EditorWindow
     {
-        private const float CountFieldWidth = 60f;
-
-        [SerializeField] private CardGenerationSettings _settings = new CardGenerationSettings();
+        [SerializeField] private CardGenerationOptions _options = new CardGenerationOptions();
         [SerializeField] private RarityPaletteDefinition _palette;
-        [SerializeField] private TierPriceTableDefinition _prices;
-        [SerializeField] private PackConfigDefinition _pack;
 
         private string _lastReport;
         private bool _lastSucceeded;
         private Vector2 _scroll;
 
-        [MenuItem("TCG/Generate Prototype Card Data")]
-        public static void Open() => GetWindow<CardGeneratorWindow>("Card Generator");
+        [MenuItem("TCG/Generate Card Data")]
+        public static void Open() => GetWindow<CardGeneratorWindow>("Card Data");
 
         private void OnEnable()
         {
-            // Saved window settings may predate a newly added tier.
-            if (_settings == null) _settings = new CardGenerationSettings();
-            if (_settings.CardsPerTier == null || _settings.CardsPerTier.Length != RarityTiers.Count)
-            {
-                System.Array.Resize(ref _settings.CardsPerTier, RarityTiers.Count);
-            }
-
+            if (_options == null) _options = new CardGenerationOptions();
             if (_palette == null) _palette = AssetDatabase.LoadAssetAtPath<RarityPaletteDefinition>(CardAssetGenerator.DefaultPalettePath);
-            if (_prices == null) _prices = AssetDatabase.LoadAssetAtPath<TierPriceTableDefinition>(CardAssetGenerator.DefaultPriceTablePath);
-            if (_pack == null) _pack = PackAssets.FindDefault();
         }
 
         private void OnDisable() => UnsubscribeFromImport();
@@ -46,35 +35,27 @@ namespace Game.EditorTools.CardGeneration
         {
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
 
-            EditorGUILayout.LabelField("Set", EditorStyles.boldLabel);
-            _settings.SetId = EditorGUILayout.TextField("Set id", _settings.SetId);
-            _settings.SetDisplayName = EditorGUILayout.TextField("Display name", _settings.SetDisplayName);
-            _settings.SetShortName = EditorGUILayout.TextField(new GUIContent("Short name", "Tab label in the binder."), _settings.SetShortName);
-            _settings.Seed = EditorGUILayout.IntField(new GUIContent("Seed", "Same seed, same names."), _settings.Seed);
-
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Cards per tier", EditorStyles.boldLabel);
-            foreach (RarityTier tier in RarityTiers.All)
-            {
-                int index = (int)tier;
-                _settings.CardsPerTier[index] = Mathf.Max(0, EditorGUILayout.IntField(tier.ToString(), _settings.CardsPerTier[index], GUILayout.MinWidth(CountFieldWidth)));
-            }
-
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Output", EditorStyles.boldLabel);
-            _settings.OutputFolder = EditorGUILayout.TextField("Folder", _settings.OutputFolder);
-            _settings.Overwrite = EditorGUILayout.Toggle(new GUIContent("Overwrite", "On: update existing generated assets and delete cards no longer produced. Off: only create missing assets."), _settings.Overwrite);
+            EditorGUILayout.LabelField("Folders", EditorStyles.boldLabel);
+            _options.ManifestFolder = EditorGUILayout.TextField(new GUIContent("Manifests", "Sets.csv, one card CSV per set, TierPrices.csv."), _options.ManifestFolder);
+            _options.OutputFolder = EditorGUILayout.TextField(new GUIContent("Output", "Generated cards, sets and visuals."), _options.OutputFolder);
+            _options.PriceTablePath = EditorGUILayout.TextField(new GUIContent("Tier price table", "Written from TierPrices.csv."), _options.PriceTablePath);
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Inputs", EditorStyles.boldLabel);
             _palette = (RarityPaletteDefinition)EditorGUILayout.ObjectField(new GUIContent("Rarity palette", "Created with default colours if empty."), _palette, typeof(RarityPaletteDefinition), false);
-            _prices = (TierPriceTableDefinition)EditorGUILayout.ObjectField(new GUIContent("Tier prices", "Created with the F1a prices if empty."), _prices, typeof(TierPriceTableDefinition), false);
-            _pack = (PackConfigDefinition)EditorGUILayout.ObjectField(new GUIContent("Pack to validate", "Checked before writing; pointed at the generated set when its set is missing or has the same id."), _pack, typeof(PackConfigDefinition), false);
 
             EditorGUILayout.Space();
-            if (GUILayout.Button("Generate"))
+            using (new EditorGUILayout.HorizontalScope())
             {
-                Generate();
+                if (GUILayout.Button(new GUIContent("Generate", "Upsert every set by id. Never deletes; reports orphans.")))
+                {
+                    Generate();
+                }
+
+                if (GUILayout.Button(new GUIContent("Fill missing names", "Write generated names into empty name cells. Existing names are kept.")))
+                {
+                    FillMissingNames();
+                }
             }
 
             if (!string.IsNullOrEmpty(_lastReport))
@@ -85,7 +66,7 @@ namespace Game.EditorTools.CardGeneration
             EditorGUILayout.EndScrollView();
         }
 
-        /// <summary>Runs the generator with the window's settings. Public so automation can drive the same path as the button.</summary>
+        /// <summary>Runs the generator with the window's options. Public so automation can drive the same path as the button.</summary>
         public CardGenerationReport Generate()
         {
             if (!CardAssetGenerator.HasTmpEssentials())
@@ -101,26 +82,34 @@ namespace Game.EditorTools.CardGeneration
                 if (created) createdInputs += $"\nCreated the Rarity Palette at {CardAssetGenerator.DefaultPalettePath}.";
             }
 
-            if (_prices == null)
-            {
-                _prices = CardAssetGenerator.LoadOrCreateDefaultPriceTable(out bool created);
-                if (created) createdInputs += $"\nCreated the Tier Price Table at {CardAssetGenerator.DefaultPriceTablePath}.";
-            }
+            _options.Palette = _palette;
+            CardGenerationReport report = CardAssetGenerator.Generate(_options);
+            Show(report.Succeeded, report + createdInputs);
+            return report;
+        }
 
-            CardGenerationReport report = CardAssetGenerator.Generate(_settings, _palette, _prices, _pack);
-            _lastSucceeded = report.Succeeded;
-            _lastReport = report + createdInputs;
-            if (report.Succeeded)
+        /// <summary>Fills empty names in the manifests. Public so automation can drive the same path as the button.</summary>
+        public string FillMissingNames()
+        {
+            string message = CardAssetGenerator.FillMissingNames(_options.ManifestFolder, out bool succeeded);
+            Show(succeeded, message);
+            return message;
+        }
+
+        private void Show(bool succeeded, string message)
+        {
+            _lastSucceeded = succeeded;
+            _lastReport = message;
+            if (succeeded)
             {
-                Debug.Log(_lastReport);
+                Debug.Log(message);
             }
             else
             {
-                Debug.LogError(_lastReport);
+                Debug.LogError(message);
             }
 
             Repaint();
-            return report;
         }
 
         // The TMP import is asynchronous, so generation resumes when Unity reports it finished.
@@ -147,18 +136,13 @@ namespace Game.EditorTools.CardGeneration
         private void OnImportFailed(string packageName, string errorMessage)
         {
             UnsubscribeFromImport();
-            _lastSucceeded = false;
-            _lastReport = $"Importing TextMesh Pro Essential Resources failed: {errorMessage}";
-            Debug.LogError(_lastReport);
-            Repaint();
+            Show(false, $"Importing TextMesh Pro Essential Resources failed: {errorMessage}");
         }
 
         private void OnImportCancelled(string packageName)
         {
             UnsubscribeFromImport();
-            _lastSucceeded = false;
-            _lastReport = "Importing TextMesh Pro Essential Resources was cancelled, so nothing was generated.";
-            Repaint();
+            Show(false, "Importing TextMesh Pro Essential Resources was cancelled, so nothing was generated.");
         }
 
         private void UnsubscribeFromImport()

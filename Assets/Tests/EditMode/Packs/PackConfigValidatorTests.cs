@@ -32,7 +32,7 @@ namespace Game.Core.Tests.Packs
         [Test]
         public void Validate_AllZeroWeights_ReportsError()
         {
-            PackConfig config = TestContent.Pack(100, TestContent.Slot(TestContent.Weight(RarityTier.Common, 0), TestContent.Weight(RarityTier.Rare, 0)));
+            PackConfig config = TestContent.Pack(100, TestContent.Slot(TestContent.Weight(RarityTier.Common, 0), TestContent.Weight(RarityTier.HoloFullArt, 0)));
 
             AssertSingleIssue(config, ValidationSeverity.Error, slotIndex: 0);
         }
@@ -43,7 +43,7 @@ namespace Game.Core.Tests.Packs
             PackConfig config = TestContent.Pack(
                 100,
                 TestContent.Slot(TestContent.Weight(RarityTier.Common, 1)),
-                TestContent.Slot(TestContent.Weight(RarityTier.Common, 5), TestContent.Weight(RarityTier.Rare, -1)));
+                TestContent.Slot(TestContent.Weight(RarityTier.Common, 5), TestContent.Weight(RarityTier.HoloFullArt, -1)));
 
             AssertSingleIssue(config, ValidationSeverity.Error, slotIndex: 1);
         }
@@ -52,7 +52,7 @@ namespace Game.Core.Tests.Packs
         public void Validate_TierWithoutCardsInPool_ReportsError()
         {
             var pool = new CardPool(new[] { TestContent.CreateCard("C1", RarityTier.Common) });
-            PackConfig config = TestContent.Pack(100, TestContent.Slot(TestContent.Weight(RarityTier.Common, 9), TestContent.Weight(RarityTier.Rare, 1)));
+            PackConfig config = TestContent.Pack(100, TestContent.Slot(TestContent.Weight(RarityTier.Common, 9), TestContent.Weight(RarityTier.HoloFullArt, 1)));
 
             AssertSingleIssue(config, pool, ValidationSeverity.Error, slotIndex: 0);
         }
@@ -61,7 +61,7 @@ namespace Game.Core.Tests.Packs
         public void Validate_ZeroWeightTierWithoutCards_ReportsNothing()
         {
             var pool = new CardPool(new[] { TestContent.CreateCard("C1", RarityTier.Common) });
-            PackConfig config = TestContent.Pack(100, TestContent.Slot(TestContent.Weight(RarityTier.Common, 9), TestContent.Weight(RarityTier.Rare, 0)));
+            PackConfig config = TestContent.Pack(100, TestContent.Slot(TestContent.Weight(RarityTier.Common, 9), TestContent.Weight(RarityTier.HoloFullArt, 0)));
 
             Assert.That(PackConfigValidator.Validate(config, pool), Is.Empty);
         }
@@ -72,6 +72,19 @@ namespace Game.Core.Tests.Packs
             PackConfig config = TestContent.Pack(100, TestContent.Slot(TestContent.Weight(RarityTier.Common, 1), TestContent.Weight((RarityTier)99, 1)));
 
             AssertSingleIssue(config, ValidationSeverity.Error, slotIndex: 0);
+        }
+
+        [Test]
+        public void Validate_RemovedSevenTierValue_ReportsErrorNamingTheTier()
+        {
+            // Old assets store FullArt as 4; it must fail loudly, not read as one of the new tiers.
+            PackConfig config = TestContent.Pack(100, TestContent.Slot(TestContent.Weight(RarityTier.Common, 1), TestContent.Weight((RarityTier)4, 1)));
+
+            IReadOnlyList<ValidationIssue> issues = PackConfigValidator.Validate(config, TestContent.SetAPool());
+
+            Assert.That(issues.Count, Is.EqualTo(1));
+            Assert.That(issues[0].Severity, Is.EqualTo(ValidationSeverity.Error));
+            Assert.That(issues[0].ToString(), Does.Contain("removed tier FullArt (4)"));
         }
 
         [Test]

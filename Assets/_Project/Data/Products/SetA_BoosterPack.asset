@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: SetA_BoosterPack
   m_EditorClassIdentifier: Game.Unity::Game.Unity.Definitions.PackConfigDefinition
   _id: SetA_BoosterPack
-  _displayName: Set A Booster Pack
-  _priceCents: 425
+  _displayName: Champions Booster Pack
+  _priceCents: 500
   _cardSet: {fileID: 11400000, guid: 241544cab128f1d448774f83dd8e1ead, type: 2}
   _slots:
   - _entries:
@@ -27,18 +27,18 @@ MonoBehaviour:
     - _tier: 0
       _weight: 100
   - _entries:
-    - _tier: 1
-      _weight: 90
-    - _tier: 2
-      _weight: 10
+    - _tier: 0
+      _weight: 100
   - _entries:
-    - _tier: 2
-      _weight: 600
-    - _tier: 3
-      _weight: 250
-    - _tier: 4
-      _weight: 105
-    - _tier: 5
-      _weight: 40
-    - _tier: 6
-      _weight: 5
+    - _tier: 1
+      _weight: 100
+  - _entries:
+    - _tier: 1
+      _weight: 88
+    - _tier: 7
+      _weight: 12
+  - _entries:
+    - _tier: 7
+      _weight: 985
+    - _tier: 8
+      _weight: 15

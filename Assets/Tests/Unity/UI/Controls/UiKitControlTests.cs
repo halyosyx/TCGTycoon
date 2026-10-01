@@ -8,27 +8,37 @@ namespace Game.Unity.Tests.UI.Controls
     public sealed class UiKitControlTests
     {
         [Test]
-        public void TierDisplay_TierTable_MatchesStyleGuideInLadderOrder()
+        public void TierDisplay_TierTable_MatchesTheFourTierLadderInOrder()
         {
-            string[] names = { "Common", "Uncommon", "Rare", "Holographic", "Full Art", "Alternate Illustration", "Special Illustration" };
-            string[] codes = { "C", "U", "R", "H", "FA", "AI", "SI" };
+            string[] names = { "Common", "Uncommon", "Holographic Full Art", "Special Full Art Holo" };
+            string[] shortNames = { "Common", "Uncommon", "Holo FA", "Special" };
+            string[] codes = { "C", "U", "HFA", "SFAH" };
 
+            Assert.That(TierDisplay.Highest - TierDisplay.Lowest + 1, Is.EqualTo(RarityTiers.Count));
             for (int tier = TierDisplay.Lowest; tier <= TierDisplay.Highest; tier++)
             {
                 Assert.That(TierDisplay.NameOf(tier), Is.EqualTo(names[tier - 1]));
+                Assert.That(TierDisplay.ShortNameOf(tier), Is.EqualTo(shortNames[tier - 1]));
                 Assert.That(TierDisplay.CodeOf(tier), Is.EqualTo(codes[tier - 1]));
             }
         }
 
         [Test]
-        public void TierDisplay_FromRarity_CommonIsOneAndSpecialIllustrationIsSeven()
+        public void TierDisplay_FromRarity_CommonIsOneAndSpecialIsFour()
         {
             Assert.That(TierDisplay.FromRarity(RarityTier.Common), Is.EqualTo(1));
-            Assert.That(TierDisplay.FromRarity(RarityTier.SpecialIllustration), Is.EqualTo(7));
+            Assert.That(TierDisplay.FromRarity(RarityTier.HoloFullArt), Is.EqualTo(3));
+            Assert.That(TierDisplay.FromRarity(RarityTier.SpecialFullArtHolo), Is.EqualTo(4));
+        }
+
+        [Test]
+        public void TierDisplay_FromRarity_RemovedTier_ShowsLowestInsteadOfThrowing()
+        {
+            Assert.That(TierDisplay.FromRarity((RarityTier)4), Is.EqualTo(TierDisplay.Lowest));
         }
 
         [TestCase(0, 1)]
-        [TestCase(8, 7)]
+        [TestCase(8, 4)]
         public void CardFace_TierOutOfRange_ClampsToNearestTier(int requested, int expected)
         {
             var card = new CardFace { Tier = requested };
@@ -40,27 +50,27 @@ namespace Game.Unity.Tests.UI.Controls
         public void CardFace_SetCard_ShowsNameIdTierNameAndOnlyTheNewTierClass()
         {
             var card = new CardFace();
-            card.SetCard(3, "Zenkin", "SetA_Rare_01");
-            card.SetCard(5, "Orunos Colossus", "SetA_FullArt_01");
+            card.SetCard(2, "Zenkin", "RC_U_001");
+            card.SetCard(3, "Orunos Colossus", "RC_HFA_01");
 
             Assert.That(card.CardName, Is.EqualTo("Orunos Colossus"));
-            Assert.That(card.CardId, Is.EqualTo("SetA_FullArt_01"));
-            Assert.That(card.TierName, Is.EqualTo("Full Art"));
-            Assert.That(card.ClassListContains("card-face--tier-5"), Is.True);
-            Assert.That(card.ClassListContains("card-face--tier-3"), Is.False);
+            Assert.That(card.CardId, Is.EqualTo("RC_HFA_01"));
+            Assert.That(card.TierName, Is.EqualTo("Holographic Full Art"));
+            Assert.That(card.ClassListContains("card-face--tier-3"), Is.True);
+            Assert.That(card.ClassListContains("card-face--tier-2"), Is.False);
         }
 
         [Test]
         public void CardFace_SetProduct_NeutralFaceWithDetailAndNoTierClass()
         {
             var card = new CardFace();
-            card.SetCard(5, "Orunos", "SetA_FullArt_01");
+            card.SetCard(3, "Orunos", "RC_HFA_01");
 
             card.SetProduct("Booster Box", "Set A · 36 packs");
 
             Assert.That(card.IsProduct, Is.True);
             Assert.That(card.ClassListContains(CardFace.NeutralClassName), Is.True);
-            Assert.That(card.ClassListContains("card-face--tier-5"), Is.False);
+            Assert.That(card.ClassListContains("card-face--tier-3"), Is.False);
             Assert.That(card.CardName, Is.EqualTo("Booster Box"));
             Assert.That(card.TierName, Is.EqualTo("Set A · 36 packs"));
             Assert.That(card.CardId, Is.Empty);
@@ -72,11 +82,11 @@ namespace Game.Unity.Tests.UI.Controls
             var card = new CardFace();
             card.SetProduct("Booster Pack", "Set A · 1 pack");
 
-            card.SetCard(3, "Rynorth", "SetA_Rare_04");
+            card.SetCard(4, "Rynorth", "MO_SFAH_02");
 
             Assert.That(card.IsProduct, Is.False);
-            Assert.That(card.ClassListContains("card-face--tier-3"), Is.True);
-            Assert.That(card.TierName, Is.EqualTo("Rare"));
+            Assert.That(card.ClassListContains("card-face--tier-4"), Is.True);
+            Assert.That(card.TierName, Is.EqualTo("Special Full Art Holo"));
         }
 
         [TestCase(152f, 4f)]
@@ -107,13 +117,13 @@ namespace Game.Unity.Tests.UI.Controls
         [Test]
         public void TierChip_Compact_ShowsCodeInsteadOfName()
         {
-            var chip = new TierChip { Tier = 6 };
-            Assert.That(chip.Text, Is.EqualTo("Alternate Illustration"));
+            var chip = new TierChip { Tier = 3 };
+            Assert.That(chip.Text, Is.EqualTo("Holographic Full Art"));
 
             chip.Compact = true;
 
-            Assert.That(chip.Text, Is.EqualTo("AI"));
-            Assert.That(chip.ClassListContains("tier-chip--tier-6"), Is.True);
+            Assert.That(chip.Text, Is.EqualTo("HFA"));
+            Assert.That(chip.ClassListContains("tier-chip--tier-3"), Is.True);
         }
 
         [Test]

@@ -63,10 +63,11 @@ namespace Game.EditorTools.Tests.UIStyles
         }
 
         [Test]
-        public void TokenName_LowestAndHighestTier_AreOneAndSeven()
+        public void TokenName_LowestAndHighestTier_AreOneAndFour()
         {
             Assert.That(RarityTokenExporter.TokenName(RarityTier.Common), Is.EqualTo("--color-tier-1"));
-            Assert.That(RarityTokenExporter.TokenName(RarityTier.SpecialIllustration), Is.EqualTo("--color-tier-7"));
+            Assert.That(RarityTokenExporter.TokenName(RarityTier.HoloFullArt), Is.EqualTo("--color-tier-3"));
+            Assert.That(RarityTokenExporter.TokenName(RarityTier.SpecialFullArtHolo), Is.EqualTo("--color-tier-4"));
         }
 
         [Test]

@@ -64,7 +64,7 @@ namespace Game.Core.Packs
             for (int slotIndex = 0; slotIndex < SlotCount; slotIndex++)
             {
                 Card card = pack.Cards[slotIndex];
-                _tierCountsBySlot[slotIndex, (int)card.Tier]++;
+                _tierCountsBySlot[slotIndex, RarityTiers.IndexOf(card.Tier)]++;
                 packValueCents += card.ValueCents;
                 if (card.Tier > bestTier)
                 {
@@ -73,7 +73,7 @@ namespace Game.Core.Packs
             }
 
             // A pack whose best card is tier B holds "at least one of tier X or better" for every X ≤ B.
-            for (int tierIndex = 0; tierIndex <= (int)bestTier; tierIndex++)
+            for (int tierIndex = 0; tierIndex <= RarityTiers.IndexOf(bestTier); tierIndex++)
             {
                 _packsWithAtLeastTier[tierIndex]++;
             }
@@ -83,7 +83,7 @@ namespace Game.Core.Packs
             _sumOfSquaredPackValues += (double)packValueCents * packValueCents;
         }
 
-        public long TierCount(int slotIndex, RarityTier tier) => _tierCountsBySlot[slotIndex, (int)tier];
+        public long TierCount(int slotIndex, RarityTier tier) => _tierCountsBySlot[slotIndex, RarityTiers.IndexOf(tier)];
 
         /// <summary>Share of packs whose slot rolled <paramref name="tier"/>.</summary>
         public double ObservedTierRate(int slotIndex, RarityTier tier)
@@ -94,7 +94,7 @@ namespace Game.Core.Packs
         /// <summary>Share of packs holding at least one card of <paramref name="minimumTier"/> or rarer.</summary>
         public double ObservedChanceOfAtLeastOne(RarityTier minimumTier)
         {
-            return PackCount == 0 ? 0d : (double)_packsWithAtLeastTier[(int)minimumTier] / PackCount;
+            return PackCount == 0 ? 0d : (double)_packsWithAtLeastTier[RarityTiers.IndexOf(minimumTier)] / PackCount;
         }
     }
 }

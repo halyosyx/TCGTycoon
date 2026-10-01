@@ -20,7 +20,7 @@ namespace Game.Core.Tests.Packs
 
             OpenedPack pack = opener.Open();
 
-            Assert.That(pack.Cards.Count, Is.EqualTo(5));
+            Assert.That(pack.Cards.Count, Is.EqualTo(7));
             Assert.That(pack.PackId, Is.EqualTo("test-pack"));
         }
 
@@ -76,12 +76,12 @@ namespace Game.Core.Tests.Packs
         [Test]
         public void Open_SingleSlotPack_ReturnsOneEligibleCard()
         {
-            PackConfig config = TestContent.Pack(100, TestContent.Slot(TestContent.Weight(RarityTier.Rare, 1)));
+            PackConfig config = TestContent.Pack(100, TestContent.Slot(TestContent.Weight(RarityTier.HoloFullArt, 1)));
 
             OpenedPack pack = CreateOpener(config).Open();
 
             Assert.That(pack.Cards.Count, Is.EqualTo(1));
-            Assert.That(pack.Cards[0].Tier, Is.EqualTo(RarityTier.Rare));
+            Assert.That(pack.Cards[0].Tier, Is.EqualTo(RarityTier.HoloFullArt));
         }
 
         [Test]
@@ -89,13 +89,13 @@ namespace Game.Core.Tests.Packs
         {
             PackConfig config = TestContent.Pack(
                 100,
-                TestContent.Slot(TestContent.Weight(RarityTier.Holographic, 3)),
+                TestContent.Slot(TestContent.Weight(RarityTier.HoloFullArt, 3)),
                 TestContent.Slot(TestContent.Weight(RarityTier.Common, 1)));
             PackOpener opener = CreateOpener(config);
 
             for (int i = 0; i < 1_000; i++)
             {
-                Assert.That(opener.Open().Cards[0].Tier, Is.EqualTo(RarityTier.Holographic));
+                Assert.That(opener.Open().Cards[0].Tier, Is.EqualTo(RarityTier.HoloFullArt));
             }
         }
 
@@ -105,12 +105,12 @@ namespace Game.Core.Tests.Packs
             // Rarest tiers first and mixed slots: nothing in code assumes a slot count or tier layout.
             var slots = new List<PackSlot>
             {
-                TestContent.Slot(TestContent.Weight(RarityTier.SpecialIllustration, 1)),
-                TestContent.Slot(TestContent.Weight(RarityTier.Common, 1), TestContent.Weight(RarityTier.FullArt, 1)),
+                TestContent.Slot(TestContent.Weight(RarityTier.SpecialFullArtHolo, 1)),
+                TestContent.Slot(TestContent.Weight(RarityTier.Common, 1), TestContent.Weight(RarityTier.SpecialFullArtHolo, 1)),
             };
             for (int i = 0; i < 8; i++)
             {
-                slots.Add(TestContent.Slot(TestContent.Weight(RarityTier.Uncommon, 5), TestContent.Weight(RarityTier.Holographic, 1)));
+                slots.Add(TestContent.Slot(TestContent.Weight(RarityTier.Uncommon, 5), TestContent.Weight(RarityTier.HoloFullArt, 1)));
             }
 
             PackConfig config = TestContent.Pack(1_000, slots.ToArray());
@@ -127,10 +127,10 @@ namespace Game.Core.Tests.Packs
         [Test]
         public void Constructor_TierWithoutCardsInPool_Throws()
         {
-            var poolWithoutRares = new CardPool(new[] { TestContent.CreateCard("OnlyCommon", RarityTier.Common) });
+            var poolWithoutHits = new CardPool(new[] { TestContent.CreateCard("OnlyCommon", RarityTier.Common) });
 
             Assert.Throws<InvalidOperationException>(
-                () => new PackOpener(TestContent.StartingPack(), poolWithoutRares, new SeededRng(Seed)));
+                () => new PackOpener(TestContent.StartingPack(), poolWithoutHits, new SeededRng(Seed)));
         }
 
         private static PackOpener CreateOpener(PackConfig config)

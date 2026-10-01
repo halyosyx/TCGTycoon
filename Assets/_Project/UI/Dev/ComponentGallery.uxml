@@ -52,7 +52,7 @@
             <kit:KeyHints hints="Tab:Inventory;F:Booth setup;Esc:Pause" />
         </ui:VisualElement>
         <ui:VisualElement class="gallery__row gallery__row--world">
-            <kit:KeyHints hints="A/D:Page;Q/E:Tab;Enter:Card details;Tab:Close" on-world="true" />
+            <kit:KeyHints hints="A/D:Page;Q/E:Tab;Enter:Card details;I:Close" on-world="true" />
         </ui:VisualElement>
 
         <ui:Label text="Tier chip" class="text-heading gallery__section-title" />
@@ -61,36 +61,27 @@
             <kit:TierChip tier="2" class="gallery__item" />
             <kit:TierChip tier="3" class="gallery__item" />
             <kit:TierChip tier="4" class="gallery__item" />
-            <kit:TierChip tier="5" class="gallery__item" />
-            <kit:TierChip tier="6" class="gallery__item" />
-            <kit:TierChip tier="7" class="gallery__item" />
         </ui:VisualElement>
         <ui:VisualElement class="gallery__row">
             <kit:TierChip tier="1" compact="true" />
             <kit:TierChip tier="2" compact="true" class="gallery__item" />
             <kit:TierChip tier="3" compact="true" class="gallery__item" />
             <kit:TierChip tier="4" compact="true" class="gallery__item" />
-            <kit:TierChip tier="5" compact="true" class="gallery__item" />
-            <kit:TierChip tier="6" compact="true" class="gallery__item" />
-            <kit:TierChip tier="7" compact="true" class="gallery__item" />
         </ui:VisualElement>
 
         <ui:Label text="Card face and copy badge" class="text-heading gallery__section-title" />
         <ui:VisualElement class="gallery__row">
-            <ui:VisualElement class="gallery__card"><kit:CardFace tier="1" card-name="Zenkin" card-id="SetA_Common_01" class="gallery__card-face" /><kit:CopyBadge count="3" corner="true" /></ui:VisualElement>
-            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="2" card-name="Silmir" card-id="SetA_Uncommon_07" class="gallery__card-face" /></ui:VisualElement>
-            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="3" card-name="Rynithlin" card-id="SetA_Rare_01" class="gallery__card-face" /><kit:CopyBadge count="2" corner="true" /></ui:VisualElement>
-            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="4" card-name="Coralin" card-id="SetA_Holo_02" class="gallery__card-face" /></ui:VisualElement>
-            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="5" card-name="Orunos Colossus" card-id="SetA_FullArt_01" class="gallery__card-face" /></ui:VisualElement>
-            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="6" card-name="Orawyn Herald" card-id="SetA_AltArt_01" class="gallery__card-face" /></ui:VisualElement>
-            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="7" card-name="Braolin Crowned in Ash" card-id="SetA_SpecialArt_01" class="gallery__card-face" /><kit:CopyBadge count="1" corner="true" /></ui:VisualElement>
-            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace card-name="Booster Box" product-detail="Set A · 36 packs" class="gallery__card-face" /><kit:CopyBadge count="2" corner="true" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card"><kit:CardFace tier="1" card-name="Zenkin" card-id="RC_C_014" class="gallery__card-face" /><kit:CopyBadge count="3" corner="true" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="2" card-name="Silmir" card-id="RC_U_007" class="gallery__card-face" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="3" card-name="Orunos Colossus" card-id="RC_HFA_03" class="gallery__card-face" /><kit:CopyBadge count="2" corner="true" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace tier="4" card-name="Braolin Crowned in Ash" card-id="MO_SFAH_02" class="gallery__card-face" /><kit:CopyBadge count="1" corner="true" /></ui:VisualElement>
+            <ui:VisualElement class="gallery__card gallery__item"><kit:CardFace card-name="Booster Box" product-detail="Champions · 36 packs" class="gallery__card-face" /><kit:CopyBadge count="2" corner="true" /></ui:VisualElement>
         </ui:VisualElement>
 
         <ui:Label text="Tab" class="text-heading gallery__section-title" />
         <ui:VisualElement class="gallery__column">
-            <kit:KitTab title="Set A" count="34" active="true" />
-            <kit:KitTab title="Set B" count="0" class="gallery__stacked" />
+            <kit:KitTab title="Champions" count="80" active="true" />
+            <kit:KitTab title="Origins" count="0" class="gallery__stacked" />
             <kit:KitTab title="Sealed" count="3" class="kit-tab--hover gallery__stacked" />
         </ui:VisualElement>
     </ui:ScrollView>

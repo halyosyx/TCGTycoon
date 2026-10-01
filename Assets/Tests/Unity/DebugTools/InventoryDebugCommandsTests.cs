@@ -25,9 +25,9 @@ namespace Game.Unity.Tests.DebugTools
 
             Assert.That(session.Inventory.CountOf("C1", RarityTier.Common), Is.EqualTo(3));
             Assert.That(session.Inventory.CountOf("U1", RarityTier.Uncommon), Is.EqualTo(2));
-            Assert.That(session.Inventory.CountOf("R1", RarityTier.Rare), Is.EqualTo(2));
-            Assert.That(session.Inventory.CountOf("R2", RarityTier.Rare), Is.EqualTo(1));
-            Assert.That(session.Inventory.CountOf("S1", RarityTier.SpecialIllustration), Is.EqualTo(1));
+            Assert.That(session.Inventory.CountOf("H1", RarityTier.HoloFullArt), Is.EqualTo(2));
+            Assert.That(session.Inventory.CountOf("H2", RarityTier.HoloFullArt), Is.EqualTo(1));
+            Assert.That(session.Inventory.CountOf("S1", RarityTier.SpecialFullArtHolo), Is.EqualTo(1));
         }
 
         [Test]
@@ -48,14 +48,14 @@ namespace Game.Unity.Tests.DebugTools
             {
                 new Card("C1", "Common", "SetA", RarityTier.Common, 5),
                 new Card("U1", "Uncommon", "SetA", RarityTier.Uncommon, 15),
-                new Card("R1", "Rare one", "SetA", RarityTier.Rare, 60),
-                new Card("R2", "Rare two", "SetA", RarityTier.Rare, 60),
-                new Card("S1", "Special", "SetA", RarityTier.SpecialIllustration, 9000),
+                new Card("H1", "Holo one", "SetA", RarityTier.HoloFullArt, 240),
+                new Card("H2", "Holo two", "SetA", RarityTier.HoloFullArt, 240),
+                new Card("S1", "Special", "SetA", RarityTier.SpecialFullArtHolo, 7000),
             });
             var pack = new PackConfig("test-pack", "Test Pack", 425, new[]
             {
                 new PackSlot(new[] { new TierWeight(RarityTier.Common, 1) }),
-                new PackSlot(new[] { new TierWeight(RarityTier.Rare, 1) }),
+                new PackSlot(new[] { new TierWeight(RarityTier.HoloFullArt, 1) }),
             });
             return new GameSession(pack, pool, 1);
         }

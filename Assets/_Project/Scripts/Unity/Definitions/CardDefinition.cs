@@ -11,6 +11,8 @@ namespace Game.Unity.Definitions
         public const string DisplayNameField = nameof(_displayName);
         public const string TierField = nameof(_tier);
         public const string ValueCentsField = nameof(_valueCents);
+        public const string FlavourField = nameof(_flavour);
+        public const string ArtHintField = nameof(_artHint);
 
         [SerializeField, Tooltip("Stable id used by inventory and saves. Don't change it once cards can be owned.")]
         private string _id;
@@ -21,8 +23,14 @@ namespace Game.Unity.Definitions
         [SerializeField]
         private RarityTier _tier;
 
-        [SerializeField, Tooltip("Value in cents, used for Rip EV until market prices exist.")]
+        [SerializeField, Tooltip("Value in cents: the tier's base price times the set's price scale. Used for Rip EV until market prices exist.")]
         private long _valueCents;
+
+        [SerializeField, TextArea, Tooltip("Flavour text from the manifest. May be empty.")]
+        private string _flavour;
+
+        [SerializeField, Tooltip("Note for the artist from the manifest. May be empty.")]
+        private string _artHint;
 
         public string Id => _id;
 
@@ -32,12 +40,21 @@ namespace Game.Unity.Definitions
 
         public long ValueCents => _valueCents;
 
-        /// <summary>Converts to the Core card. Throws when the id is missing, naming this asset.</summary>
+        public string Flavour => _flavour;
+
+        public string ArtHint => _artHint;
+
+        /// <summary>Converts to the Core card. Throws when the id is missing or the tier is stale, naming this asset.</summary>
         public Card ToCard(string setId)
         {
             if (string.IsNullOrWhiteSpace(_id))
             {
                 throw new System.InvalidOperationException($"Card asset '{name}' has no id.");
+            }
+
+            if (!RarityTiers.IsDefined(_tier))
+            {
+                throw new System.InvalidOperationException($"Card asset '{name}' uses {RarityTiers.Describe(_tier)}; regenerate it from the manifest.");
             }
 
             return new Card(_id, _displayName, setId, _tier, _valueCents);
