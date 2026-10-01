@@ -2,14 +2,17 @@ using System;
 using System.Collections.Generic;
 using Game.Core.Content;
 using Game.Core.Inventory;
+using Game.Core.Store;
 using Game.Unity.UI.Controls;
+using static System.FormattableString;
 
 namespace Game.Unity.UI
 {
     /// <summary>
     /// <see cref="IBinderReadModel"/> over the player's <see cref="InventoryService"/>. One tab per card
     /// set it is given, in that order, then Sealed. Every owned single of a set, Common included, goes
-    /// on that set's tab, rarest first; cards of sets without a tab are left out. Rebuilds lazily after
+    /// on that set's tab, rarest first; cards of sets without a tab are left out. Owned sealed products
+    /// go on Sealed, named by the product lookup it is given. Rebuilds lazily after
     /// the inventory raises Changed, so reading is cheap and nothing is rebuilt while the binder is
     /// closed. Holds no game rules. Dispose it to stop listening to the inventory.
     /// </summary>
@@ -26,6 +29,7 @@ namespace Game.Unity.UI
         private readonly CardPool _cards;
         private readonly List<BinderSet> _sets = new List<BinderSet>();
         private readonly Dictionary<string, int> _tabIndexBySetId = new Dictionary<string, int>(StringComparer.Ordinal);
+        private readonly Dictionary<string, Product> _productsById = new Dictionary<string, Product>(StringComparer.Ordinal);
         private readonly List<BinderEntry>[] _entriesByTab;
         private readonly BinderTabInfo[] _tabs;
         private readonly int _sealedTabIndex;
@@ -34,11 +38,23 @@ namespace Game.Unity.UI
 
         /// <param name="cards">Looks up each owned card's set and name; holds the cards of every binder set.</param>
         /// <param name="sets">The card sets that get a tab, in tab order. Empty entries and repeated ids are skipped.</param>
-        public InventoryBinderReadModel(InventoryService inventory, CardPool cards, IEnumerable<BinderSet> sets)
+        /// <param name="products">Names sealed products on the Sealed tab; an unknown product shows its id.</param>
+        public InventoryBinderReadModel(InventoryService inventory, CardPool cards, IEnumerable<BinderSet> sets, IEnumerable<Product> products = null)
         {
             _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
             _cards = cards ?? throw new ArgumentNullException(nameof(cards));
             if (sets == null) throw new ArgumentNullException(nameof(sets));
+
+            if (products != null)
+            {
+                foreach (Product product in products)
+                {
+                    if (product != null && !_productsById.ContainsKey(product.Id))
+                    {
+                        _productsById.Add(product.Id, product);
+                    }
+                }
+            }
 
             foreach (BinderSet set in sets)
             {
@@ -123,8 +139,14 @@ namespace Game.Unity.UI
                 }
             }
 
-            // TODO(sealed products): the inventory holds only singles today. When owned packs, bundles and
-            // boxes exist, add them to the Sealed tab here with a null tier.
+            foreach (SealedStack stack in _inventory.SealedStacks)
+            {
+                if (stack.Count > 0)
+                {
+                    _entriesByTab[_sealedTabIndex].Add(CreateSealedEntry(stack));
+                }
+            }
+
             for (int i = 0; i < _entriesByTab.Length; i++)
             {
                 _entriesByTab[i].Sort(s_byTierThenId);
@@ -134,6 +156,20 @@ namespace Game.Unity.UI
             }
 
             _isStale = false;
+        }
+
+        // Sealed entries have no tier. Name: the product type; detail: the set's tab title, plus the
+        // pack count for multi-pack products ("Set A · 36 packs").
+        private BinderEntry CreateSealedEntry(SealedStack stack)
+        {
+            if (!_productsById.TryGetValue(stack.ProductId, out Product product))
+            {
+                return new BinderEntry(stack.ProductId, stack.ProductId, null, stack.Count);
+            }
+
+            string setTitle = _tabIndexBySetId.TryGetValue(product.SetId, out int tabIndex) ? _sets[tabIndex].Title : product.SetId;
+            string detail = product.PackCount > 1 ? Invariant($"{setTitle} · {product.PackCount} packs") : setTitle;
+            return new BinderEntry(stack.ProductId, product.TypeName, null, stack.Count, detail);
         }
 
         private static int CompareEntries(BinderEntry left, BinderEntry right)

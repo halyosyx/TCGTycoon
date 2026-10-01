@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Game.Core.Content;
+using Game.Core.Economy;
 using Game.Core.Inventory;
 using Game.Core.Packs;
 using Game.Core.Session;
+using Game.Core.Store;
 using Game.Core.Tests.TestUtilities;
 using NUnit.Framework;
 
@@ -12,6 +14,7 @@ namespace Game.Core.Tests.Session
     public sealed class GameSessionTests
     {
         private const int Seed = 20260926;
+        private const long StartingCashCents = 50_000;
 
         [Test]
         public void OpenPack_OnePack_AddsEveryCardToInventoryBeforeReturning()
@@ -104,6 +107,107 @@ namespace Game.Core.Tests.Session
 
             Assert.That(pack.Cards.Count, Is.EqualTo(slotCount));
             Assert.That(TotalCards(session.Inventory), Is.EqualTo(slotCount), "Every card is owned as soon as OpenPack returns.");
+        }
+
+        [Test]
+        public void Constructor_ThreeArguments_NoCashAndEmptyStore()
+        {
+            var session = CreateSession();
+
+            Assert.That(session.Economy.BalanceCents, Is.EqualTo(0));
+            Assert.That(session.Store.Listings, Is.Empty);
+        }
+
+        [Test]
+        public void Constructor_WithStore_StartingCashAndListings()
+        {
+            var session = CreateStoreSession();
+
+            Assert.That(session.Economy.BalanceCents, Is.EqualTo(StartingCashCents));
+            Assert.That(session.Store.Listings.Count, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void Store_PlaceOrder_SpendsSessionCashAndFillsSessionInventory()
+        {
+            var session = CreateStoreSession();
+            session.Store.SetQuantity(StoreFixtures.ChampionsPackId, 12);
+
+            session.Store.PlaceOrder();
+
+            Assert.That(session.Economy.BalanceCents, Is.EqualTo(44_000));
+            Assert.That(session.Inventory.CountOfSealed(StoreFixtures.ChampionsPackId), Is.EqualTo(12));
+        }
+
+        [Test]
+        public void OpenSealedPack_CardCostBasesSumToPaidUnitPrice()
+        {
+            // 90% of 555 = 499.5, paid 500: an uneven share over 7 cards still sums exactly.
+            var catalog = StoreFixtures.Catalog(StoreFixtures.Listing(StoreFixtures.ChampionsPack(555, 90)));
+            var session = new GameSession(TestContent.StartingPack(), TestContent.SetAPool(), Seed, StartingCashCents, catalog);
+            session.Store.SetQuantity(StoreFixtures.ChampionsPackId, 1);
+            session.Store.PlaceOrder();
+
+            OpenedPack pack = session.OpenSealedPack(StoreFixtures.ChampionsPackId);
+
+            Assert.That(pack.Cards.Count, Is.EqualTo(7));
+            Assert.That(session.Inventory.SealedStacks, Is.Empty);
+            Assert.That(TotalCards(session.Inventory), Is.EqualTo(7), "Every card is owned as soon as OpenSealedPack returns.");
+            Assert.That(session.Inventory.TotalCostBasisCents, Is.EqualTo(500));
+        }
+
+        [Test]
+        public void OpenSealedPack_TwelveOwned_ElevenLeft()
+        {
+            var session = CreateStoreSession();
+            session.Store.SetQuantity(StoreFixtures.OriginsPackId, 12);
+            session.Store.PlaceOrder();
+
+            session.OpenSealedPack(StoreFixtures.OriginsPackId);
+
+            Assert.That(session.Inventory.CountOfSealed(StoreFixtures.OriginsPackId), Is.EqualTo(11));
+            Assert.That(session.Inventory.TotalCostBasisCents, Is.EqualTo(12 * StoreFixtures.OriginsPackMarketCents));
+        }
+
+        [Test]
+        public void OpenSealedPack_NoneOwned_ThrowsAndChangesNothing()
+        {
+            var session = CreateStoreSession();
+
+            Assert.Throws<InvalidOperationException>(() => session.OpenSealedPack(StoreFixtures.ChampionsPackId));
+            Assert.That(session.Inventory.Stacks, Is.Empty);
+        }
+
+        [Test]
+        public void OpenSealedPack_ProductIsNotAPack_Throws()
+        {
+            var session = CreateStoreSession();
+            session.Inventory.AddSealed(StoreFixtures.ChampionsBundleId, 1, 2_800);
+
+            Assert.Throws<InvalidOperationException>(() => session.OpenSealedPack(StoreFixtures.ChampionsBundleId));
+            Assert.That(session.Inventory.CountOfSealed(StoreFixtures.ChampionsBundleId), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void OpenSealedPack_SameSeed_SameCards()
+        {
+            var first = CreateStoreSession();
+            var second = CreateStoreSession();
+            foreach (GameSession session in new[] { first, second })
+            {
+                session.Store.SetQuantity(StoreFixtures.ChampionsPackId, 5);
+                session.Store.PlaceOrder();
+            }
+
+            for (int packNumber = 0; packNumber < 5; packNumber++)
+            {
+                Assert.That(Ids(second.OpenSealedPack(StoreFixtures.ChampionsPackId)), Is.EqualTo(Ids(first.OpenSealedPack(StoreFixtures.ChampionsPackId))));
+            }
+        }
+
+        private static GameSession CreateStoreSession()
+        {
+            return new GameSession(TestContent.StartingPack(), TestContent.SetAPool(), Seed, StartingCashCents, StoreFixtures.DefaultCatalog());
         }
 
         private static GameSession CreateSession()

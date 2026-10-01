@@ -8,5 +8,7 @@ namespace Game.Core.Inventory
     public sealed class InventoryState
     {
         public List<InventoryStack> Stacks = new List<InventoryStack>();
+
+        public List<SealedStack> SealedStacks = new List<SealedStack>();
     }
 }

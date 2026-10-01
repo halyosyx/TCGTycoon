@@ -800,6 +800,8 @@ MonoBehaviour:
   _binderSets:
   - {fileID: 11400000, guid: 241544cab128f1d448774f83dd8e1ead, type: 2}
   - {fileID: 11400000, guid: cc476e7a447e7204ab88570b6b803154, type: 2}
+  _economy: {fileID: 11400000, guid: 0e7491c7d369e7d4ca512c92cbc06425, type: 2}
+  _store: {fileID: 11400000, guid: bc735c8c1acef9c4ca3a7ec951e18a46, type: 2}
   _useRandomSeed: 1
   _seed: 1
   _player: {fileID: 1932743208}
@@ -1270,7 +1272,10 @@ MonoBehaviour:
   _interactKey: LMB
   _keyHints: I:Inventory
   _placeholderDay: 1
-  _placeholderCashCents: 50000
+  _purchaseLabel: Supplier order
+  _saleLabel: Sale
+  _tableFeeLabel: Table fee
+  _debugLabel: Debug
 --- !u!114 &1529263803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1619,8 +1624,11 @@ MonoBehaviour:
     _slowSlotCount: 2
   _layout:
     _stackStep: {x: 4, y: 5}
+    _rowArrangement: 0
     _rowGap: 24
     _rowScale: 0.8
+    _twoRowScale: 0.9
+    _rowLineGap: 24
     _hoverScale: 1
     _showcaseHeightShare: 0.7
     _showcaseCenterShare: 0.5

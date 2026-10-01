@@ -1,3 +1,4 @@
+using Game.Core.Economy;
 using Game.Core.Session;
 using Game.Unity.Interaction;
 using Game.Unity.Player;
@@ -9,9 +10,9 @@ namespace Game.Unity.UI.Hud
 {
     /// <summary>
     /// Fills the HUD (Hud.uxml) and keeps it current by listening to events, never by polling.
-    /// Today the only live sources are the player (gameplay on or off) and the interactor (what is
-    /// aimed at); day, clock and cash have no Core source yet and show placeholders until their
-    /// milestones (see the TODOs). Holds no game rules: values are pushed in and shown.
+    /// Live sources: the player (gameplay on or off), the interactor (what is aimed at) and the
+    /// economy (cash, from BalanceChanged only). Day and clock have no Core source yet and show a
+    /// placeholder until the day cycle (see the TODO). Holds no game rules: values are pushed in and shown.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
     public sealed class HudPresenter : MonoBehaviour, IHudSink
@@ -28,10 +29,18 @@ namespace Game.Unity.UI.Hud
         [SerializeField, Min(1), Tooltip("Placeholder day number until the day cycle exists (F2).")]
         private int _placeholderDay = 1;
 
-        // TODO(F2 Booth setup + selling): EconomyService raises cash changes (sales, purchases). Until
-        // then the readout shows the GDD's starting cash ($500) and only debug commands change it.
-        [SerializeField, Tooltip("Placeholder cash in cents until EconomyService exists (F2). GDD starting cash: 50000.")]
-        private long _placeholderCashCents = 50_000;
+        [Header("Cash event labels")]
+        [SerializeField, Tooltip("Event line after a supplier order.")]
+        private string _purchaseLabel = "Supplier order";
+
+        [SerializeField, Tooltip("Event line after a card or sealed sale.")]
+        private string _saleLabel = "Sale";
+
+        [SerializeField, Tooltip("Event line after a table fee.")]
+        private string _tableFeeLabel = "Table fee";
+
+        [SerializeField, Tooltip("Event line after a debug command changes cash.")]
+        private string _debugLabel = "Debug";
 
         private UIDocument _document;
         private DayClock _dayClock;
@@ -42,11 +51,10 @@ namespace Game.Unity.UI.Hud
         private KeyHints _hints;
         private PlayerController _player;
         private PlayerInteractor _interactor;
+        private EconomyService _economy;
         private bool _isInitialized;
 
         public int Day => _isInitialized ? _dayClock.Day : _placeholderDay;
-
-        public long CashCents => _isInitialized ? _cash.AmountCents : _placeholderCashCents;
 
         private void Awake()
         {
@@ -56,23 +64,26 @@ namespace Game.Unity.UI.Hud
             _isInitialized = false;
             _player = null;
             _interactor = null;
+            _economy = null;
         }
 
-        /// <summary>Binds the HUD to the player. Called once by <c>GameBootstrap</c>.</summary>
-        public void Initialize(PlayerController player, PlayerInteractor interactor)
+        /// <summary>Binds the HUD to the player and the session's cash. Called once by <c>GameBootstrap</c>.</summary>
+        public void Initialize(PlayerController player, PlayerInteractor interactor, EconomyService economy)
         {
-            if (player == null || !BindElements())
+            if (player == null || economy == null || !BindElements())
             {
-                Debug.LogError($"{name}: {nameof(HudPresenter)} needs a player and a HUD document with every HUD control.", this);
+                Debug.LogError($"{name}: {nameof(HudPresenter)} needs a player, the economy and a HUD document with every HUD control.", this);
                 return;
             }
 
             _player = player;
             _interactor = interactor;
+            _economy = economy;
             _dayClock.SetDay(_placeholderDay, DayKind.PrepNight);
-            _cash.SetAmount(_placeholderCashCents);
+            _cash.SetAmount(_economy.BalanceCents);
             _hints.Hints = _keyHints;
 
+            _economy.BalanceChanged += OnBalanceChanged;
             _player.GameplayInputChanged += OnGameplayInputChanged;
             if (_interactor != null)
             {
@@ -99,6 +110,11 @@ namespace Game.Unity.UI.Hud
             {
                 _interactor.HoveredChanged -= OnHoveredChanged;
             }
+
+            if (_economy != null)
+            {
+                _economy.BalanceChanged -= OnBalanceChanged;
+            }
         }
 
         public void ShowDay(int day, DayKind kind)
@@ -116,19 +132,34 @@ namespace Game.Unity.UI.Hud
             if (_isInitialized) _dayClock.SetClosingSoon(isClosingSoon);
         }
 
-        public void SetCash(long cents)
-        {
-            if (_isInitialized) _cash.SetAmount(cents);
-        }
-
-        public void ShowCashEvent(string label, long deltaCents)
-        {
-            if (_isInitialized) _cash.ShowEvent(label, deltaCents);
-        }
-
         public void ShowToast(ToastKind kind, string title, string detail, long? amountCents)
         {
             if (_isInitialized) _toasts.Show(kind, title, detail, amountCents);
+        }
+
+        private void OnBalanceChanged(BalanceChange change)
+        {
+            _cash.SetAmount(change.NewCents);
+            if (change.DeltaCents != 0)
+            {
+                _cash.ShowEvent(LabelFor(change.Reason), change.DeltaCents);
+            }
+        }
+
+        private string LabelFor(TransactionReason reason)
+        {
+            switch (reason)
+            {
+                case TransactionReason.ProductPurchase:
+                    return _purchaseLabel;
+                case TransactionReason.CardSale:
+                case TransactionReason.SealedSale:
+                    return _saleLabel;
+                case TransactionReason.TableFee:
+                    return _tableFeeLabel;
+                default:
+                    return _debugLabel;
+            }
         }
 
         private void OnHoveredChanged(IInteractable target)

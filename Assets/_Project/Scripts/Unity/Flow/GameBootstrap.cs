@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Core.Content;
 using Game.Core.Session;
+using Game.Core.Store;
 using Game.Unity.Definitions;
 using Game.Unity.Player;
 using Game.Unity.Props;
@@ -27,8 +28,14 @@ namespace Game.Unity.Flow
         [SerializeField, Tooltip("Tier colours and names shared by every card view.")]
         private RarityPaletteDefinition _palette;
 
-        [SerializeField, Tooltip("Card sets the binder gives a tab, in order. Leave empty to show every set the loaded products use (today: the pack's set).")]
+        [SerializeField, Tooltip("Card sets the binder gives a tab, in order. Leave empty to show every set the loaded products use (the pack's set, then the store's).")]
         private List<CardSetDefinition> _binderSets = new List<CardSetDefinition>();
+
+        [SerializeField, Tooltip("Starting cash.")]
+        private EconomyConfigDefinition _economy;
+
+        [SerializeField, Tooltip("The supplier website: listings, prices (market × supplier percent) and labels.")]
+        private StoreConfigDefinition _store;
 
         [Header("Randomness")]
         [SerializeField, Tooltip("On: a new seed every Play session (logged, so a run can be replayed). Off: always use Seed.")]
@@ -64,9 +71,9 @@ namespace Game.Unity.Flow
             Session = null;
             _binderReadModel = null;
 
-            if (_pack == null || _pack.CardSet == null || _palette == null)
+            if (_pack == null || _pack.CardSet == null || _palette == null || _economy == null || _store == null)
             {
-                Debug.LogError($"{name}: {nameof(GameBootstrap)} needs a Pack with a Card Set and a Palette.", this);
+                Debug.LogError($"{name}: {nameof(GameBootstrap)} needs a Pack with a Card Set, a Palette, an Economy config and a Store config.", this);
                 return;
             }
 
@@ -74,14 +81,18 @@ namespace Game.Unity.Flow
             int seed = _useRandomSeed ? Environment.TickCount : _seed;
             try
             {
-                Session = new GameSession(_pack.ToPackConfig(), _pack.CardSet.ToCardPool(), seed);
+                StoreCatalog catalog = _store.ToCatalog();
+                Session = new GameSession(_pack.ToPackConfig(), _pack.CardSet.ToCardPool(), seed, _economy.StartingCashCents, catalog);
                 Debug.Log($"{name}: session started with seed {seed}.", this);
             }
-            catch (InvalidOperationException exception)
+            catch (Exception exception) when (exception is InvalidOperationException || exception is ArgumentException)
             {
                 Debug.LogError($"{name}: can't start the session: {exception.Message}", this);
                 return;
             }
+
+            // TODO(F2 day cycle): the GameStateMachine calls Store.ResetNightlyStock() at the start of
+            // each Prep Night. The run starts on one, with the catalog's full stock already in place.
 
             _binderReadModel = CreateBinderReadModel();
         }
@@ -105,7 +116,7 @@ namespace Game.Unity.Flow
             // The HUD is optional so a scene without one still plays; pack opening never depends on it.
             if (_hud != null)
             {
-                _hud.Initialize(_player, _player.Interactor);
+                _hud.Initialize(_player, _player.Interactor, Session.Economy);
             }
             else
             {
@@ -132,14 +143,27 @@ namespace Game.Unity.Flow
                 cards.AddRange(set.ToCardPool().Cards);
             }
 
-            return new InventoryBinderReadModel(Session.Inventory, new CardPool(cards), tabs);
+            var products = new List<Product>();
+            foreach (StoreListingState listing in Session.Store.Listings)
+            {
+                products.Add(listing.Product);
+            }
+
+            return new InventoryBinderReadModel(Session.Inventory, new CardPool(cards), tabs, products);
         }
 
-        // Every product the scene loads contributes its card set. Today that is the one booster pack;
-        // when more products arrive (bundles, boxes, Set B), add their sets here.
+        // Every product the scene loads contributes its card set: the floor pack's, then each store
+        // listing's in listing order (Hidden ones too, since owned stock can outlive a listing).
         private IEnumerable<CardSetDefinition> AvailableCardSets()
         {
             yield return _pack.CardSet;
+            foreach (StoreListing listing in _store.Listings)
+            {
+                if (listing != null && listing.Product != null && listing.Product.CardSet != null)
+                {
+                    yield return listing.Product.CardSet;
+                }
+            }
         }
 
         // The read model subscribes to the inventory's Changed event; unsubscribe when the scene goes away.

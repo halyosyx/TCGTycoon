@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Game.Core.Content;
 using Game.Core.Inventory;
+using Game.Core.Packs;
+using Game.Core.Store;
 using Game.Unity.UI;
 using NUnit.Framework;
 
@@ -27,6 +29,14 @@ namespace Game.Unity.Tests.UI
         private static readonly Card s_cHolo = CreateCard("XX_HFA_01", "Vesk", SetC, RarityTier.HoloFullArt);
 
         private static readonly CardPool s_allCards = new CardPool(new[] { s_aCommon, s_aUncommon, s_aUncommon2, s_aHolo2, s_aHolo1, s_aSpecial, s_bCommon, s_bHolo, s_cHolo });
+
+        // Sealed products only need names here; the A pack's contents come from a one-slot Common pack.
+        private static readonly Product[] s_products =
+        {
+            new Product("SetA_Pack", "Booster Pack", SetA, ProductType.BoosterPack, 1, 500, 100,
+                new PackConfig("pack", "Pack", 500, new[] { new PackSlot(new[] { new TierWeight(RarityTier.Common, 1) }) }), s_allCards),
+            new Product("SetB_Box", "Booster Box", SetB, ProductType.Box, 36, 29_000, 100, null, null),
+        };
 
         private InventoryService _inventory;
         private InventoryBinderReadModel _binder;
@@ -142,12 +152,53 @@ namespace Game.Unity.Tests.UI
         }
 
         [Test]
-        public void GetEntries_Sealed_EmptyUntilSealedProductsExist()
+        public void GetEntries_Sealed_SinglesNeverGoThere()
         {
             Own(s_aHolo1, s_aCommon);
 
             Assert.That(_binder.GetEntries(SealedTab), Is.Empty);
             Assert.That(_binder.Tabs[SealedTab].Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void GetEntries_Sealed_OneEntryPerProductWithCountNoTierAndSetTitle()
+        {
+            _inventory.AddSealed("SetA_Pack", 12, 500);
+            _inventory.AddSealed("SetB_Box", 1, 29_000);
+
+            IReadOnlyList<BinderEntry> entries = _binder.GetEntries(SealedTab);
+
+            Assert.That(Ids(entries), Is.EqualTo(new[] { "SetA_Pack", "SetB_Box" }));
+            Assert.That(entries[0].DisplayName, Is.EqualTo("Booster Pack"));
+            Assert.That(entries[0].Copies, Is.EqualTo(12));
+            Assert.That(entries[0].Tier, Is.Null);
+            Assert.That(entries[0].Detail, Is.EqualTo("Set A"));
+            Assert.That(entries[1].Detail, Is.EqualTo("Set B · 36 packs"));
+            Assert.That(_binder.Tabs[SealedTab].Count, Is.EqualTo(2));
+            Assert.That(_binder.GetEntries(SetATab), Is.Empty, "Sealed products aren't singles.");
+        }
+
+        [Test]
+        public void GetEntries_SealedUnknownProduct_ShownByItsId()
+        {
+            _inventory.AddSealed("Mystery", 1, 100);
+
+            Assert.That(_binder.GetEntries(SealedTab)[0].DisplayName, Is.EqualTo("Mystery"));
+        }
+
+        [Test]
+        public void Changed_SealedPackOpened_RaisedOnceAndBothTabsRefresh()
+        {
+            _inventory.AddSealed("SetA_Pack", 1, 500);
+            _binder.GetEntries(SealedTab);
+            int raised = 0;
+            _binder.Changed += () => raised++;
+
+            _inventory.OpenSealed("SetA_Pack", new OpenedPack("pack", new[] { s_aCommon, s_aHolo1 }));
+
+            Assert.That(raised, Is.EqualTo(1));
+            Assert.That(_binder.GetEntries(SealedTab), Is.Empty);
+            Assert.That(Ids(_binder.GetEntries(SetATab)), Is.EqualTo(new[] { "RC_HFA_01", "RC_C_001" }));
         }
 
         [TestCase(-1)]
@@ -209,7 +260,7 @@ namespace Game.Unity.Tests.UI
 
         private InventoryBinderReadModel CreateBinder(params BinderSet[] sets)
         {
-            return new InventoryBinderReadModel(_inventory, s_allCards, sets);
+            return new InventoryBinderReadModel(_inventory, s_allCards, sets, s_products);
         }
 
         private void Own(params Card[] cards)

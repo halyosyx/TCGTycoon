@@ -34,6 +34,9 @@ namespace Game.Unity.Definitions
 
         public CardSetDefinition CardSet => _cardSet;
 
+        /// <summary>Market price in cents; a booster pack product's market price comes from here.</summary>
+        public long PriceCents => _priceCents;
+
         /// <summary>
         /// Slot entries holding a removed or unknown tier (stale seven-tier data), each naming this
         /// asset and the slot. The full rule check is <see cref="Game.Core.Packs.PackConfigValidator"/>.

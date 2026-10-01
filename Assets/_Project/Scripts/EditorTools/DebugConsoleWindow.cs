@@ -3,6 +3,7 @@ using Game.Core.Common;
 using Game.Core.Content;
 using Game.Core.Inventory;
 using Game.Core.Packs;
+using Game.Core.Session;
 using Game.Unity.DebugTools;
 using Game.Unity.Definitions;
 using Game.Unity.Flow;
@@ -148,7 +149,19 @@ namespace Game.EditorTools
 
             if (InventoryDebugCommands.Handles(command))
             {
-                AppendLog($"> {command}\n{RunInventoryCommand(command)}");
+                AppendLog($"> {command}\n{RunSessionCommand("Inventory", session => new InventoryDebugCommands(session).Execute(command))}");
+                return;
+            }
+
+            if (EconomyDebugCommands.Handles(command))
+            {
+                AppendLog($"> {command}\n{RunSessionCommand("Money", session => new EconomyDebugCommands(session.Economy).Execute(command))}");
+                return;
+            }
+
+            if (StoreDebugCommands.Handles(command))
+            {
+                AppendLog($"> {command}\n{RunSessionCommand("Store", session => new StoreDebugCommands(session.Store).Execute(command))}");
                 return;
             }
 
@@ -161,7 +174,8 @@ namespace Game.EditorTools
             string output = _commands.Execute(command);
             if (string.Equals(command, "help", StringComparison.OrdinalIgnoreCase))
             {
-                output += "\n\n" + HudDebugCommands.HelpText + "\n\n" + InventoryDebugCommands.HelpText;
+                output += "\n\n" + HudDebugCommands.HelpText + "\n\n" + InventoryDebugCommands.HelpText
+                    + "\n\n" + EconomyDebugCommands.HelpText + "\n\n" + StoreDebugCommands.HelpText;
             }
 
             AppendLog($"> {command}\n{output}");
@@ -179,18 +193,19 @@ namespace Game.EditorTools
             return hud == null ? "No HUD in the open scene." : new HudDebugCommands(hud).Execute(command);
         }
 
-        // Inventory commands act on the scene's running session, which is what the binder shows.
-        private static string RunInventoryCommand(string command)
+        // Inventory, money and store commands act on the scene's running session, which is what the
+        // binder and HUD show, not on this window's own pack session.
+        private static string RunSessionCommand(string kind, Func<GameSession, string> run)
         {
             if (!EditorApplication.isPlaying)
             {
-                return "Inventory commands need Play Mode.";
+                return $"{kind} commands need Play Mode.";
             }
 
             var bootstrap = UnityEngine.Object.FindFirstObjectByType<GameBootstrap>();
             return bootstrap == null || bootstrap.Session == null
                 ? "No running session in the open scene."
-                : new InventoryDebugCommands(bootstrap.Session).Execute(command);
+                : run(bootstrap.Session);
         }
 
         private bool TryStartSession(out string error)
