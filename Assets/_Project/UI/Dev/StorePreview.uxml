@@ -1,0 +1,11 @@
+<!-- DEV ONLY (never loaded at runtime). Open in UI Builder at 1920x1080 to see the shell + site composed.
+     The product grid and cart lines are empty here because code fills them; see StoreGallery.uxml for states. -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="/Assets/_Project/UI/Styles/Tokens.uss" />
+    <Style src="/Assets/_Project/UI/Styles/Typography.uss" />
+    <ui:Template name="Shell" src="/Assets/_Project/UI/Shell/ComputerShell.uxml" />
+    <ui:Template name="Site" src="/Assets/_Project/UI/Store/StoreSite.uxml" />
+    <ui:Instance template="Shell" style="flex-grow: 1;">
+        <ui:Instance template="Site" style="flex-grow: 1;" />
+    </ui:Instance>
+</ui:UXML>

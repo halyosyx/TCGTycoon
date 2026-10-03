@@ -40,6 +40,9 @@ namespace Game.Core.Store
         /// <summary>Raised once after any change to the cart's lines or quantities.</summary>
         public event Action CartChanged;
 
+        /// <summary>Raised once after any listing's stock remaining changes (an order, the nightly reset, a debug set).</summary>
+        public event Action StockChanged;
+
         /// <summary>Every listing in catalog order, Hidden ones included (views skip them).</summary>
         public IReadOnlyList<StoreListingState> Listings { get; }
 
@@ -205,12 +208,14 @@ namespace Game.Core.Store
             }
 
             var ordered = new List<CartLine>(_lines);
+            bool isStockChanged = false;
             foreach (CartLine line in ordered)
             {
                 StoreListingState listing = Get(line.ListingId);
                 if (!listing.IsUnlimited)
                 {
                     listing.StockRemaining -= line.Quantity;
+                    isStockChanged = true;
                 }
 
                 _inventory.AddSealed(listing.ProductId, line.Quantity, line.UnitPriceCents);
@@ -218,6 +223,11 @@ namespace Game.Core.Store
 
             _lines.Clear();
             CartChanged?.Invoke();
+            if (isStockChanged)
+            {
+                StockChanged?.Invoke();
+            }
+
             return OrderResult.Placed(ordered.AsReadOnly(), totalCents);
         }
 
@@ -227,10 +237,38 @@ namespace Game.Core.Store
         /// </summary>
         public void ResetNightlyStock()
         {
+            bool isChanged = false;
             foreach (StoreListingState listing in _listings)
             {
+                isChanged |= listing.StockRemaining != listing.Listing.StockPerNight;
                 listing.StockRemaining = listing.Listing.StockPerNight;
             }
+
+            if (isChanged)
+            {
+                StockChanged?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Sets tonight's stock for a listing (the <c>store.stock</c> debug command). Lines already in the
+        /// cart aren't trimmed; <see cref="CanPlaceOrder"/> reports OutOfStock until they fit.
+        /// </summary>
+        public void SetStockRemaining(string listingId, int stock)
+        {
+            if (stock < StoreCatalogListing.UnlimitedStock)
+            {
+                throw new ArgumentOutOfRangeException(nameof(stock), stock, "Stock is -1 (unlimited) or more.");
+            }
+
+            StoreListingState listing = Get(listingId);
+            if (listing.StockRemaining == stock)
+            {
+                return;
+            }
+
+            listing.StockRemaining = stock;
+            StockChanged?.Invoke();
         }
 
         // The single place a unit price is computed. F4 swaps the market price source here.

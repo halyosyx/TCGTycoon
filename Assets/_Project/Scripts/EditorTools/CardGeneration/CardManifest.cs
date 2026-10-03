@@ -18,7 +18,7 @@ namespace Game.EditorTools.CardGeneration
         public const string TierPricesFileName = "TierPrices.csv";
 
         public static readonly IReadOnlyList<string> SetsHeader =
-            Array.AsReadOnly(new[] { "setId", "displayName", "shortName", "idPrefix", "lifecycle", "priceScalePercent", "cardManifest" });
+            Array.AsReadOnly(new[] { "setId", "displayName", "shortName", "idPrefix", "lifecycle", "priceScalePercent", "cardManifest", "colour" });
 
         public static readonly IReadOnlyList<string> CardsHeader =
             Array.AsReadOnly(new[] { "id", "name", "tier", "flavour", "artHint" });
@@ -39,10 +39,12 @@ namespace Game.EditorTools.CardGeneration
                 string where = Where(fileName, row.LineNumber);
                 bool isValid = TryParseEnum(row.Cell(4).Trim(), out SetLifecycle lifecycle, where, "lifecycle", errors);
                 isValid &= TryParseInt(row.Cell(5).Trim(), where, "priceScalePercent", errors, out int scale);
+                string colour = row.Cell(7).Trim();
+                isValid &= IsHexColour(colour, where, errors);
                 if (isValid)
                 {
                     sets.Add(new SetManifestEntry(
-                        row.Cell(0).Trim(), row.Cell(1).Trim(), row.Cell(2).Trim(), row.Cell(3).Trim(), lifecycle, scale, row.Cell(6).Trim(), row.LineNumber));
+                        row.Cell(0).Trim(), row.Cell(1).Trim(), row.Cell(2).Trim(), row.Cell(3).Trim(), lifecycle, scale, row.Cell(6).Trim(), colour, row.LineNumber));
                 }
             }
 
@@ -100,7 +102,7 @@ namespace Game.EditorTools.CardGeneration
                 rows.Add(new[]
                 {
                     set.SetId, set.DisplayName, set.ShortName, set.IdPrefix, set.Lifecycle.ToString(),
-                    set.PriceScalePercent.ToString(CultureInfo.InvariantCulture), set.CardManifest,
+                    set.PriceScalePercent.ToString(CultureInfo.InvariantCulture), set.CardManifest, set.Colour,
                 });
             }
 
@@ -203,6 +205,23 @@ namespace Game.EditorTools.CardGeneration
             errors.Add($"{where}: {column} \"{text}\" must be one of {string.Join(", ", Enum.GetNames(typeof(TEnum)))}.");
             value = default;
             return false;
+        }
+
+        // "#RRGGBB" only, so a typo can't silently become black.
+        private static bool IsHexColour(string text, string where, List<string> errors)
+        {
+            bool isValid = text.Length == 7 && text[0] == '#';
+            for (int i = 1; isValid && i < text.Length; i++)
+            {
+                isValid = Uri.IsHexDigit(text[i]);
+            }
+
+            if (!isValid)
+            {
+                errors.Add($"{where}: colour \"{text}\" must be #RRGGBB.");
+            }
+
+            return isValid;
         }
 
         private static bool TryParseInt(string text, string where, string column, List<string> errors, out int value)

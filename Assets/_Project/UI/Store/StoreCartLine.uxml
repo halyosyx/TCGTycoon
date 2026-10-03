@@ -1,0 +1,19 @@
+<!-- One cart line, instantiated per StoreService cart line. Keyboard focus state: see Docs/UI/STORE_MARKUP_README.md section 3. -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Template name="QuantityStepper" src="/Assets/_Project/UI/Controls/QuantityStepper.uxml" />
+    <ui:VisualElement name="cart-line" class="store-cart-line">
+        <ui:VisualElement name="line-thumb" class="store-cart-line__thumb">
+            <ui:VisualElement name="line-thumb-art" class="store-cart-line__art" />
+        </ui:VisualElement>
+        <ui:VisualElement class="store-cart-line__main">
+            <ui:Label name="line-name" text="Reigning Champions — Booster Pack" class="store-cart-line__name font-display-extrabold" />
+            <ui:Instance template="QuantityStepper" name="line-stepper" />
+        </ui:VisualElement>
+        <ui:VisualElement class="store-cart-line__end">
+            <ui:Label name="line-total" text="$60.00" class="store-cart-line__total font-body-extrabold" />
+            <ui:Button name="line-remove" text="" class="store-cart-line__remove">
+                <ui:VisualElement class="icon icon--trash store-cart-line__remove-icon" />
+            </ui:Button>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

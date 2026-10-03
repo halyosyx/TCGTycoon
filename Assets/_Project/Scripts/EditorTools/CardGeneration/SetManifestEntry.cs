@@ -2,7 +2,7 @@ using Game.Core.Content;
 
 namespace Game.EditorTools.CardGeneration
 {
-    /// <summary>One row of <c>Sets.csv</c>: a card set's identity, lifecycle, price scale and the file listing its cards.</summary>
+    /// <summary>One row of <c>Sets.csv</c>: a card set's identity, lifecycle, price scale, the file listing its cards and its colour.</summary>
     public sealed class SetManifestEntry
     {
         public SetManifestEntry(
@@ -13,6 +13,7 @@ namespace Game.EditorTools.CardGeneration
             SetLifecycle lifecycle,
             int priceScalePercent,
             string cardManifest,
+            string colour,
             int lineNumber = 0)
         {
             SetId = setId ?? string.Empty;
@@ -22,6 +23,7 @@ namespace Game.EditorTools.CardGeneration
             Lifecycle = lifecycle;
             PriceScalePercent = priceScalePercent;
             CardManifest = cardManifest ?? string.Empty;
+            Colour = colour ?? string.Empty;
             LineNumber = lineNumber;
         }
 
@@ -43,6 +45,9 @@ namespace Game.EditorTools.CardGeneration
 
         /// <summary>File name of the set's card manifest, next to Sets.csv, e.g. "Champions.csv".</summary>
         public string CardManifest { get; }
+
+        /// <summary>The set's colour as "#RRGGBB": store thumbnails, pack stacks, anything tinted by set.</summary>
+        public string Colour { get; }
 
         /// <summary>Line in Sets.csv, for error messages; 0 when built in code.</summary>
         public int LineNumber { get; }

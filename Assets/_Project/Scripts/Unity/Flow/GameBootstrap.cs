@@ -9,6 +9,7 @@ using Game.Unity.Props;
 using Game.Unity.UI;
 using Game.Unity.UI.Hud;
 using Game.Unity.UI.PackOpening;
+using Game.Unity.UI.Store;
 using UnityEngine;
 
 namespace Game.Unity.Flow
@@ -56,6 +57,12 @@ namespace Game.Unity.Flow
 
         [SerializeField, Tooltip("The HUD (Hud.uxml on the Hud panel): day, cash, toasts, crosshair and prompt.")]
         private HudPresenter _hud;
+
+        [SerializeField, Tooltip("The supplier website on the home computer (0 opens it for now).")]
+        private StoreScreen _storeScreen;
+
+        [SerializeField, Tooltip("Stacks of bought packs on the home table; taking one opens it.")]
+        private PackStackSpawner _packStacks;
 
         private InventoryBinderReadModel _binderReadModel;
 
@@ -122,6 +129,26 @@ namespace Game.Unity.Flow
             {
                 Debug.LogWarning($"{name}: no HUD assigned, so day, cash and the interaction prompt aren't shown.", this);
             }
+
+            // Optional too: without it the store is reachable only through the debug console's buy.
+            if (_storeScreen != null)
+            {
+                _storeScreen.Initialize(Session, _store, _player, _hud);
+            }
+            else
+            {
+                Debug.LogWarning($"{name}: no store screen assigned, so the computer can't be opened.", this);
+            }
+
+            if (_packStacks != null)
+            {
+                _packStacks.Initialize(Session.Inventory, _store);
+                _packStacks.PackTaken += _packOpeningScreen.OpenSealedPack;
+            }
+            else
+            {
+                Debug.LogWarning($"{name}: no pack stacks assigned, so bought packs don't appear on the table.", this);
+            }
         }
 
         // The binder's tabs: the sets listed on this component, or every set the loaded products use.
@@ -169,6 +196,11 @@ namespace Game.Unity.Flow
         // The read model subscribes to the inventory's Changed event; unsubscribe when the scene goes away.
         private void OnDestroy()
         {
+            if (_packStacks != null && _packOpeningScreen != null)
+            {
+                _packStacks.PackTaken -= _packOpeningScreen.OpenSealedPack;
+            }
+
             if (_binderReadModel != null)
             {
                 _binderReadModel.Dispose();

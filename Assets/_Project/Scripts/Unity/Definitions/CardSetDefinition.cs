@@ -14,6 +14,7 @@ namespace Game.Unity.Definitions
         public const string IdPrefixField = nameof(_idPrefix);
         public const string LifecycleField = nameof(_lifecycle);
         public const string PriceScalePercentField = nameof(_priceScalePercent);
+        public const string ColourField = nameof(_colour);
         public const string CardsField = nameof(_cards);
 
         [SerializeField]
@@ -34,6 +35,9 @@ namespace Game.Unity.Definitions
         [SerializeField, Min(0), Tooltip("Card values are the tier base price times this percentage (100 in print, 180 out of print).")]
         private int _priceScalePercent = 100;
 
+        [SerializeField, Tooltip("The set's colour: store thumbnails and pack stacks are tinted with it.")]
+        private Color _colour = Color.gray;
+
         [SerializeField]
         private List<CardDefinition> _cards = new List<CardDefinition>();
 
@@ -49,6 +53,8 @@ namespace Game.Unity.Definitions
         public SetLifecycle Lifecycle => _lifecycle;
 
         public int PriceScalePercent => _priceScalePercent;
+
+        public Color Colour => _colour;
 
         public IReadOnlyList<CardDefinition> Cards => _cards;
 

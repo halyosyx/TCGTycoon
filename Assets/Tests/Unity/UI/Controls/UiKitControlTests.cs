@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Core.Content;
 using Game.Unity.UI.Controls;
 using NUnit.Framework;
@@ -167,6 +168,23 @@ namespace Game.Unity.Tests.UI.Controls
             Assert.That(hints[1].ClassListContains(KeyHints.SpacedHintClassName), Is.True);
             Assert.That(hints[1].Q<Keycap>().text, Is.EqualTo("F"));
             Assert.That(hints[1].Q<Label>(className: KeyHints.LabelClassName).text, Is.EqualTo("Booth setup"));
+        }
+
+        [Test]
+        public void KeyHints_SeveralKeysForOneLabel_OneKeycapEachSpacedAndIconsAsIcons()
+        {
+            var hints = new KeyHints { Hints = "icon:arrow-left|icon:arrow-right|Enter:Move" };
+
+            Assert.That(hints.HintCount, Is.EqualTo(1));
+            List<Keycap> keys = hints[0].Query<Keycap>().ToList();
+            Assert.That(keys.Count, Is.EqualTo(3));
+            Assert.That(keys[0].text, Is.Empty);
+            Assert.That(keys[0].ClassListContains(Keycap.IconClassName), Is.True);
+            Assert.That(keys[0].Q(className: "icon--arrow-left"), Is.Not.Null);
+            Assert.That(keys[0].ClassListContains(KeyHints.SpacedKeyClassName), Is.False);
+            Assert.That(keys[1].ClassListContains(KeyHints.SpacedKeyClassName), Is.True);
+            Assert.That(keys[2].text, Is.EqualTo("Enter"));
+            Assert.That(hints[0].Q<Label>(className: KeyHints.LabelClassName).text, Is.EqualTo("Move"));
         }
 
         [Test]

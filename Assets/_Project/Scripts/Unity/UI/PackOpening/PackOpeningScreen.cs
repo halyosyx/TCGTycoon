@@ -77,6 +77,10 @@ namespace Game.Unity.UI.PackOpening
         private PackProp _packProp;
         private bool _isInitialized;
 
+        // True while the open pack came from the floor prop (which then reappears on Store); false for
+        // a bought pack taken from a stack, whose stack updates itself from the inventory.
+        private bool _isFloorPackOpen;
+
         private bool _isRowPending;
         private float _rowCountdown;
         private bool _isPointerDown;
@@ -113,6 +117,7 @@ namespace Game.Unity.UI.PackOpening
                 defaultCapacity: PrewarmedCardViews,
                 maxSize: MaxPooledCardViews);
             _isInitialized = false;
+            _isFloorPackOpen = false;
             _isRowPending = false;
             _isPointerDown = false;
             _hoveredView = null;
@@ -220,15 +225,39 @@ namespace Game.Unity.UI.PackOpening
         /// </summary>
         public void OpenPack()
         {
-            if (!_isInitialized || _reveal.State != PackRevealState.Idle || !_player.IsInGameplay)
+            if (!CanOpen())
             {
                 return;
             }
 
             // From this line on the cards are owned; everything below is presentation.
             OpenedPack pack = _session.OpenPack();
-
+            _isFloorPackOpen = true;
             _packProp.Hide();
+            Reveal(pack);
+        }
+
+        /// <summary>
+        /// Opens one owned sealed pack of <paramref name="productId"/> (a stack on the home table): the pack
+        /// leaves the inventory and its cards arrive at the price paid, before the reveal, exactly as
+        /// <see cref="OpenPack"/> does for the floor prop. Ignored when none is owned.
+        /// </summary>
+        public void OpenSealedPack(string productId)
+        {
+            if (!CanOpen() || _session.Inventory.CountOfSealed(productId) == 0)
+            {
+                return;
+            }
+
+            OpenedPack pack = _session.OpenSealedPack(productId);
+            _isFloorPackOpen = false;
+            Reveal(pack);
+        }
+
+        private bool CanOpen() => _isInitialized && _reveal.State == PackRevealState.Idle && _player.IsInGameplay;
+
+        private void Reveal(OpenedPack pack)
+        {
             _player.SetGameplayInput(false);
             _reveal.Begin(pack);
             SetVisible(true);
@@ -323,7 +352,12 @@ namespace Game.Unity.UI.PackOpening
 
             _cardViews.Clear();
             SetVisible(false);
-            _packProp.Show();
+            if (_isFloorPackOpen)
+            {
+                _packProp.Show();
+            }
+
+            _isFloorPackOpen = false;
             _player.SetGameplayInput(true);
         }
 

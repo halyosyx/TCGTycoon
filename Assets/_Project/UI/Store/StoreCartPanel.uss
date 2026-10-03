@@ -1,0 +1,249 @@
+/* Cart panel and its scrim.
+   MOTION RULE: the cart SLIDES IN from the right edge and SLIDES OUT; it never pops in.
+   - Closed: panel parked off-screen at translate 100% (its own width), scrim at opacity 0.
+   - Open:   panel at translate 0, scrim at opacity 1. Both animate with USS transitions.
+   - Never use display:none to hide it: display changes are not animated and would cancel the slide.
+     Visibility is toggled by store--cart-shown, which code adds before the slide and removes after it
+     (see CartPanelView in Docs/UI/STORE_MARKUP_README.md). */
+.store-cart-scrim {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--store-cart-scrim);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: var(--store-cart-slide);
+    transition-timing-function: ease-out-cubic;
+}
+.store--cart-open .store-cart-scrim {
+    opacity: 1;
+}
+.store-cart-host {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+.store-cart {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--store-cart-width);
+    padding: 22px 24px;
+    background-color: rgb(255, 255, 255);
+    border-left-width: 1px;
+    border-color: var(--store-card-line);
+    visibility: hidden;
+    translate: 100% 0;
+    transition-property: translate;
+    transition-duration: var(--store-cart-slide);
+    transition-timing-function: ease-out-cubic;
+}
+.store--cart-shown .store-cart {
+    visibility: visible;
+}
+.store--cart-open .store-cart {
+    translate: 0 0;
+}
+
+/* Cart view */
+.store-cart__view {
+    flex-grow: 1;
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: var(--duration-medium);
+}
+.store-cart__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+.store-cart__title {
+    font-size: var(--store-font-xl);
+    color: var(--store-ink);
+}
+.store-cart__count {
+    flex-direction: row;
+    align-items: flex-end;
+}
+.store-cart__count-value {
+    font-size: 18px;
+    color: var(--store-ink);
+    margin-right: 6px;
+}
+.store-cart__count-word {
+    font-size: var(--store-font-sm);
+    color: var(--store-muted);
+}
+.store-cart__lines {
+    flex-grow: 1;
+    margin-top: 6px;
+}
+.store-cart__empty {
+    display: none;
+    flex-grow: 1;
+    font-size: var(--store-font-md);
+    color: var(--store-muted);
+    -unity-text-align: middle-center;
+}
+.store--cart-empty .store-cart__lines {
+    display: none;
+}
+.store--cart-empty .store-cart__empty {
+    display: flex;
+}
+
+/* Footer rows: Balance, Total, Balance after */
+.store-cart__row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin: 0 -12px;
+    border-radius: 10px;
+    transition-property: background-color;
+    transition-duration: var(--duration-fast);
+}
+.store-cart__row-label {
+    font-size: 16px;
+    color: var(--store-muted);
+}
+.store-cart__row-value {
+    font-size: var(--store-font-lg);
+    color: var(--store-ink);
+}
+.store-cart__row-value-group {
+    flex-direction: row;
+    align-items: center;
+}
+.store-cart__after-caret {
+    display: none;
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+    -unity-background-image-tint-color: var(--store-red);
+}
+.store-cart__footer > .store-button {
+    margin-top: 14px;
+}
+
+/* Over balance: colour only, no message. Place order is disabled in code (SetEnabled(false)). */
+.store--over .store-cart__row--total {
+    background-color: var(--store-red-tint);
+}
+.store--over .store-cart__row--total .store-cart__row-label,
+.store--over .store-cart__row--total .store-cart__row-value,
+.store--over .store-cart__row--after .store-cart__row-value {
+    color: var(--store-red);
+}
+.store--over .store-cart__after-caret {
+    display: flex;
+}
+
+/* Cart line */
+.store-cart-line {
+    flex-direction: row;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom-width: 1px;
+    border-color: var(--store-card-line);
+}
+.store-cart-line__thumb {
+    width: 48px;
+    height: 48px;
+    margin-right: 14px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background-color: var(--store-thumb);
+}
+.store-cart-line__art {
+    width: 22px;
+    height: 36px;
+    border-radius: 2px;
+}
+.store-cart-line__main {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+.store-cart-line__name {
+    margin-bottom: 6px;
+    font-size: var(--store-font-md);
+    color: var(--store-ink);
+    white-space: normal;        /* Unity labels default to nowrap; the name wraps under the total */
+}
+.store-cart-line__end {
+    flex-shrink: 0;             /* the name column shrinks, never the total */
+    margin-left: var(--space-3);
+    align-items: flex-end;
+}
+.store-cart-line__total {
+    font-size: 19px;
+    color: var(--store-ink);
+}
+.store-cart-line__remove {
+    width: 28px;
+    height: 28px;
+    margin: 6px 0 0 0;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    border-width: 0;
+    border-radius: 14px;
+    background-color: rgba(0, 0, 0, 0);
+}
+.store-cart-line__remove:hover {
+    background-color: var(--store-red-tint);
+}
+.store-cart-line__remove-icon {
+    width: 16px;
+    height: 16px;
+    -unity-background-image-tint-color: var(--store-muted);
+}
+.store-cart-line--focused {
+    background-color: var(--store-page);
+}
+
+/* Order placed: cross-fades over the cart view inside the same panel. */
+.store-cart__placed {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    top: 22px;
+    bottom: 22px;
+    opacity: 0;
+    visibility: hidden;
+    transition-property: opacity;
+    transition-duration: var(--duration-medium);
+}
+.store--order-placed .store-cart__view {
+    opacity: 0;
+}
+.store--order-placed .store-cart__placed {
+    opacity: 1;
+    visibility: visible;
+}
+.store-cart__placed-head {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.store-cart__placed-icon {
+    width: 28px;
+    height: 28px;
+    margin-right: 12px;
+    -unity-background-image-tint-color: var(--store-green);
+}
+.store-cart__placed-lines {
+    margin-bottom: 14px;
+}
+.store-cart__placed-note {
+    flex-grow: 1;
+    font-size: var(--store-font-md);
+    color: var(--store-muted);
+}

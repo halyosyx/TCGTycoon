@@ -1,0 +1,51 @@
+<!-- Cart panel. Slides in from the right; it never pops. See StoreCartPanel.uss and the
+     CartPanelView example in Docs/UI/STORE_MARKUP_README.md. State comes from classes on #store-site. -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="cart-panel" class="store-cart">
+        <ui:VisualElement name="cart-view" class="store-cart__view">
+            <ui:VisualElement class="store-cart__header">
+                <ui:Label name="cart-title" text="Your cart" class="store-cart__title font-display-extrabold" />
+                <ui:VisualElement class="store-cart__count">
+                    <ui:Label name="cart-count" text="16" class="store-cart__count-value font-body-extrabold" />
+                    <ui:Label name="cart-count-word" text="packs" class="store-cart__count-word font-body-bold" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:ScrollView name="cart-lines" mode="Vertical" horizontal-scroller-visibility="Hidden" class="store-cart__lines" />
+            <ui:Label name="cart-empty" text="Your cart is empty" class="store-cart__empty font-body-bold" />
+            <ui:VisualElement name="cart-footer" class="store-cart__footer">
+                <ui:VisualElement name="row-balance" class="store-cart__row">
+                    <ui:Label name="row-balance-label" text="Balance" class="store-cart__row-label font-body-extrabold" />
+                    <ui:Label name="row-balance-value" text="$500.00" class="store-cart__row-value font-body-extrabold" />
+                </ui:VisualElement>
+                <ui:VisualElement name="row-total" class="store-cart__row store-cart__row--total">
+                    <ui:Label name="row-total-label" text="Total" class="store-cart__row-label font-body-extrabold" />
+                    <ui:Label name="row-total-value" text="$80.00" class="store-cart__row-value font-body-extrabold" />
+                </ui:VisualElement>
+                <ui:VisualElement name="row-after" class="store-cart__row store-cart__row--after">
+                    <ui:Label name="row-after-label" text="Balance after" class="store-cart__row-label font-body-extrabold" />
+                    <ui:VisualElement class="store-cart__row-value-group">
+                        <ui:VisualElement name="row-after-caret" class="icon icon--caret-down store-cart__after-caret" />
+                        <ui:Label name="row-after-value" text="$420.00" class="store-cart__row-value font-body-extrabold" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Button name="place-order" text="" class="store-button store-button--green store-button--large">
+                    <ui:VisualElement class="icon icon--package store-button__icon" />
+                    <ui:Label name="place-order-label" text="Place order" class="store-button__label font-display-extrabold" />
+                    <ui:Label name="place-order-total" text="$80.00" class="store-button__amount font-body-extrabold" />
+                </ui:Button>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="order-placed" class="store-cart__placed">
+            <ui:VisualElement class="store-cart__placed-head">
+                <ui:VisualElement class="icon icon--check-circle store-cart__placed-icon" />
+                <ui:Label name="order-placed-title" text="Order placed" class="store-cart__title font-display-extrabold" />
+            </ui:VisualElement>
+            <!-- One Label per delivered line, e.g. "12 × Reigning Champions — Booster Pack". -->
+            <ui:VisualElement name="placed-lines" class="store-cart__placed-lines" />
+            <ui:Label name="order-placed-note" text="They're on your table, ready to open." class="store-cart__placed-note font-body-bold" />
+            <ui:Button name="order-done" text="" class="store-button store-button--green store-button--large">
+                <ui:Label name="order-done-label" text="Done" class="store-button__label font-display-extrabold" />
+            </ui:Button>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

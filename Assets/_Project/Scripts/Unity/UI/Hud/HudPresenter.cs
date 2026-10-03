@@ -117,6 +117,15 @@ namespace Game.Unity.UI.Hud
             }
         }
 
+        /// <summary>Hides or shows the whole HUD, e.g. while the computer shell is open (style guide §9).</summary>
+        public void SetVisible(bool isVisible)
+        {
+            if (_document != null && _document.rootVisualElement != null)
+            {
+                _document.rootVisualElement.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+        }
+
         public void ShowDay(int day, DayKind kind)
         {
             if (_isInitialized) _dayClock.SetDay(day, kind);

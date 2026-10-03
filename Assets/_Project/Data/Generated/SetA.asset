@@ -18,6 +18,7 @@ MonoBehaviour:
   _idPrefix: RC
   _lifecycle: 0
   _priceScalePercent: 100
+  _colour: {r: 0.7882353, g: 0.43529412, b: 0.23137255, a: 1}
   _cards:
   - {fileID: 11400000, guid: 8ad28bde3036e5440886bd187120f3f0, type: 2}
   - {fileID: 11400000, guid: ead1c83c61f28be48a25b4dae1e8f5d1, type: 2}

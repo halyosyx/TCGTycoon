@@ -1,0 +1,264 @@
+/* Store website layout: header, set tabs, filters, product grid, shared buttons.
+   USS notes: no gap/grid/box-shadow/outline. Spacing uses margins; the 2-column grid is
+   flex-wrap with 50%-wide cells whose padding makes the gutter. */
+.store {
+    flex-grow: 1;
+    background-color: var(--store-page);
+}
+
+/* Header */
+.store-header {
+    height: 76px;
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 24px;
+    background-color: var(--store-header);
+}
+.store-header__logo {
+    width: 44px;
+    height: 44px;
+    margin-right: 14px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background-color: rgb(255, 255, 255);
+}
+.store-header__logo-icon {
+    width: 26px;
+    height: 26px;
+    -unity-background-image-tint-color: var(--store-header);
+}
+.store-header__title {
+    font-size: var(--store-font-title);
+    color: rgb(255, 255, 255);
+}
+.store-header__tagline {
+    font-size: 14px;
+    color: var(--store-header-subtle);
+}
+.store-header__spacer {
+    flex-grow: 1;
+}
+.store-header__balance {
+    align-items: flex-end;
+    margin-right: 14px;
+}
+.store-header__balance-label {
+    font-size: var(--store-font-xs);
+    color: var(--store-header-subtle);
+}
+.store-header__balance-value {
+    font-size: var(--store-font-price);
+    color: rgb(255, 255, 255);
+}
+
+/* Header cart button. Border is always 2px (amber) so the over-balance state never shifts layout. */
+.store-cart-button {
+    height: 44px;
+    margin: 0;
+    padding: 0 16px;
+    flex-direction: row;
+    align-items: center;
+    border-width: 2px;
+    border-color: var(--store-amber);
+    border-radius: var(--store-radius-pill);
+    background-color: var(--store-amber);
+    transition-property: background-color, border-color, scale;
+    transition-duration: var(--duration-fast);
+}
+.store-cart-button__icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    -unity-background-image-tint-color: var(--store-on-amber);
+}
+.store-cart-button__label,
+.store-cart-button__count,
+.store-cart-button__total {
+    font-size: 18px;
+    color: var(--store-on-amber);
+}
+.store-cart-button__count {
+    margin-left: 10px;
+}
+.store-cart-button__divider {
+    width: 1px;
+    height: 20px;
+    margin: 0 10px;
+    background-color: rgba(42, 31, 5, 0.3);
+}
+/* Briefly added after Add to cart (code removes it after ~120 ms): a small "bump". */
+.store-cart-button--bump {
+    scale: 1.08 1.08;
+}
+/* Over balance: white fill, red border, red total. No text. */
+.store--over .store-cart-button {
+    background-color: rgb(255, 255, 255);
+    border-color: var(--store-red);
+}
+.store--over .store-cart-button__total {
+    color: var(--store-red);
+}
+
+/* Set tabs. Code creates each tab as a Button with classes "store-nav__tab font-display-extrabold". */
+.store-nav {
+    height: 60px;
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 24px;
+    background-color: var(--store-nav);
+}
+.store-nav__tab {
+    height: 40px;
+    margin: 0 12px 0 0;
+    padding: 0 22px;
+    border-width: 0;
+    border-radius: var(--store-radius-tab);
+    background-color: var(--store-nav-tab);
+    color: rgb(255, 255, 255);
+    font-size: 18px;
+}
+.store-nav__tab--active {
+    background-color: rgb(255, 255, 255);
+    color: var(--store-header);
+}
+
+/* Filters. Unity's built-in field parts are restyled through their USS classes;
+   confirm the exact part names with the UI Toolkit Debugger if a rule doesn't take. */
+.store-filters {
+    height: 56px;
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 24px;
+    background-color: var(--store-filter);
+}
+.store-filters__search {
+    width: 280px;
+    height: 34px;
+    margin-right: 28px;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 12px 0 0;
+    border-width: 1px;
+    border-color: var(--store-field-line);
+    border-radius: var(--store-radius-field);
+    background-color: rgb(255, 255, 255);
+}
+.store-filters__search-field {
+    flex-grow: 1;
+    margin: 0;
+}
+.store-filters__search-field .unity-base-field__input,
+.store-filters__dropdown .unity-base-field__input {
+    padding-top: 0;
+    padding-bottom: 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--store-ink);
+    font-size: var(--store-font-sm);
+}
+.store-filters__search-icon {
+    width: 16px;
+    height: 16px;
+    -unity-background-image-tint-color: var(--store-header);
+}
+.store-filters__label {
+    margin-right: 10px;
+    font-size: var(--store-font-sm);
+    color: var(--store-navy);
+}
+.store-filters__dropdown {
+    width: 150px;
+    height: 34px;
+    margin: 0 28px 0 0;
+    border-width: 1px;
+    border-color: var(--store-field-line);
+    border-radius: var(--store-radius-field);
+    background-color: rgb(255, 255, 255);
+}
+
+/* Body: product grid + cart overlay */
+.store-body {
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+.store-products {
+    flex-grow: 1;
+}
+.store-products__grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 11px 15px;
+}
+
+/* Shared site buttons */
+.store-button {
+    height: 38px;
+    margin: 0;
+    padding: 0 14px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border-width: 0;
+    border-radius: 19px;
+    transition-property: background-color, opacity;
+    transition-duration: var(--duration-fast);
+}
+.store-button--green {
+    background-color: var(--store-green);
+}
+.store-button--green:hover {
+    background-color: var(--store-green-hover);
+}
+.store-button:disabled {
+    background-color: var(--store-dim);
+    opacity: 1;
+}
+.store-button--large {
+    height: 50px;
+    border-radius: 25px;
+}
+.store-button__icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    -unity-background-image-tint-color: var(--store-on-green);
+}
+.store-button__label {
+    font-size: 16px;
+    color: var(--store-on-green);
+}
+.store-button--large .store-button__label {
+    font-size: 19px;
+}
+.store-button__amount {
+    margin-left: 10px;
+    font-size: 19px;
+    color: var(--store-on-green);
+}
+
+/* Kit QuantityStepper, re-skinned for the site: round navy buttons. */
+.site-store .quantity-stepper__button {
+    width: 30px;
+    height: 30px;
+    border-width: 0;
+    border-radius: 15px;
+    background-color: var(--store-navy);
+}
+.site-store .quantity-stepper__button:disabled {
+    opacity: 0.35;
+}
+.site-store .quantity-stepper__icon {
+    width: 13px;
+    height: 13px;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+.site-store .quantity-stepper__value {
+    min-width: 40px;
+    font-size: var(--store-font-lg);
+    color: var(--store-ink);
+}

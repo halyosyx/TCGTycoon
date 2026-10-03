@@ -1,0 +1,63 @@
+<!-- Store website (goes inside ComputerShell's content slot).
+     Runtime containers are EMPTY: set-tabs, product-grid and cart lines are filled by code from
+     StoreConfigDefinition + StoreService. Sample text below is for UI Builder only; code overwrites it.
+     State classes (cart shown, cart open, over balance, cart empty, order placed) are added to the root
+     element named store-site; the list and their order are in Docs/UI/STORE_MARKUP_README.md section 3. -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="StoreTokens.uss" />
+    <Style src="StoreSite.uss" />
+    <Style src="StoreProductCard.uss" />
+    <Style src="StoreCartPanel.uss" />
+    <Style src="/Assets/_Project/UI/Controls/QuantityStepper.uss" />
+    <Style src="/Assets/_Project/UI/Styles/Icons.uss" />
+    <ui:Template name="CartPanel" src="StoreCartPanel.uxml" />
+    <ui:VisualElement name="store-site" class="site-store store">
+
+        <ui:VisualElement name="header" class="store-header">
+            <ui:VisualElement class="store-header__logo">
+                <ui:VisualElement class="icon icon--package store-header__logo-icon" />
+            </ui:VisualElement>
+            <ui:VisualElement class="store-header__brand">
+                <ui:Label name="site-title" text="VendorSupply" class="store-header__title font-display-extrabold" />
+                <ui:Label name="site-tagline" text="Wholesale sealed product · delivered tonight" class="store-header__tagline font-body-bold" />
+            </ui:VisualElement>
+            <ui:VisualElement class="store-header__spacer" />
+            <ui:VisualElement class="store-header__balance">
+                <ui:Label name="balance-label" text="Your balance" class="store-header__balance-label font-body-bold" />
+                <ui:Label name="balance-value" text="$500.00" class="store-header__balance-value font-body-extrabold" />
+            </ui:VisualElement>
+            <ui:Button name="cart-button" text="" class="store-cart-button">
+                <ui:VisualElement class="icon icon--cart store-cart-button__icon" />
+                <ui:Label name="cart-button-label" text="Cart" class="store-cart-button__label font-display-extrabold" />
+                <ui:Label name="cart-button-count" text="16" class="store-cart-button__count font-body-extrabold" />
+                <ui:VisualElement class="store-cart-button__divider" />
+                <ui:Label name="cart-button-total" text="$80.00" class="store-cart-button__total font-body-extrabold" />
+            </ui:Button>
+        </ui:VisualElement>
+
+        <!-- One Button per tab, created in code: "All sets" + one per card set (CardSetDefinition short name).
+             Each tab gets the classes store-nav__tab and font-display-extrabold; the selected tab also gets the active modifier (README section 3). -->
+        <ui:VisualElement name="set-tabs" class="store-nav" />
+
+        <ui:VisualElement name="filters" class="store-filters">
+            <ui:VisualElement class="store-filters__search">
+                <ui:TextField name="search-field" placeholder-text="Search products" class="store-filters__search-field" />
+                <ui:VisualElement class="icon icon--search store-filters__search-icon" />
+            </ui:VisualElement>
+            <ui:Label name="type-label" text="Type" class="store-filters__label font-display-extrabold" />
+            <ui:DropdownField name="type-filter" choices="Any,Pack,Bundle,Box" index="0" class="store-filters__dropdown" />
+            <ui:Label name="sort-label" text="Sort" class="store-filters__label font-display-extrabold" />
+            <ui:DropdownField name="sort-filter" choices="Price,Name" index="0" class="store-filters__dropdown" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="store-body" class="store-body">
+            <ui:ScrollView name="product-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden" class="store-products">
+                <!-- Filled with StoreProductCard.uxml instances, two per row (each card is 50% wide). -->
+                <ui:VisualElement name="product-grid" class="store-products__grid" />
+            </ui:ScrollView>
+            <!-- Click the scrim to close the cart. Code sets pickingMode = Position only while the cart is open. -->
+            <ui:VisualElement name="cart-scrim" class="store-cart-scrim" picking-mode="Ignore" />
+            <ui:Instance template="CartPanel" name="cart-host" class="store-cart-host" picking-mode="Ignore" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

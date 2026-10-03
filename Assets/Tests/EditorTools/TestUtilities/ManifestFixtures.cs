@@ -13,13 +13,15 @@ namespace Game.EditorTools.Tests.TestUtilities
     {
         public const string InPrintSetId = "TestA";
         public const string OutOfPrintSetId = "TestB";
+        public const string InPrintColour = "#C96F3B";
+        public const string OutOfPrintColour = "#4C6EA9";
 
         public static List<SetManifestEntry> Sets()
         {
             return new List<SetManifestEntry>
             {
-                new SetManifestEntry(InPrintSetId, "Test: In Print", "In Print", "TA", SetLifecycle.InPrint, 100, "TestA.csv", 2),
-                new SetManifestEntry(OutOfPrintSetId, "Test: Out Of Print", "Out Of Print", "TB", SetLifecycle.OutOfPrint, 180, "TestB.csv", 3),
+                new SetManifestEntry(InPrintSetId, "Test: In Print", "In Print", "TA", SetLifecycle.InPrint, 100, "TestA.csv", InPrintColour, 2),
+                new SetManifestEntry(OutOfPrintSetId, "Test: Out Of Print", "Out Of Print", "TB", SetLifecycle.OutOfPrint, 180, "TestB.csv", OutOfPrintColour, 3),
             };
         }
 

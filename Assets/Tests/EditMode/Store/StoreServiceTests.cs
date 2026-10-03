@@ -423,6 +423,62 @@ namespace Game.Core.Tests.Store
             Assert.That(store.Listings[0].StockRemaining, Is.EqualTo(12));
         }
 
+        // --- Stock ---
+
+        [Test]
+        public void SetStockRemaining_Limited_ChangesStockAndRaisesStockChanged()
+        {
+            StoreService store = CreateStore(DefaultCatalog());
+            int raised = 0;
+            store.StockChanged += () => raised++;
+
+            store.SetStockRemaining(ChampionsPackId, 12);
+            store.SetStockRemaining(ChampionsPackId, 12);
+
+            Assert.That(store.Listings[0].StockRemaining, Is.EqualTo(12));
+            Assert.That(raised, Is.EqualTo(1), "Setting the same stock changes nothing.");
+        }
+
+        [Test]
+        public void SetStockRemaining_BelowUnlimited_Throws()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => CreateStore(DefaultCatalog()).SetStockRemaining(ChampionsPackId, -2));
+        }
+
+        [Test]
+        public void CanPlaceOrder_StockDroppedBelowCart_IsOutOfStockAndOrderFails()
+        {
+            StoreService store = CreateStore(DefaultCatalog());
+            store.SetQuantity(ChampionsPackId, 10);
+            store.SetStockRemaining(ChampionsPackId, 4);
+
+            OrderResult result = store.PlaceOrder();
+
+            Assert.That(store.CanPlaceOrder(), Is.EqualTo(OrderCheck.OutOfStock));
+            Assert.That(result.Check, Is.EqualTo(OrderCheck.OutOfStock));
+            Assert.That(_economy.Ledger, Is.Empty);
+        }
+
+        [Test]
+        public void StockChanged_RaisedByAnOrderOnLimitedStockAndByTheNightlyReset()
+        {
+            StoreService store = CreateStore(Catalog(Listing(ChampionsPack(), ListingAvailability.Available, 12), Listing(OriginsPack())));
+            int raised = 0;
+            store.StockChanged += () => raised++;
+
+            store.SetQuantity(OriginsPackId, 2);
+            store.PlaceOrder();
+            Assert.That(raised, Is.EqualTo(0), "Unlimited stock doesn't change.");
+
+            store.SetQuantity(ChampionsPackId, 2);
+            store.PlaceOrder();
+            Assert.That(raised, Is.EqualTo(1));
+
+            store.ResetNightlyStock();
+            store.ResetNightlyStock();
+            Assert.That(raised, Is.EqualTo(2), "A reset that changes nothing doesn't raise.");
+        }
+
         private StoreService CreateStore(StoreCatalog catalog) => new StoreService(catalog, _economy, _inventory);
     }
 }

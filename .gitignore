@@ -118,6 +118,5 @@ InitTestScene*.unity*
 .DS_Store
 Thumbs.db
 
-# Local working notes (play-test guide, planner hand-offs); not published
-/Docs/F1_Updates_And_Controls.md
-/Docs/HUD_Binder_Audit_Updates.md
+# In-house docs (GDD export, system specs, style guide, mockups, captures, hand-offs); never published
+/Docs/

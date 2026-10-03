@@ -309,6 +309,16 @@ namespace Game.Unity.Player
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""OpenComputer"",
+                    ""type"": ""Button"",
+                    ""id"": ""abcc1496-8acd-44f7-9bac-c2bc05aa2378"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -410,6 +420,279 @@ namespace Game.Unity.Player
                     ""action"": ""Submit"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2524d956-1f2c-44f7-8697-e1d7a345b3c4"",
+                    ""path"": ""<Keyboard>/0"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""OpenComputer"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""83675d1c-ec9e-4b14-a5bb-97944d16fc1a"",
+                    ""path"": ""<Keyboard>/numpad0"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""OpenComputer"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""Computer"",
+            ""id"": ""a5f2e95e-cee4-4845-a769-0b941812a262"",
+            ""actions"": [
+                {
+                    ""name"": ""MoveUp"",
+                    ""type"": ""Button"",
+                    ""id"": ""f50df506-daed-431e-a2d2-e098dc83dc64"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""MoveDown"",
+                    ""type"": ""Button"",
+                    ""id"": ""98bfe504-b614-40d5-be09-dcc4aca1695e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""MoveLeft"",
+                    ""type"": ""Button"",
+                    ""id"": ""1c433325-7796-4479-a764-a19be9f1ddf8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""MoveRight"",
+                    ""type"": ""Button"",
+                    ""id"": ""289da1f8-cdc0-42fc-a0d8-142373992072"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Decrease"",
+                    ""type"": ""Button"",
+                    ""id"": ""22b59098-16ae-4ce7-bcd2-39c13fc77e03"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Increase"",
+                    ""type"": ""Button"",
+                    ""id"": ""ceef9e71-39ad-4d76-a7b5-a70c5c91208a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Submit"",
+                    ""type"": ""Button"",
+                    ""id"": ""90f91a20-2608-4226-ab59-531494647cfd"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""ToggleCart"",
+                    ""type"": ""Button"",
+                    ""id"": ""e31bf160-e496-4920-9269-7039834a8fef"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""RemoveLine"",
+                    ""type"": ""Button"",
+                    ""id"": ""07956aa9-c7a9-4043-a693-9592d8c9c0fd"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Leave"",
+                    ""type"": ""Button"",
+                    ""id"": ""fe078f34-de1e-4c9f-b7f6-4c500cab6784"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""8260dfc0-ca5a-4fda-a639-fd8b3464b540"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8cb3d8d0-f7eb-4139-835c-7c52259d614c"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d67b2386-9699-4f6e-ae98-55995d25dd53"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d7596149-02bf-4f72-baf8-8b7306e63f55"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""41bc863b-af09-4e9a-8fe5-7bb9d5c3793e"",
+                    ""path"": ""<Keyboard>/minus"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Decrease"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""97e09f4a-65e6-41ac-80b4-402a02fb3231"",
+                    ""path"": ""<Keyboard>/numpadMinus"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Decrease"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bf6ad7f5-3776-402e-8d60-8212c7de8828"",
+                    ""path"": ""<Keyboard>/equals"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Increase"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a203801b-16b0-46d5-b373-c4f3d5c1a6e4"",
+                    ""path"": ""<Keyboard>/numpadPlus"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Increase"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""37022148-2ad5-4f6e-a541-5bea62dd0877"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Submit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""526fe5d9-418e-4a53-9a54-e687bd795b41"",
+                    ""path"": ""<Keyboard>/numpadEnter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Submit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6bdd8010-fd15-482f-8500-c5645403dfe7"",
+                    ""path"": ""<Keyboard>/c"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleCart"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""971f0a14-dcca-4454-ae03-45cdb4d97d4d"",
+                    ""path"": ""<Keyboard>/delete"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RemoveLine"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bd226389-540e-45e5-94ad-c373981b7428"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Leave"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -432,12 +715,26 @@ namespace Game.Unity.Player
             m_Screens_BinderPreviousPage = m_Screens.FindAction("BinderPreviousPage", throwIfNotFound: true);
             m_Screens_BinderNextPage = m_Screens.FindAction("BinderNextPage", throwIfNotFound: true);
             m_Screens_Submit = m_Screens.FindAction("Submit", throwIfNotFound: true);
+            m_Screens_OpenComputer = m_Screens.FindAction("OpenComputer", throwIfNotFound: true);
+            // Computer
+            m_Computer = asset.FindActionMap("Computer", throwIfNotFound: true);
+            m_Computer_MoveUp = m_Computer.FindAction("MoveUp", throwIfNotFound: true);
+            m_Computer_MoveDown = m_Computer.FindAction("MoveDown", throwIfNotFound: true);
+            m_Computer_MoveLeft = m_Computer.FindAction("MoveLeft", throwIfNotFound: true);
+            m_Computer_MoveRight = m_Computer.FindAction("MoveRight", throwIfNotFound: true);
+            m_Computer_Decrease = m_Computer.FindAction("Decrease", throwIfNotFound: true);
+            m_Computer_Increase = m_Computer.FindAction("Increase", throwIfNotFound: true);
+            m_Computer_Submit = m_Computer.FindAction("Submit", throwIfNotFound: true);
+            m_Computer_ToggleCart = m_Computer.FindAction("ToggleCart", throwIfNotFound: true);
+            m_Computer_RemoveLine = m_Computer.FindAction("RemoveLine", throwIfNotFound: true);
+            m_Computer_Leave = m_Computer.FindAction("Leave", throwIfNotFound: true);
         }
 
         ~@PlayerControls()
         {
             UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, PlayerControls.Player.Disable() has not been called.");
             UnityEngine.Debug.Assert(!m_Screens.enabled, "This will cause a leak and performance issues, PlayerControls.Screens.Disable() has not been called.");
+            UnityEngine.Debug.Assert(!m_Computer.enabled, "This will cause a leak and performance issues, PlayerControls.Computer.Disable() has not been called.");
         }
 
         /// <summary>
@@ -650,6 +947,7 @@ namespace Game.Unity.Player
         private readonly InputAction m_Screens_BinderPreviousPage;
         private readonly InputAction m_Screens_BinderNextPage;
         private readonly InputAction m_Screens_Submit;
+        private readonly InputAction m_Screens_OpenComputer;
         /// <summary>
         /// Provides access to input actions defined in input action map "Screens".
         /// </summary>
@@ -693,6 +991,10 @@ namespace Game.Unity.Player
             /// Provides access to the underlying input action "Screens/Submit".
             /// </summary>
             public InputAction @Submit => m_Wrapper.m_Screens_Submit;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/OpenComputer".
+            /// </summary>
+            public InputAction @OpenComputer => m_Wrapper.m_Screens_OpenComputer;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -743,6 +1045,9 @@ namespace Game.Unity.Player
                 @Submit.started += instance.OnSubmit;
                 @Submit.performed += instance.OnSubmit;
                 @Submit.canceled += instance.OnSubmit;
+                @OpenComputer.started += instance.OnOpenComputer;
+                @OpenComputer.performed += instance.OnOpenComputer;
+                @OpenComputer.canceled += instance.OnOpenComputer;
             }
 
             /// <summary>
@@ -778,6 +1083,9 @@ namespace Game.Unity.Player
                 @Submit.started -= instance.OnSubmit;
                 @Submit.performed -= instance.OnSubmit;
                 @Submit.canceled -= instance.OnSubmit;
+                @OpenComputer.started -= instance.OnOpenComputer;
+                @OpenComputer.performed -= instance.OnOpenComputer;
+                @OpenComputer.canceled -= instance.OnOpenComputer;
             }
 
             /// <summary>
@@ -811,6 +1119,201 @@ namespace Game.Unity.Player
         /// Provides a new <see cref="ScreensActions" /> instance referencing this action map.
         /// </summary>
         public ScreensActions @Screens => new ScreensActions(this);
+
+        // Computer
+        private readonly InputActionMap m_Computer;
+        private List<IComputerActions> m_ComputerActionsCallbackInterfaces = new List<IComputerActions>();
+        private readonly InputAction m_Computer_MoveUp;
+        private readonly InputAction m_Computer_MoveDown;
+        private readonly InputAction m_Computer_MoveLeft;
+        private readonly InputAction m_Computer_MoveRight;
+        private readonly InputAction m_Computer_Decrease;
+        private readonly InputAction m_Computer_Increase;
+        private readonly InputAction m_Computer_Submit;
+        private readonly InputAction m_Computer_ToggleCart;
+        private readonly InputAction m_Computer_RemoveLine;
+        private readonly InputAction m_Computer_Leave;
+        /// <summary>
+        /// Provides access to input actions defined in input action map "Computer".
+        /// </summary>
+        public struct ComputerActions
+        {
+            private @PlayerControls m_Wrapper;
+
+            /// <summary>
+            /// Construct a new instance of the input action map wrapper class.
+            /// </summary>
+            public ComputerActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
+            /// <summary>
+            /// Provides access to the underlying input action "Computer/MoveUp".
+            /// </summary>
+            public InputAction @MoveUp => m_Wrapper.m_Computer_MoveUp;
+            /// <summary>
+            /// Provides access to the underlying input action "Computer/MoveDown".
+            /// </summary>
+            public InputAction @MoveDown => m_Wrapper.m_Computer_MoveDown;
+            /// <summary>
+            /// Provides access to the underlying input action "Computer/MoveLeft".
+            /// </summary>
+            public InputAction @MoveLeft => m_Wrapper.m_Computer_MoveLeft;
+            /// <summary>
+            /// Provides access to the underlying input action "Computer/MoveRight".
+            /// </summary>
+            public InputAction @MoveRight => m_Wrapper.m_Computer_MoveRight;
+            /// <summary>
+            /// Provides access to the underlying input action "Computer/Decrease".
+            /// </summary>
+            public InputAction @Decrease => m_Wrapper.m_Computer_Decrease;
+            /// <summary>
+            /// Provides access to the underlying input action "Computer/Increase".
+            /// </summary>
+            public InputAction @Increase => m_Wrapper.m_Computer_Increase;
+            /// <summary>
+            /// Provides access to the underlying input action "Computer/Submit".
+            /// </summary>
+            public InputAction @Submit => m_Wrapper.m_Computer_Submit;
+            /// <summary>
+            /// Provides access to the underlying input action "Computer/ToggleCart".
+            /// </summary>
+            public InputAction @ToggleCart => m_Wrapper.m_Computer_ToggleCart;
+            /// <summary>
+            /// Provides access to the underlying input action "Computer/RemoveLine".
+            /// </summary>
+            public InputAction @RemoveLine => m_Wrapper.m_Computer_RemoveLine;
+            /// <summary>
+            /// Provides access to the underlying input action "Computer/Leave".
+            /// </summary>
+            public InputAction @Leave => m_Wrapper.m_Computer_Leave;
+            /// <summary>
+            /// Provides access to the underlying input action map instance.
+            /// </summary>
+            public InputActionMap Get() { return m_Wrapper.m_Computer; }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+            public void Enable() { Get().Enable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+            public void Disable() { Get().Disable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+            public bool enabled => Get().enabled;
+            /// <summary>
+            /// Implicitly converts an <see ref="ComputerActions" /> to an <see ref="InputActionMap" /> instance.
+            /// </summary>
+            public static implicit operator InputActionMap(ComputerActions set) { return set.Get(); }
+            /// <summary>
+            /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <param name="instance">Callback instance.</param>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+            /// </remarks>
+            /// <seealso cref="ComputerActions" />
+            public void AddCallbacks(IComputerActions instance)
+            {
+                if (instance == null || m_Wrapper.m_ComputerActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_ComputerActionsCallbackInterfaces.Add(instance);
+                @MoveUp.started += instance.OnMoveUp;
+                @MoveUp.performed += instance.OnMoveUp;
+                @MoveUp.canceled += instance.OnMoveUp;
+                @MoveDown.started += instance.OnMoveDown;
+                @MoveDown.performed += instance.OnMoveDown;
+                @MoveDown.canceled += instance.OnMoveDown;
+                @MoveLeft.started += instance.OnMoveLeft;
+                @MoveLeft.performed += instance.OnMoveLeft;
+                @MoveLeft.canceled += instance.OnMoveLeft;
+                @MoveRight.started += instance.OnMoveRight;
+                @MoveRight.performed += instance.OnMoveRight;
+                @MoveRight.canceled += instance.OnMoveRight;
+                @Decrease.started += instance.OnDecrease;
+                @Decrease.performed += instance.OnDecrease;
+                @Decrease.canceled += instance.OnDecrease;
+                @Increase.started += instance.OnIncrease;
+                @Increase.performed += instance.OnIncrease;
+                @Increase.canceled += instance.OnIncrease;
+                @Submit.started += instance.OnSubmit;
+                @Submit.performed += instance.OnSubmit;
+                @Submit.canceled += instance.OnSubmit;
+                @ToggleCart.started += instance.OnToggleCart;
+                @ToggleCart.performed += instance.OnToggleCart;
+                @ToggleCart.canceled += instance.OnToggleCart;
+                @RemoveLine.started += instance.OnRemoveLine;
+                @RemoveLine.performed += instance.OnRemoveLine;
+                @RemoveLine.canceled += instance.OnRemoveLine;
+                @Leave.started += instance.OnLeave;
+                @Leave.performed += instance.OnLeave;
+                @Leave.canceled += instance.OnLeave;
+            }
+
+            /// <summary>
+            /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <remarks>
+            /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+            /// </remarks>
+            /// <seealso cref="ComputerActions" />
+            private void UnregisterCallbacks(IComputerActions instance)
+            {
+                @MoveUp.started -= instance.OnMoveUp;
+                @MoveUp.performed -= instance.OnMoveUp;
+                @MoveUp.canceled -= instance.OnMoveUp;
+                @MoveDown.started -= instance.OnMoveDown;
+                @MoveDown.performed -= instance.OnMoveDown;
+                @MoveDown.canceled -= instance.OnMoveDown;
+                @MoveLeft.started -= instance.OnMoveLeft;
+                @MoveLeft.performed -= instance.OnMoveLeft;
+                @MoveLeft.canceled -= instance.OnMoveLeft;
+                @MoveRight.started -= instance.OnMoveRight;
+                @MoveRight.performed -= instance.OnMoveRight;
+                @MoveRight.canceled -= instance.OnMoveRight;
+                @Decrease.started -= instance.OnDecrease;
+                @Decrease.performed -= instance.OnDecrease;
+                @Decrease.canceled -= instance.OnDecrease;
+                @Increase.started -= instance.OnIncrease;
+                @Increase.performed -= instance.OnIncrease;
+                @Increase.canceled -= instance.OnIncrease;
+                @Submit.started -= instance.OnSubmit;
+                @Submit.performed -= instance.OnSubmit;
+                @Submit.canceled -= instance.OnSubmit;
+                @ToggleCart.started -= instance.OnToggleCart;
+                @ToggleCart.performed -= instance.OnToggleCart;
+                @ToggleCart.canceled -= instance.OnToggleCart;
+                @RemoveLine.started -= instance.OnRemoveLine;
+                @RemoveLine.performed -= instance.OnRemoveLine;
+                @RemoveLine.canceled -= instance.OnRemoveLine;
+                @Leave.started -= instance.OnLeave;
+                @Leave.performed -= instance.OnLeave;
+                @Leave.canceled -= instance.OnLeave;
+            }
+
+            /// <summary>
+            /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="ComputerActions.UnregisterCallbacks(IComputerActions)" />.
+            /// </summary>
+            /// <seealso cref="ComputerActions.UnregisterCallbacks(IComputerActions)" />
+            public void RemoveCallbacks(IComputerActions instance)
+            {
+                if (m_Wrapper.m_ComputerActionsCallbackInterfaces.Remove(instance))
+                    UnregisterCallbacks(instance);
+            }
+
+            /// <summary>
+            /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+            /// </summary>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+            /// </remarks>
+            /// <seealso cref="ComputerActions.AddCallbacks(IComputerActions)" />
+            /// <seealso cref="ComputerActions.RemoveCallbacks(IComputerActions)" />
+            /// <seealso cref="ComputerActions.UnregisterCallbacks(IComputerActions)" />
+            public void SetCallbacks(IComputerActions instance)
+            {
+                foreach (var item in m_Wrapper.m_ComputerActionsCallbackInterfaces)
+                    UnregisterCallbacks(item);
+                m_Wrapper.m_ComputerActionsCallbackInterfaces.Clear();
+                AddCallbacks(instance);
+            }
+        }
+        /// <summary>
+        /// Provides a new <see cref="ComputerActions" /> instance referencing this action map.
+        /// </summary>
+        public ComputerActions @Computer => new ComputerActions(this);
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
         /// </summary>
@@ -910,6 +1413,91 @@ namespace Game.Unity.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnSubmit(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "OpenComputer" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnOpenComputer(InputAction.CallbackContext context);
+        }
+        /// <summary>
+        /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Computer" which allows adding and removing callbacks.
+        /// </summary>
+        /// <seealso cref="ComputerActions.AddCallbacks(IComputerActions)" />
+        /// <seealso cref="ComputerActions.RemoveCallbacks(IComputerActions)" />
+        public interface IComputerActions
+        {
+            /// <summary>
+            /// Method invoked when associated input action "MoveUp" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnMoveUp(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "MoveDown" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnMoveDown(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "MoveLeft" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnMoveLeft(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "MoveRight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnMoveRight(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Decrease" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnDecrease(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Increase" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnIncrease(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Submit" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSubmit(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "ToggleCart" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnToggleCart(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "RemoveLine" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnRemoveLine(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Leave" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnLeave(InputAction.CallbackContext context);
         }
     }
 }

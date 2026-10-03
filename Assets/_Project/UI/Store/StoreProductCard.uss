@@ -1,0 +1,145 @@
+/* Product card. Root (.store-product) is a 50%-wide grid cell; its padding is the gutter.
+   .store-product__ring carries the keyboard focus ring (a border, since USS has no outline). */
+.store-product {
+    width: 50%;
+    padding: 9px;
+}
+.store-product__ring {
+    border-width: 3px;
+    border-color: rgba(0, 0, 0, 0);
+    border-radius: 17px;
+    transition-property: border-color;
+    transition-duration: var(--duration-fast);
+}
+.store-product--focused .store-product__ring {
+    border-color: var(--store-focus);
+}
+.store-product__card {
+    height: var(--store-card-height);
+    flex-direction: row;
+    align-items: center;
+    padding: 16px;
+    border-width: 1px;
+    border-color: var(--store-card-line);
+    border-radius: var(--store-radius-card);
+    background-color: var(--store-card);
+}
+
+/* Thumbnail */
+.store-product__thumb {
+    width: 150px;
+    height: 148px;
+    flex-shrink: 0;
+    margin-right: 18px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background-color: var(--store-thumb);
+}
+.store-product__art {
+    border-radius: 3px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+/* Placeholder sizes when a listing has no sprite; code sets background-color to the set colour. */
+.store-product__art--pack   { width: 78px;  height: 126px; }
+.store-product__art--bundle { width: 118px; height: 82px; }
+.store-product__art--box    { width: 122px; height: 76px; }
+
+/* Info column */
+.store-product__info {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+.store-product__name {
+    font-size: var(--store-font-xl);
+    color: var(--store-ink);
+}
+.store-product__subtitle {
+    margin-bottom: 10px;
+    font-size: var(--store-font-sm);
+    color: var(--store-muted);
+}
+.store-product__price-label {
+    font-size: var(--store-font-xs);
+    color: var(--store-muted);
+}
+.store-product__price {
+    font-size: var(--store-font-price);
+    color: var(--store-ink);
+}
+
+/* Right column */
+.store-product__side {
+    width: 190px;
+    flex-shrink: 0;
+    padding-left: 16px;
+    border-left-width: 1px;
+    border-color: var(--store-card-line);
+    align-items: center;
+}
+.store-product__buy {
+    width: 100%;
+    align-items: center;
+}
+.store-product__small-label {
+    font-size: 14px;
+    color: var(--store-muted);
+}
+.store-product__buy > .store-product__small-label {
+    margin-bottom: 6px;
+}
+.store-product__total {
+    flex-direction: row;
+    align-items: center;
+    margin: 6px 0 8px 0;
+}
+.store-product__total-value {
+    margin-left: 6px;
+    font-size: var(--store-font-md);
+    color: var(--store-ink);
+}
+.store-product__buy > .store-button {
+    width: 100%;
+}
+.store-product__status {
+    display: none;
+    align-items: center;
+}
+.store-product__status-title {
+    font-size: var(--store-font-md);
+    color: var(--store-ink);
+}
+.store-product__status-detail {
+    margin-top: 4px;
+    font-size: 14px;
+    color: var(--store-muted);
+}
+
+/* Coming soon */
+.store-product--soon .store-product__buy,
+.store-product--soon .store-product__price-block {
+    display: none;
+}
+.store-product--soon .store-product__status {
+    display: flex;
+}
+.store-product--soon .store-product__thumb,
+.store-product--soon .store-product__info,
+.store-product--soon .store-product__status {
+    opacity: 0.55;
+}
+.store-product--soon .store-product__status-title {
+    color: var(--store-muted);
+}
+
+/* Sold out tonight */
+.store-product--sold-out .store-product__buy {
+    display: none;
+}
+.store-product--sold-out .store-product__status {
+    display: flex;
+}
+.store-product--sold-out .store-product__thumb {
+    opacity: 0.55;
+}

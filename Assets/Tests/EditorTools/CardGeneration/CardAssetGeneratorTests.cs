@@ -58,6 +58,7 @@ namespace Game.EditorTools.Tests.CardGeneration
             Assert.That(outOfPrint.Cards.Count, Is.EqualTo(5));
             Assert.That(outOfPrint.ShortName, Is.EqualTo("Out Of Print"));
             Assert.That(outOfPrint.Lifecycle, Is.EqualTo(SetLifecycle.OutOfPrint));
+            Assert.That(ColorUtility.ToHtmlStringRGB(outOfPrint.Colour), Is.EqualTo("4C6EA9"));
             Assert.That(outOfPrint.Cards.Select(card => card.ValueCents), Is.EqualTo(new long[] { 9, 9, 27, 432, 12600 }));
             Assert.That(AssetDatabase.LoadAssetAtPath<CardDefinition>(OutputFolder + "/Cards/TestA/TA_C_001.asset") != null, "Card not written under Cards/<setId>/.");
 

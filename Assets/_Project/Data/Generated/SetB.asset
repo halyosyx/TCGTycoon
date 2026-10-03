@@ -18,6 +18,7 @@ MonoBehaviour:
   _idPrefix: MO
   _lifecycle: 1
   _priceScalePercent: 180
+  _colour: {r: 0.29803923, g: 0.43137255, b: 0.6627451, a: 1}
   _cards:
   - {fileID: 11400000, guid: a6ad64202d1326a489e0d537ef8fc0b7, type: 2}
   - {fileID: 11400000, guid: 5f206ce57fef98d459db5f3a822c3ba5, type: 2}

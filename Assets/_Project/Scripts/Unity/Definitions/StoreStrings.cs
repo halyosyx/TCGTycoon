@@ -4,8 +4,10 @@ using UnityEngine;
 namespace Game.Unity.Definitions
 {
     /// <summary>
-    /// Every visible label of the store website (STORE_UI_REQUIREMENTS STR-04), edited in the
-    /// Inspector. The UXML's text is sample text only; code overwrites every label from here.
+    /// Every visible label of the store website (STORE_UI_REQUIREMENTS STR-04, plus the sort choices,
+    /// line formats and key-hint labels the screen needs), edited in the Inspector. The UXML's text is
+    /// sample text only; code overwrites every label from here. Key hints reuse labels that already
+    /// exist (Amount, Add to cart, Cart, Place order, Done).
     /// </summary>
     [Serializable]
     public sealed class StoreStrings
@@ -40,6 +42,28 @@ namespace Game.Unity.Definitions
         [SerializeField] private string _orderPlaced = "Order placed";
         [SerializeField] private string _orderPlacedNote = "They're on your table, ready to open.";
         [SerializeField] private string _done = "Done";
+
+        [Header("Sort choices")]
+        [SerializeField] private string _sortPrice = "Price";
+        [SerializeField] private string _sortName = "Name";
+
+        [Header("Formats")]
+        [SerializeField, Tooltip("Card subtitle. {0} = set name, {1} = status (in print, out of print, units left).")]
+        private string _subtitleFormat = "{0} · {1}";
+
+        [SerializeField, Tooltip("Cart line name. {0} = set name, {1} = product name.")]
+        private string _cartLineFormat = "{0} — {1}";
+
+        [SerializeField, Tooltip("Order placed line. {0} = quantity, {1} = set name, {2} = product name.")]
+        private string _placedLineFormat = "{0} × {1} — {2}";
+
+        [Header("Key hints")]
+        [SerializeField] private string _hintMove = "Move";
+        [SerializeField] private string _hintLeave = "Leave computer";
+        [SerializeField] private string _hintLine = "Line";
+        [SerializeField] private string _hintQuantity = "Quantity";
+        [SerializeField] private string _hintRemove = "Remove";
+        [SerializeField] private string _hintCloseCart = "Close cart";
 
         public string YourBalance => _yourBalance;
 
@@ -94,5 +118,27 @@ namespace Game.Unity.Definitions
         public string OrderPlacedNote => _orderPlacedNote;
 
         public string Done => _done;
+
+        public string SortPrice => _sortPrice;
+
+        public string SortName => _sortName;
+
+        public string SubtitleFormat => _subtitleFormat;
+
+        public string CartLineFormat => _cartLineFormat;
+
+        public string PlacedLineFormat => _placedLineFormat;
+
+        public string HintMove => _hintMove;
+
+        public string HintLeave => _hintLeave;
+
+        public string HintLine => _hintLine;
+
+        public string HintQuantity => _hintQuantity;
+
+        public string HintRemove => _hintRemove;
+
+        public string HintCloseCart => _hintCloseCart;
     }
 }

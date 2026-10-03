@@ -34,6 +34,8 @@ namespace Game.Unity.Tests.DebugTools
 
         [TestCase("buy SetA_Pack 12", true)]
         [TestCase("  BUY", true)]
+        [TestCase("store.stock SetA_Box 3", true)]
+        [TestCase("store.open", false)]
         [TestCase("buyer 1", false)]
         [TestCase("money.add 5", false)]
         [TestCase(null, false)]
@@ -106,6 +108,37 @@ namespace Game.Unity.Tests.DebugTools
 
             Assert.That(output, Does.Contain(expected));
             Assert.That(_economy.Ledger, Is.Empty);
+        }
+
+        [Test]
+        public void Execute_Stock_SetsTonightsStock()
+        {
+            string output = new StoreDebugCommands(_store).Execute("store.stock SetA_Bundle 12");
+
+            _store.TryGetListing(BundleId, out StoreListingState listing);
+            Assert.That(listing.StockRemaining, Is.EqualTo(12));
+            Assert.That(output, Does.Contain("12"));
+        }
+
+        [Test]
+        public void Execute_StockMinusOne_MakesItUnlimited()
+        {
+            new StoreDebugCommands(_store).Execute("store.stock SetA_Box -1");
+
+            _store.TryGetListing(BoxId, out StoreListingState listing);
+            Assert.That(listing.IsUnlimited, Is.True);
+        }
+
+        [TestCase("store.stock SetA_Box -2", "Usage")]
+        [TestCase("store.stock SetA_Box", "Usage")]
+        [TestCase("store.stock Nope 3", "No listing")]
+        public void Execute_InvalidStock_ExplainsAndChangesNothing(string commandLine, string expected)
+        {
+            string output = new StoreDebugCommands(_store).Execute(commandLine);
+
+            _store.TryGetListing(BoxId, out StoreListingState listing);
+            Assert.That(output, Does.Contain(expected));
+            Assert.That(listing.StockRemaining, Is.EqualTo(2));
         }
 
         private static StoreCatalogListing Listing(string id, long marketCents, ListingAvailability availability, int stock)

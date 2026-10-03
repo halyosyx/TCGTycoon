@@ -15,9 +15,9 @@ namespace Game.EditorTools.Tests.CardGeneration
             "RC_SFAH_01,Braolin Crowned in Ash,SpecialFullArtHolo,Rules the ash.,crown\n";
 
         private const string SetsText =
-            "setId,displayName,shortName,idPrefix,lifecycle,priceScalePercent,cardManifest\n" +
-            "SetA,Mythbound: Reigning Champions,Champions,RC,InPrint,100,Champions.csv\n" +
-            "SetB,Mythbound: Mythical Origins,Origins,MO,OutOfPrint,180,Origins.csv\n";
+            "setId,displayName,shortName,idPrefix,lifecycle,priceScalePercent,cardManifest,colour\n" +
+            "SetA,Mythbound: Reigning Champions,Champions,RC,InPrint,100,Champions.csv,#C96F3B\n" +
+            "SetB,Mythbound: Mythical Origins,Origins,MO,OutOfPrint,180,Origins.csv,#4C6EA9\n";
 
         private const string PricesText =
             "tier,basePriceCents,volatilityTier\n" +
@@ -53,6 +53,24 @@ namespace Game.EditorTools.Tests.CardGeneration
             Assert.That(sets[1].Lifecycle, Is.EqualTo(SetLifecycle.OutOfPrint));
             Assert.That(sets[1].PriceScalePercent, Is.EqualTo(180));
             Assert.That(sets[1].ShortName, Is.EqualTo("Origins"));
+            Assert.That(sets[1].Colour, Is.EqualTo("#4C6EA9"));
+        }
+
+        [TestCase("4C6EA9")]
+        [TestCase("#4C6EA")]
+        [TestCase("#GGGGGG")]
+        [TestCase("")]
+        public void ReadSets_BadColour_ErrorNamesTheLineAndColumn(string colour)
+        {
+            var errors = new List<string>();
+            string text = "setId,displayName,shortName,idPrefix,lifecycle,priceScalePercent,cardManifest,colour\n" +
+                "SetA,A,A,RC,InPrint,100,Champions.csv," + colour + "\n";
+
+            List<SetManifestEntry> sets = CardManifest.ReadSets(text, "Sets.csv", errors);
+
+            Assert.That(sets, Is.Empty);
+            Assert.That(errors.Count, Is.EqualTo(1));
+            Assert.That(errors[0], Does.StartWith("Sets.csv:2:").And.Contain("colour"));
         }
 
         [Test]

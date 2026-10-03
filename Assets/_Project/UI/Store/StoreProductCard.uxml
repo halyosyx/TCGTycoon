@@ -1,0 +1,42 @@
+<!-- One product card, instantiated per StoreListing. State classes (focused, coming soon, sold out)
+     go on the root element named product-card; see Docs/UI/STORE_MARKUP_README.md section 3.
+     Thumbnail: set thumbnail-art's background-image to the listing sprite; with no sprite, keep the
+     pack / bundle / box placeholder class and set its background-color to the set colour. -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Template name="QuantityStepper" src="/Assets/_Project/UI/Controls/QuantityStepper.uxml" />
+    <ui:VisualElement name="product-card" class="store-product">
+        <ui:VisualElement class="store-product__ring">
+            <ui:VisualElement class="store-product__card">
+                <ui:VisualElement name="thumbnail" class="store-product__thumb">
+                    <ui:VisualElement name="thumbnail-art" class="store-product__art store-product__art--pack" />
+                </ui:VisualElement>
+                <ui:VisualElement class="store-product__info">
+                    <ui:Label name="product-name" text="Booster Pack" class="store-product__name font-display-extrabold" />
+                    <ui:Label name="product-subtitle" text="Reigning Champions · In print" class="store-product__subtitle font-body-bold" />
+                    <ui:VisualElement name="price-block" class="store-product__price-block">
+                        <ui:Label name="unit-price-label" text="Unit price" class="store-product__price-label font-body-bold" />
+                        <ui:Label name="unit-price" text="$5.00" class="store-product__price font-body-extrabold" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="store-product__side">
+                    <ui:VisualElement name="buy-controls" class="store-product__buy">
+                        <ui:Label name="amount-label" text="Amount" class="store-product__small-label font-body-bold" />
+                        <ui:Instance template="QuantityStepper" name="amount-stepper" />
+                        <ui:VisualElement class="store-product__total">
+                            <ui:Label name="total-label" text="Total" class="store-product__small-label font-body-bold" />
+                            <ui:Label name="line-total" text="$30.00" class="store-product__total-value font-body-extrabold" />
+                        </ui:VisualElement>
+                        <ui:Button name="add-to-cart" text="" class="store-button store-button--green">
+                            <ui:VisualElement class="icon icon--cart-simple store-button__icon" />
+                            <ui:Label name="add-to-cart-label" text="Add to cart" class="store-button__label font-display-extrabold" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="status" class="store-product__status">
+                        <ui:Label name="status-title" text="Coming soon" class="store-product__status-title font-display-extrabold" />
+                        <ui:Label name="status-detail" text="Not stocked yet" class="store-product__status-detail font-body-bold" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

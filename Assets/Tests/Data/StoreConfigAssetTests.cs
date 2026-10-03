@@ -9,7 +9,8 @@ namespace Game.Data.Tests
     /// <summary>
     /// Checks the real store assets (STORE_UI_REQUIREMENTS STR-02, STR-03): the default store config
     /// converts, the Champions pack costs $5.00 and the Origins pack $9.00 (each pack's market price is
-    /// its pack configuration's), packs are on sale, and bundles and boxes are coming soon.
+    /// its pack configuration's), packs are on sale, and bundles and boxes stay listed but Hidden (the
+    /// store shows booster packs only for now; flip them to ComingSoon or Available in the Inspector).
     /// </summary>
     public sealed class StoreConfigAssetTests
     {
@@ -71,7 +72,7 @@ namespace Game.Data.Tests
         }
 
         [Test]
-        public void Catalog_BundlesAndBoxes_AreComingSoon()
+        public void Catalog_BundlesAndBoxes_AreHiddenForNow()
         {
             var types = new HashSet<ProductType>();
             foreach (StoreCatalogListing listing in _catalog.Listings)
@@ -79,7 +80,7 @@ namespace Game.Data.Tests
                 types.Add(listing.Product.Type);
                 if (listing.Product.Type != ProductType.BoosterPack)
                 {
-                    Assert.That(listing.Availability, Is.EqualTo(ListingAvailability.ComingSoon), listing.Id);
+                    Assert.That(listing.Availability, Is.EqualTo(ListingAvailability.Hidden), listing.Id);
                 }
             }
 

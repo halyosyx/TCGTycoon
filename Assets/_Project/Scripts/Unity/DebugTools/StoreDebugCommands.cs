@@ -17,10 +17,16 @@ namespace Game.Unity.DebugTools
     public sealed class StoreDebugCommands
     {
         public const string BuyCommand = "buy";
+        public const string StockCommand = "store.stock";
+
+        /// <summary>Opens the store screen; run by the console host, which owns the scene objects.</summary>
+        public const string OpenCommand = "store.open";
 
         public const string HelpText =
             "Store commands (Play Mode, on the scene's session):\n" +
-            "  buy <listingId> <count>          order through the store (count clamps to tonight's stock)";
+            "  buy <listingId> <count>          order through the store (count clamps to tonight's stock)\n" +
+            "  store.stock <listingId> <n>      set tonight's stock (-1 = unlimited)\n" +
+            "  store.open                       open the computer on the store (same as 0)";
 
         private readonly StoreService _store;
 
@@ -29,8 +35,14 @@ namespace Game.Unity.DebugTools
             _store = store ?? throw new ArgumentNullException(nameof(store));
         }
 
-        /// <summary>True for command lines this class runs ("buy", alone or with arguments).</summary>
+        /// <summary>True for command lines this class runs ("buy" and "store.stock", alone or with arguments).</summary>
         public static bool Handles(string commandLine)
+        {
+            return IsCommand(commandLine, BuyCommand) || IsCommand(commandLine, StockCommand);
+        }
+
+        /// <summary>True when the line is <paramref name="command"/>, alone or followed by arguments.</summary>
+        public static bool IsCommand(string commandLine, string command)
         {
             if (commandLine == null)
             {
@@ -38,12 +50,17 @@ namespace Game.Unity.DebugTools
             }
 
             string trimmed = commandLine.Trim();
-            return string.Equals(trimmed, BuyCommand, StringComparison.OrdinalIgnoreCase)
-                || trimmed.StartsWith(BuyCommand + " ", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(trimmed, command, StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith(command + " ", StringComparison.OrdinalIgnoreCase);
         }
 
         public string Execute(string commandLine)
         {
+            if (IsCommand(commandLine, StockCommand))
+            {
+                return Stock(commandLine);
+            }
+
             string[] parts = (commandLine ?? string.Empty).Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 3
                 || !string.Equals(parts[0], BuyCommand, StringComparison.OrdinalIgnoreCase)
@@ -92,6 +109,27 @@ namespace Game.Unity.DebugTools
 
             string clamped = ordered < count ? Invariant($" (only {ordered} left tonight)") : string.Empty;
             return Invariant($"Bought {ordered} × {listing.Id} at {Money.FormatDisplay(listing.UnitPriceCents)} for {Money.FormatDisplay(result.TotalCents)}{clamped}.");
+        }
+
+        private string Stock(string commandLine)
+        {
+            string[] parts = commandLine.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 3
+                || !int.TryParse(parts[2], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int stock)
+                || stock < StoreCatalogListing.UnlimitedStock)
+            {
+                return "Usage: store.stock <listingId> <n>, where n is 0 or more, or -1 for unlimited.\n" + DescribeListings();
+            }
+
+            if (!_store.TryGetListing(parts[1], out StoreListingState listing))
+            {
+                return $"No listing '{parts[1]}'.\n" + DescribeListings();
+            }
+
+            _store.SetStockRemaining(listing.Id, stock);
+            return stock == StoreCatalogListing.UnlimitedStock
+                ? $"'{listing.Id}' stock is unlimited tonight."
+                : Invariant($"'{listing.Id}' has {stock} left tonight.");
         }
 
         private string DescribeListings()

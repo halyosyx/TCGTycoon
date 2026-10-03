@@ -1,0 +1,52 @@
+/* Store website brand tokens. An in-world website keeps its own palette, scoped to its root class
+   (style guide §9). Restyle the whole site by editing ONLY this file. Game UI tokens (Tokens.uss)
+   still supply spacing, radii and durations; fonts still come from Typography.uss. */
+.site-store {
+    --store-header: #1F7AE0;
+    --store-header-subtle: #D8ECFF;
+    --store-nav: #4AA3F0;
+    --store-nav-tab: #2F86E8;
+    --store-filter: #D3E9FC;
+    --store-field-line: #B9D3EC;
+    --store-page: #EEF4FA;
+    --store-card: #FFFFFF;
+    --store-card-line: #D5DEE8;
+    --store-thumb: #E6EEF7;
+    --store-ink: #1D2733;
+    --store-muted: #5B6B7C;
+    --store-dim: #9AA8B6;
+    --store-green: #22B45A;
+    --store-green-hover: #1EA351;
+    --store-on-green: #FFFFFF;
+    --store-amber: #FFC83D;
+    --store-on-amber: #2A1F05;
+    --store-navy: #17457F;
+    --store-focus: #FFB300;
+    --store-red: #E0343B;
+    --store-red-tint: #FDEBEC;
+    --store-cart-scrim: rgba(23, 69, 127, 0.25);
+
+    --store-font-xs: 13px;
+    --store-font-sm: 15px;
+    --store-font-md: 17px;
+    --store-font-lg: 20px;
+    --store-font-xl: 24px;
+    --store-font-price: 26px;
+    --store-font-title: 28px;
+
+    --store-radius-field: 8px;
+    --store-radius-tab: 10px;
+    --store-radius-card: 14px;
+    --store-radius-pill: 22px;
+
+    --store-card-height: 180px;
+    --store-cart-width: 460px;
+    --store-cart-slide: 0.28s;
+}
+
+/* Unity's default theme gives every Label a 4px padding and margins; the mockups (HTML) have none.
+   Same specificity as the rules below, which come later, so their own margins still apply. */
+.unity-label {
+    margin: 0;
+    padding: 0;
+}

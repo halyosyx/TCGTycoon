@@ -1,0 +1,32 @@
+/* Kit default (game UI): square buttons on raised surface. Uses Tokens.uss. */
+.quantity-stepper {
+    flex-direction: row;
+    align-items: center;
+}
+.quantity-stepper__button {
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-color: var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface-raised);
+}
+.quantity-stepper__button:hover  { background-color: var(--color-surface-hover); }
+.quantity-stepper__button:active { background-color: var(--color-surface-pressed); }
+.quantity-stepper__button:disabled { opacity: var(--opacity-disabled); }
+.quantity-stepper__icon {
+    width: 14px;
+    height: 14px;
+    -unity-background-image-tint-color: var(--color-text);
+}
+.quantity-stepper__value {
+    min-width: 44px;
+    margin: 0 var(--space-2);
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+    -unity-text-align: middle-center;
+}

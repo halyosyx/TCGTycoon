@@ -1,0 +1,15 @@
+<!-- Kit control: QuantityStepper. Wrap with a [UxmlElement] class in Game.Unity.UI.Controls
+     (Value, Min, Max, ValueChanged event). Disable a button with SetEnabled(false) at Min/Max.
+     Default look uses the kit tokens; in-world sites restyle it under their root class. -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:kit="Game.Unity.UI.Controls" editor-extension-mode="False">
+    <Style src="QuantityStepper.uss" />
+    <kit:QuantityStepper name="quantity-stepper" class="quantity-stepper">
+        <ui:Button name="decrease" text="" class="quantity-stepper__button quantity-stepper__button--decrease">
+            <ui:VisualElement class="icon icon--minus quantity-stepper__icon" />
+        </ui:Button>
+        <ui:Label name="value" text="1" class="quantity-stepper__value font-body-extrabold" />
+        <ui:Button name="increase" text="" class="quantity-stepper__button quantity-stepper__button--increase">
+            <ui:VisualElement class="icon icon--plus quantity-stepper__icon" />
+        </ui:Button>
+    </kit:QuantityStepper>
+</ui:UXML>

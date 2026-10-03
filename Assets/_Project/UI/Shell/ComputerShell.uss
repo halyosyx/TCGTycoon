@@ -1,0 +1,175 @@
+/* Computer shell. Colours are the shell's own (desktop/browser), scoped to .computer-shell. */
+/* Unity's default theme gives every Label a 4px padding and margins; the mockups (HTML) have none.
+   Only the shell's own labels: kit controls placed in the shell (key hints) keep their own spacing. */
+.browser-chrome__tab-title,
+.browser-chrome__address-text,
+.taskbar__time,
+.taskbar__day {
+    margin: 0;
+    padding: 0;
+}
+.computer-shell {
+    --shell-scrim: rgba(20, 21, 23, 0.55);
+    --shell-bezel: #15181C;
+    --shell-chrome: #DDE3EA;
+    --shell-tab: #FFFFFF;
+    --shell-address: #EEF1F5;
+    --shell-ink: #1D2733;
+    --shell-muted: #5B6B7C;
+    --shell-taskbar: #1B2A3A;
+    --shell-taskbar-muted: #B8C7D6;
+
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+.computer-shell__scrim {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--shell-scrim);
+}
+/* 1920x1080 reference: a 1620x930 monitor, centred near the top so key hints fit below. */
+.computer-shell__bezel {
+    position: absolute;
+    left: 150px;
+    top: 30px;
+    width: 1620px;
+    height: 930px;
+    padding: 14px;
+    background-color: var(--shell-bezel);
+    border-radius: 16px;
+}
+.computer-shell__screen {
+    flex-grow: 1;
+    overflow: hidden;
+    border-radius: 6px;
+    flex-direction: column;
+}
+.computer-shell__content {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+.computer-shell__hints {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 22px;
+    align-items: center;
+}
+
+/* Browser chrome */
+.browser-chrome {
+    height: 88px;
+    flex-shrink: 0;
+    background-color: var(--shell-chrome);
+}
+.browser-chrome__tabs {
+    height: 40px;
+    flex-direction: row;
+    align-items: flex-end;
+    padding: 0 12px;
+}
+.browser-chrome__tab {
+    width: 260px;
+    height: 34px;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 12px;
+    background-color: var(--shell-tab);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+.browser-chrome__tab-icon {
+    width: 15px;
+    height: 15px;
+    margin-right: 8px;
+    -unity-background-image-tint-color: #1F7AE0;
+}
+.browser-chrome__tab-title {
+    flex-grow: 1;
+    font-size: 14px;
+    color: var(--shell-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.browser-chrome__tab-close {
+    width: 12px;
+    height: 12px;
+    -unity-background-image-tint-color: var(--shell-muted);
+}
+.browser-chrome__new-tab {
+    width: 14px;
+    height: 14px;
+    margin: 0 0 10px 14px;
+    -unity-background-image-tint-color: var(--shell-muted);
+}
+.browser-chrome__toolbar {
+    height: 48px;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 16px;
+    background-color: var(--shell-tab);
+}
+.browser-chrome__nav-icon {
+    margin-right: 14px;
+    -unity-background-image-tint-color: var(--shell-muted);
+}
+.browser-chrome__address {
+    flex-grow: 1;
+    height: 32px;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 14px;
+    border-radius: 16px;
+    background-color: var(--shell-address);
+}
+.browser-chrome__lock {
+    width: 13px;
+    height: 13px;
+    margin-right: 8px;
+    -unity-background-image-tint-color: var(--shell-muted);
+}
+.browser-chrome__address-text {
+    font-size: 15px;
+    color: var(--shell-ink);
+}
+
+/* Taskbar */
+.taskbar {
+    height: 46px;
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 16px;
+    background-color: var(--shell-taskbar);
+}
+.taskbar__icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 16px;
+}
+.taskbar__icon--large {
+    width: 22px;
+    height: 22px;
+}
+.taskbar__spacer {
+    flex-grow: 1;
+}
+.taskbar__clock {
+    align-items: flex-end;
+}
+.taskbar__time {
+    font-size: 15px;
+    color: rgb(255, 255, 255);
+}
+.taskbar__day {
+    font-size: 12px;
+    color: var(--shell-taskbar-muted);
+}

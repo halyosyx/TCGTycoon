@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Game.Core.Common;
 using Game.Core.Content;
 using Game.Core.Inventory;
@@ -8,6 +9,7 @@ using Game.Unity.DebugTools;
 using Game.Unity.Definitions;
 using Game.Unity.Flow;
 using Game.Unity.UI.Hud;
+using Game.Unity.UI.Store;
 using UnityEditor;
 using UnityEngine;
 
@@ -159,6 +161,18 @@ namespace Game.EditorTools
                 return;
             }
 
+            if (StoreDebugCommands.IsCommand(command, StoreDebugCommands.OpenCommand))
+            {
+                AppendLog($"> {command}\n{OpenStore()}");
+                return;
+            }
+
+            if (UiDebugCommands.Handles(command))
+            {
+                AppendLog($"> {command}\n{RunUiCommand(command)}");
+                return;
+            }
+
             if (StoreDebugCommands.Handles(command))
             {
                 AppendLog($"> {command}\n{RunSessionCommand("Store", session => new StoreDebugCommands(session.Store).Execute(command))}");
@@ -175,7 +189,7 @@ namespace Game.EditorTools
             if (string.Equals(command, "help", StringComparison.OrdinalIgnoreCase))
             {
                 output += "\n\n" + HudDebugCommands.HelpText + "\n\n" + InventoryDebugCommands.HelpText
-                    + "\n\n" + EconomyDebugCommands.HelpText + "\n\n" + StoreDebugCommands.HelpText;
+                    + "\n\n" + EconomyDebugCommands.HelpText + "\n\n" + StoreDebugCommands.HelpText + "\n\n" + UiDebugCommands.HelpText;
             }
 
             AppendLog($"> {command}\n{output}");
@@ -206,6 +220,36 @@ namespace Game.EditorTools
             return bootstrap == null || bootstrap.Session == null
                 ? "No running session in the open scene."
                 : run(bootstrap.Session);
+        }
+
+        private static string OpenStore()
+        {
+            if (!EditorApplication.isPlaying)
+            {
+                return "Store commands need Play Mode.";
+            }
+
+            var store = UnityEngine.Object.FindFirstObjectByType<StoreScreen>();
+            if (store == null)
+            {
+                return "No store screen in the open scene.";
+            }
+
+            return store.Open() ? "Store open." : "The store can't open now (another screen has the player's input, or it's already open).";
+        }
+
+        // Captures go to <project>/Docs/UI/Captures; the Game view (not this window) sets the size.
+        private static string RunUiCommand(string command)
+        {
+            if (!EditorApplication.isPlaying)
+            {
+                return "UI commands need Play Mode.";
+            }
+
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Docs", "UI", "Captures"));
+            Directory.CreateDirectory(folder);
+            Vector2 size = Handles.GetMainGameViewSize();
+            return new UiDebugCommands(folder, path => ScreenCapture.CaptureScreenshot(path), (int)size.x, (int)size.y).Execute(command);
         }
 
         private bool TryStartSession(out string error)

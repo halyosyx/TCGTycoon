@@ -1,0 +1,47 @@
+<!-- Computer shell: monitor bezel + browser frame + desktop taskbar. Reused by every in-game app
+     (Store now, CardTrader later). The app's UXML goes into "content-slot" (content-container).
+     All text here is set from data (tab title, address) or from the day/clock source (taskbar). -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="ComputerShell.uss" />
+    <Style src="/Assets/_Project/UI/Styles/Icons.uss" />
+    <ui:VisualElement name="computer-shell" class="computer-shell">
+        <ui:VisualElement name="room-scrim" class="computer-shell__scrim" />
+        <ui:VisualElement name="bezel" class="computer-shell__bezel">
+            <ui:VisualElement name="screen" class="computer-shell__screen">
+                <ui:VisualElement name="browser-chrome" class="browser-chrome">
+                    <ui:VisualElement class="browser-chrome__tabs">
+                        <ui:VisualElement name="browser-tab" class="browser-chrome__tab">
+                            <ui:VisualElement name="tab-icon" class="icon icon--package browser-chrome__tab-icon" />
+                            <ui:Label name="tab-title" text="VendorSupply · Sealed" class="browser-chrome__tab-title font-body-bold" />
+                            <ui:VisualElement class="icon icon--x browser-chrome__tab-close" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="icon icon--plus browser-chrome__new-tab" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="browser-chrome__toolbar">
+                        <ui:VisualElement class="icon icon--arrow-left browser-chrome__nav-icon" />
+                        <ui:VisualElement class="icon icon--arrow-right browser-chrome__nav-icon" />
+                        <ui:VisualElement class="icon icon--refresh browser-chrome__nav-icon" />
+                        <ui:VisualElement class="browser-chrome__address">
+                            <ui:VisualElement class="icon icon--lock browser-chrome__lock" />
+                            <ui:Label name="address-text" text="vendorsupply.mb/sealed" class="browser-chrome__address-text font-body-semibold" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="content-slot" content-container="content" class="computer-shell__content" />
+                <ui:VisualElement name="taskbar" class="taskbar">
+                    <ui:VisualElement class="icon icon--apps taskbar__icon taskbar__icon--large" />
+                    <ui:VisualElement class="icon icon--search taskbar__icon" />
+                    <ui:VisualElement class="taskbar__spacer" />
+                    <ui:VisualElement class="icon icon--wifi taskbar__icon" />
+                    <ui:VisualElement class="icon icon--speaker taskbar__icon" />
+                    <ui:VisualElement class="taskbar__clock">
+                        <ui:Label name="taskbar-time" text="10:00 PM" class="taskbar__time font-body-extrabold" />
+                        <ui:Label name="taskbar-day" text="Day 7 · Prep Night" class="taskbar__day font-body-bold" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <!-- Put the kit KeyHints control here; its keys change with the app's mode. -->
+        <ui:VisualElement name="key-hints-slot" class="computer-shell__hints" picking-mode="Ignore" />
+    </ui:VisualElement>
+</ui:UXML>

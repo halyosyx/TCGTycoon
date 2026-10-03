@@ -1,0 +1,29 @@
+/* Phosphor icons (bold), white 64px PNGs in Assets/_Project/UI/Icons/Phosphor/.
+   Import settings: Texture Type = Default or Sprite (2D and UI), Alpha Is Transparency on, Mip Maps off.
+   Colour icons with -unity-background-image-tint-color, never by editing the PNG. No default tint here:
+   it would load after the component sheets and override their tints; untinted icons stay white. */
+.icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+.icon--package        { background-image: url("/Assets/_Project/UI/Icons/Phosphor/package.png"); }
+.icon--x              { background-image: url("/Assets/_Project/UI/Icons/Phosphor/x.png"); }
+.icon--plus           { background-image: url("/Assets/_Project/UI/Icons/Phosphor/plus.png"); }
+.icon--minus          { background-image: url("/Assets/_Project/UI/Icons/Phosphor/minus.png"); }
+.icon--arrow-left     { background-image: url("/Assets/_Project/UI/Icons/Phosphor/arrow-left.png"); }
+.icon--arrow-right    { background-image: url("/Assets/_Project/UI/Icons/Phosphor/arrow-right.png"); }
+.icon--arrow-up       { background-image: url("/Assets/_Project/UI/Icons/Phosphor/arrow-up.png"); }
+.icon--arrow-down     { background-image: url("/Assets/_Project/UI/Icons/Phosphor/arrow-down.png"); }
+.icon--refresh        { background-image: url("/Assets/_Project/UI/Icons/Phosphor/arrow-clockwise.png"); }
+.icon--lock           { background-image: url("/Assets/_Project/UI/Icons/Phosphor/lock-simple.png"); }
+.icon--cart           { background-image: url("/Assets/_Project/UI/Icons/Phosphor/shopping-cart.png"); }
+.icon--cart-simple    { background-image: url("/Assets/_Project/UI/Icons/Phosphor/shopping-cart-simple.png"); }
+.icon--search         { background-image: url("/Assets/_Project/UI/Icons/Phosphor/magnifying-glass.png"); }
+.icon--caret-down     { background-image: url("/Assets/_Project/UI/Icons/Phosphor/caret-down.png"); }
+.icon--trash          { background-image: url("/Assets/_Project/UI/Icons/Phosphor/trash.png"); }
+.icon--apps           { background-image: url("/Assets/_Project/UI/Icons/Phosphor/squares-four.png"); }
+.icon--wifi           { background-image: url("/Assets/_Project/UI/Icons/Phosphor/wifi-high.png"); }
+.icon--speaker        { background-image: url("/Assets/_Project/UI/Icons/Phosphor/speaker-high.png"); }
+.icon--check-circle   { background-image: url("/Assets/_Project/UI/Icons/Phosphor/check-circle.png"); }

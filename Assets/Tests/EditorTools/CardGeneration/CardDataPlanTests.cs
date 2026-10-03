@@ -47,7 +47,7 @@ namespace Game.EditorTools.Tests.CardGeneration
         public void Build_ScaleThatLeavesFractionalCents_Fails()
         {
             List<SetManifestEntry> sets = ManifestFixtures.Sets();
-            sets[1] = new SetManifestEntry(ManifestFixtures.OutOfPrintSetId, "B", "B", "TB", SetLifecycle.OutOfPrint, 150, "TestB.csv", 3);
+            sets[1] = new SetManifestEntry(ManifestFixtures.OutOfPrintSetId, "B", "B", "TB", SetLifecycle.OutOfPrint, 150, "TestB.csv", ManifestFixtures.OutOfPrintColour, 3);
 
             CardDataPlan plan = CardDataPlan.Build(sets, ManifestFixtures.CardsBySet(), ManifestFixtures.Prices());
 
@@ -104,7 +104,7 @@ namespace Game.EditorTools.Tests.CardGeneration
         {
             Dictionary<string, IReadOnlyList<CardManifestEntry>> cards = ManifestFixtures.CardsBySet();
             List<SetManifestEntry> sets = ManifestFixtures.Sets();
-            sets[1] = new SetManifestEntry(ManifestFixtures.OutOfPrintSetId, "B", "B", "TA", SetLifecycle.OutOfPrint, 180, "TestB.csv", 3);
+            sets[1] = new SetManifestEntry(ManifestFixtures.OutOfPrintSetId, "B", "B", "TA", SetLifecycle.OutOfPrint, 180, "TestB.csv", ManifestFixtures.OutOfPrintColour, 3);
             cards[ManifestFixtures.OutOfPrintSetId] = ManifestFixtures.Cards("TA", "B ");
 
             CardDataPlan plan = CardDataPlan.Build(sets, cards, ManifestFixtures.Prices());
@@ -141,7 +141,7 @@ namespace Game.EditorTools.Tests.CardGeneration
         public void Build_DuplicateSetId_Fails()
         {
             List<SetManifestEntry> sets = ManifestFixtures.Sets();
-            sets[1] = new SetManifestEntry(ManifestFixtures.InPrintSetId, "B", "B", "TB", SetLifecycle.OutOfPrint, 180, "TestB.csv", 3);
+            sets[1] = new SetManifestEntry(ManifestFixtures.InPrintSetId, "B", "B", "TB", SetLifecycle.OutOfPrint, 180, "TestB.csv", ManifestFixtures.OutOfPrintColour, 3);
 
             CardDataPlan plan = CardDataPlan.Build(sets, ManifestFixtures.CardsBySet(), ManifestFixtures.Prices());
 

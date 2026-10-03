@@ -378,6 +378,10 @@ namespace Game.EditorTools.CardGeneration
                 serialized.FindProperty(CardSetDefinition.IdPrefixField).stringValue = entry.IdPrefix;
                 serialized.FindProperty(CardSetDefinition.LifecycleField).intValue = (int)entry.Lifecycle;
                 serialized.FindProperty(CardSetDefinition.PriceScalePercentField).intValue = entry.PriceScalePercent;
+                if (ColorUtility.TryParseHtmlString(entry.Colour, out Color colour))
+                {
+                    serialized.FindProperty(CardSetDefinition.ColourField).colorValue = colour;
+                }
                 SerializedProperty cardList = serialized.FindProperty(CardSetDefinition.CardsField);
                 cardList.arraySize = planned.Cards.Count;
                 for (int index = 0; index < planned.Cards.Count; index++)

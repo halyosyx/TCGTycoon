@@ -221,6 +221,24 @@
     margin-left: var(--space-6);
 }
 
+/* Several keys for one label (e.g. the four arrows): every key after the first carries the spacing. */
+.key-hints__key--spaced {
+    margin-left: var(--space-1);
+}
+
+/* Keycap whose glyph is an Icons.uss icon instead of text. */
+.keycap--icon {
+    justify-content: center;
+    align-items: center;
+}
+
+/* Two classes, so it beats Icons.uss's white .icon tint whatever the sheet order. */
+.keycap--icon .keycap__icon {
+    width: var(--size-glyph-sm);
+    height: var(--size-glyph-sm);
+    -unity-background-image-tint-color: var(--color-text);
+}
+
 .key-hints__label {
     margin-left: var(--space-2);
     margin-top: 0;

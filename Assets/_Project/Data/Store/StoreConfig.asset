@@ -28,22 +28,22 @@ MonoBehaviour:
     _displayNameOverride: 
     _thumbnail: {fileID: 0}
   - _product: {fileID: 11400000, guid: 6ec7d3b18e07363409178889f57b932c, type: 2}
-    _availability: 1
+    _availability: 2
     _stockPerNight: -1
     _displayNameOverride: 
     _thumbnail: {fileID: 0}
   - _product: {fileID: 11400000, guid: 682b866e002ac25458448d7ed67cf2dc, type: 2}
-    _availability: 1
+    _availability: 2
     _stockPerNight: -1
     _displayNameOverride: 
     _thumbnail: {fileID: 0}
   - _product: {fileID: 11400000, guid: 0bd15f354922cf54292eb2af0d3a5ce8, type: 2}
-    _availability: 1
+    _availability: 2
     _stockPerNight: -1
     _displayNameOverride: 
     _thumbnail: {fileID: 0}
   - _product: {fileID: 11400000, guid: cb2ac58b44a073648b9aa54190ab10cd, type: 2}
-    _availability: 1
+    _availability: 2
     _stockPerNight: -1
     _displayNameOverride: 
     _thumbnail: {fileID: 0}
@@ -75,3 +75,14 @@ MonoBehaviour:
     _orderPlaced: Order placed
     _orderPlacedNote: They're on your table, ready to open.
     _done: Done
+    _sortPrice: Price
+    _sortName: Name
+    _subtitleFormat: "{0} \xB7 {1}"
+    _cartLineFormat: "{0} \u2014 {1}"
+    _placedLineFormat: "{0} \xD7 {1} \u2014 {2}"
+    _hintMove: Move
+    _hintLeave: Leave computer
+    _hintLine: Line
+    _hintQuantity: Quantity
+    _hintRemove: Remove
+    _hintCloseCart: Close cart
