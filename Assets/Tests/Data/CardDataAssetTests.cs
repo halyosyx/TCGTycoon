@@ -9,8 +9,8 @@ namespace Game.Data.Tests
 {
     /// <summary>
     /// Checks the real generated card data against GDD v1.7 / Docs/Systems/CARD_DATA_AND_SETS.md: both
-    /// sets present with 40/26/10/4 cards, ids unique across sets, out-of-print values exactly 1.8x the
-    /// in-print ones, the default pack openable from either set's tiers, the tier price table's values,
+    /// sets present with 40/26/10/4 cards, ids unique across sets, out-of-print values equal to the
+    /// in-print ones (both packs 500 cents), the default pack openable from either set's tiers, the tier price table's values,
     /// and no content asset still holding a tier removed with the seven-tier ladder.
     /// </summary>
     public sealed class CardDataAssetTests
@@ -58,18 +58,20 @@ namespace Game.Data.Tests
             Assert.That(ids.Count, Is.EqualTo(160));
         }
 
+        // Both packs cost 500 cents, so Origins card values equal Champions' (price scale 100%) to keep
+        // Rip EV in the 80–95% band; out of print shows in the market trend (F4), not the starting value.
         [Test]
-        public void OutOfPrintValues_AreInPrintValuesTimesOnePointEightExactly()
+        public void OutOfPrintValues_EqualInPrintValues()
         {
             Dictionary<RarityTier, long> inPrint = ValueByTier(LoadSet(InPrintSetPath));
             Dictionary<RarityTier, long> outOfPrint = ValueByTier(LoadSet(OutOfPrintSetPath));
 
             foreach (RarityTier tier in RarityTiers.All)
             {
-                Assert.That(outOfPrint[tier] * 10, Is.EqualTo(inPrint[tier] * 18), tier.ToString());
+                Assert.That(outOfPrint[tier], Is.EqualTo(inPrint[tier]), tier.ToString());
             }
 
-            Assert.That(outOfPrint[RarityTier.SpecialFullArtHolo], Is.EqualTo(12600));
+            Assert.That(outOfPrint[RarityTier.SpecialFullArtHolo], Is.EqualTo(7000));
         }
 
         [TestCase(InPrintSetPath)]

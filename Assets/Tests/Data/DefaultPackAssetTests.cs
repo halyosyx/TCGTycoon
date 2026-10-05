@@ -11,11 +11,11 @@ namespace Game.Data.Tests
 {
     /// <summary>
     /// Checks the real pack assets, not code copies: the in-print default (500 cents, Champions) and
-    /// the out-of-print pack (900 cents, Origins), both 7 slots on the same table. Fails if a pack stops
-    /// validating, or if tuning pushes Rip EV outside the GDD's 80–95% band.
+    /// the out-of-print pack (500 cents too, Origins), both 7 slots on the same table. Fails if a pack
+    /// stops validating, or if tuning pushes Rip EV outside the GDD's 80–95% band.
     /// </summary>
     [TestFixture(DefaultPackPath, 500L)]
-    [TestFixture(OutOfPrintPackPath, 900L)]
+    [TestFixture(OutOfPrintPackPath, 500L)]
     public sealed class DefaultPackAssetTests
     {
         private const string DefaultPackPath = "Assets/_Project/Data/Products/SetA_BoosterPack.asset";

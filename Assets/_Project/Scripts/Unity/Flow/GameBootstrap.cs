@@ -23,7 +23,7 @@ namespace Game.Unity.Flow
     public sealed class GameBootstrap : MonoBehaviour
     {
         [Header("Content")]
-        [SerializeField, Tooltip("Pack product opened by the pack prop.")]
+        [SerializeField, Tooltip("Default pack: its card set is the session's pool (inventory.sample grants it) and gets the first binder tab. Packs the player opens are bought from the store.")]
         private PackConfigDefinition _pack;
 
         [SerializeField, Tooltip("Tier colours and names shared by every card view.")]
@@ -48,9 +48,6 @@ namespace Game.Unity.Flow
         [Header("Scene")]
         [SerializeField]
         private PlayerController _player;
-
-        [SerializeField]
-        private PackProp _packProp;
 
         [SerializeField]
         private PackOpeningScreen _packOpeningScreen;
@@ -112,13 +109,16 @@ namespace Game.Unity.Flow
                 return;
             }
 
-            if (_player == null || _packProp == null || _packOpeningScreen == null)
+            // The stacks are the only way to open a pack, so they're required with the screen they feed.
+            if (_player == null || _packOpeningScreen == null || _packStacks == null)
             {
-                Debug.LogError($"{name}: {nameof(GameBootstrap)} is missing a scene reference (player, pack prop or pack opening screen).", this);
+                Debug.LogError($"{name}: {nameof(GameBootstrap)} is missing a scene reference (player, pack opening screen or pack stacks).", this);
                 return;
             }
 
-            _packOpeningScreen.Initialize(Session, _palette, _player, _packProp);
+            _packOpeningScreen.Initialize(Session, _palette, _player);
+            _packStacks.Initialize(Session.Inventory, _store);
+            _packStacks.PackTaken += _packOpeningScreen.OpenSealedPack;
 
             // The HUD is optional so a scene without one still plays; pack opening never depends on it.
             if (_hud != null)
@@ -138,16 +138,6 @@ namespace Game.Unity.Flow
             else
             {
                 Debug.LogWarning($"{name}: no store screen assigned, so the computer can't be opened.", this);
-            }
-
-            if (_packStacks != null)
-            {
-                _packStacks.Initialize(Session.Inventory, _store);
-                _packStacks.PackTaken += _packOpeningScreen.OpenSealedPack;
-            }
-            else
-            {
-                Debug.LogWarning($"{name}: no pack stacks assigned, so bought packs don't appear on the table.", this);
             }
         }
 

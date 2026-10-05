@@ -40,7 +40,7 @@ namespace Game.EditorTools.CardGeneration
 
         public SetLifecycle Lifecycle { get; }
 
-        /// <summary>Card value = tier base price x this / 100, exactly (100 in print, 180 out of print).</summary>
+        /// <summary>Card value = tier base price x this / 100, exactly (100 for both sets today; 180 was the old out-of-print scale).</summary>
         public int PriceScalePercent { get; }
 
         /// <summary>File name of the set's card manifest, next to Sets.csv, e.g. "Champions.csv".</summary>

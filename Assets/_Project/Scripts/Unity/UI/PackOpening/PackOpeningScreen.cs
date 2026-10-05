@@ -4,7 +4,6 @@ using Game.Core.Packs;
 using Game.Core.Session;
 using Game.Unity.Definitions;
 using Game.Unity.Player;
-using Game.Unity.Props;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.UIElements;
@@ -12,7 +11,8 @@ using UnityEngine.UIElements;
 namespace Game.Unity.UI.PackOpening
 {
     /// <summary>
-    /// Pack opening screen: asks Core to open a pack when the pack prop is picked up, then presents
+    /// Pack opening screen: asks Core to open a bought pack when the player takes one from a stack on
+    /// the home table (<see cref="OpenSealedPack"/>), then presents
     /// the result as a face-down stack revealed one card at a time and finally a row, where any card
     /// can be lifted into a large showcase for inspection. Owns input, animation and layout only. The
     /// cards are in the inventory before anything is shown, so closing the screen at any point loses
@@ -74,13 +74,7 @@ namespace Game.Unity.UI.PackOpening
         private GameSession _session;
         private RarityPaletteDefinition _palette;
         private PlayerController _player;
-        private PackProp _packProp;
         private bool _isInitialized;
-
-        // True while the open pack came from the floor prop (which then reappears on Store); false for
-        // a bought pack taken from a stack, whose stack updates itself from the inventory.
-        private bool _isFloorPackOpen;
-
         private bool _isRowPending;
         private float _rowCountdown;
         private bool _isPointerDown;
@@ -117,7 +111,6 @@ namespace Game.Unity.UI.PackOpening
                 defaultCapacity: PrewarmedCardViews,
                 maxSize: MaxPooledCardViews);
             _isInitialized = false;
-            _isFloorPackOpen = false;
             _isRowPending = false;
             _isPointerDown = false;
             _hoveredView = null;
@@ -126,15 +119,14 @@ namespace Game.Unity.UI.PackOpening
         }
 
         /// <summary>Wires the screen to the session and the scene. Called once by <c>GameBootstrap</c>.</summary>
-        public void Initialize(GameSession session, RarityPaletteDefinition palette, PlayerController player, PackProp packProp)
+        public void Initialize(GameSession session, RarityPaletteDefinition palette, PlayerController player)
         {
             _session = session;
             _palette = palette;
             _player = player;
-            _packProp = packProp;
-            if (_session == null || _palette == null || _player == null || _packProp == null || _cardTemplate == null)
+            if (_session == null || _palette == null || _player == null || _cardTemplate == null)
             {
-                Debug.LogError($"{name}: {nameof(PackOpeningScreen)} is missing its session, palette, player, pack prop or card template.", this);
+                Debug.LogError($"{name}: {nameof(PackOpeningScreen)} is missing its session, palette, player or card template.", this);
                 return;
             }
 
@@ -144,7 +136,6 @@ namespace Game.Unity.UI.PackOpening
             }
 
             Prewarm();
-            _packProp.PickedUp += OnPackPickedUp;
             _controls.Screens.Enable();
             SetVisible(false);
             _isInitialized = true;
@@ -152,11 +143,6 @@ namespace Game.Unity.UI.PackOpening
 
         private void OnDestroy()
         {
-            if (_packProp != null)
-            {
-                _packProp.PickedUp -= OnPackPickedUp;
-            }
-
             if (_root != null)
             {
                 _root.UnregisterCallback<PointerDownEvent>(OnPointerDown);
@@ -220,27 +206,10 @@ namespace Game.Unity.UI.PackOpening
         }
 
         /// <summary>
-        /// Opens a pack: Core rolls it and adds the cards to the inventory first, then the screen shows
-        /// them. Public so tests and debug tools can drive the same path as a click on the prop.
-        /// </summary>
-        public void OpenPack()
-        {
-            if (!CanOpen())
-            {
-                return;
-            }
-
-            // From this line on the cards are owned; everything below is presentation.
-            OpenedPack pack = _session.OpenPack();
-            _isFloorPackOpen = true;
-            _packProp.Hide();
-            Reveal(pack);
-        }
-
-        /// <summary>
-        /// Opens one owned sealed pack of <paramref name="productId"/> (a stack on the home table): the pack
-        /// leaves the inventory and its cards arrive at the price paid, before the reveal, exactly as
-        /// <see cref="OpenPack"/> does for the floor prop. Ignored when none is owned.
+        /// Opens one owned sealed pack of <paramref name="productId"/> (taken from a stack on the home
+        /// table). Core removes the pack and adds its cards at the price paid first, then the screen shows
+        /// them, so the reveal is presentation only. Ignored when none is owned. Public so tests and debug
+        /// tools can drive the same path as a click on a stack.
         /// </summary>
         public void OpenSealedPack(string productId)
         {
@@ -249,8 +218,8 @@ namespace Game.Unity.UI.PackOpening
                 return;
             }
 
+            // From this line on the cards are owned; everything below is presentation.
             OpenedPack pack = _session.OpenSealedPack(productId);
-            _isFloorPackOpen = false;
             Reveal(pack);
         }
 
@@ -352,16 +321,8 @@ namespace Game.Unity.UI.PackOpening
 
             _cardViews.Clear();
             SetVisible(false);
-            if (_isFloorPackOpen)
-            {
-                _packProp.Show();
-            }
-
-            _isFloorPackOpen = false;
             _player.SetGameplayInput(true);
         }
-
-        private void OnPackPickedUp(PackProp prop) => OpenPack();
 
         private void BuildStack(OpenedPack pack)
         {

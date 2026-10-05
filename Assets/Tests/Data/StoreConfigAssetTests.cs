@@ -8,7 +8,7 @@ namespace Game.Data.Tests
 {
     /// <summary>
     /// Checks the real store assets (STORE_UI_REQUIREMENTS STR-02, STR-03): the default store config
-    /// converts, the Champions pack costs $5.00 and the Origins pack $9.00 (each pack's market price is
+    /// converts, both booster packs cost $5.00 (each pack's market price is
     /// its pack configuration's), packs are on sale, and bundles and boxes stay listed but Hidden (the
     /// store shows booster packs only for now; flip them to ComingSoon or Available in the Inspector).
     /// </summary>
@@ -59,7 +59,7 @@ namespace Game.Data.Tests
         }
 
         [TestCase(ChampionsPackId, 500L)]
-        [TestCase(OriginsPackId, 900L)]
+        [TestCase(OriginsPackId, 500L)]
         public void Catalog_BoosterPack_StorePriceAndMarketMatchItsPack(string listingId, long expectedCents)
         {
             var store = new StoreService(_catalog, new Game.Core.Economy.EconomyService(0), new Game.Core.Inventory.InventoryService());

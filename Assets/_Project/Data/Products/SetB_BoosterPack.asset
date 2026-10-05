@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Unity::Game.Unity.Definitions.PackConfigDefinition
   _id: SetB_BoosterPack
   _displayName: Origins Booster Pack
-  _priceCents: 900
+  _priceCents: 500
   _cardSet: {fileID: 11400000, guid: cc476e7a447e7204ab88570b6b803154, type: 2}
   _slots:
   - _entries:

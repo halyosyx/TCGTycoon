@@ -4,9 +4,10 @@ using Game.Core.Store;
 namespace Game.Core.Tests.TestUtilities
 {
     /// <summary>
-    /// Builds store products and catalogs in code, mirroring the default store asset: the Champions
-    /// pack (Set A, 500 cents) and the Origins pack (Set B, 900 cents) at 100% supplier, and a
-    /// coming-soon bundle. Game.Data.Tests checks the real assets.
+    /// Builds store products and catalogs in code: a Champions pack (Set A, 500 cents, like the real
+    /// asset), an Origins pack at 900 cents (the real asset is 500; a different price here makes
+    /// multi-line orders exercise two unit prices), both at 100% supplier, and a coming-soon bundle.
+    /// Game.Data.Tests checks the real assets.
     /// </summary>
     public static class StoreFixtures
     {

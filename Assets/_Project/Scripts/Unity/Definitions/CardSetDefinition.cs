@@ -32,7 +32,7 @@ namespace Game.Unity.Definitions
         [SerializeField, Tooltip("In print (cheap, always in stock) or out of print (scarce, appreciating).")]
         private SetLifecycle _lifecycle;
 
-        [SerializeField, Min(0), Tooltip("Card values are the tier base price times this percentage (100 in print, 180 out of print).")]
+        [SerializeField, Min(0), Tooltip("Card values are the tier base price times this percentage (100 for both sets today).")]
         private int _priceScalePercent = 100;
 
         [SerializeField, Tooltip("The set's colour: store thumbnails and pack stacks are tinted with it.")]
