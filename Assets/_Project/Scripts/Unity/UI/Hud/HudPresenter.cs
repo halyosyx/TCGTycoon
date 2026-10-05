@@ -1,5 +1,6 @@
 using Game.Core.Economy;
 using Game.Core.Session;
+using Game.Unity.Hands;
 using Game.Unity.Interaction;
 using Game.Unity.Player;
 using Game.Unity.UI.Controls;
@@ -17,10 +18,16 @@ namespace Game.Unity.UI.Hud
     [RequireComponent(typeof(UIDocument))]
     public sealed class HudPresenter : MonoBehaviour, IHudSink
     {
-        [SerializeField, Tooltip("Key shown in the interaction prompt. Interacting is a left click (GDD: click to interact).")]
-        private string _interactKey = "LMB";
+        [SerializeField, Tooltip("Key shown in the interaction prompt (Interact, E).")]
+        private string _interactKey = "E";
 
-        [SerializeField, Tooltip("Bottom-right key hints as Key:Label pairs separated by semicolons.")]
+        [SerializeField, Tooltip("Key shown for using what is held (Use, LMB).")]
+        private string _useKey = "LMB";
+
+        [SerializeField, Tooltip("Key shown for putting down what is held (Drop, F).")]
+        private string _dropKey = "F";
+
+        [SerializeField, Tooltip("Bottom-right key hints as Key:Label pairs separated by semicolons. While something is held, its own Use and Put down hints come first.")]
         private string _keyHints = "I:Inventory";
 
         // TODO(F2 Booth setup + selling): the day cycle (Prep Night -> Show Day) and the show clock
@@ -51,6 +58,7 @@ namespace Game.Unity.UI.Hud
         private KeyHints _hints;
         private PlayerController _player;
         private PlayerInteractor _interactor;
+        private PlayerHands _hands;
         private EconomyService _economy;
         private bool _isInitialized;
 
@@ -64,6 +72,7 @@ namespace Game.Unity.UI.Hud
             _isInitialized = false;
             _player = null;
             _interactor = null;
+            _hands = null;
             _economy = null;
         }
 
@@ -78,12 +87,18 @@ namespace Game.Unity.UI.Hud
 
             _player = player;
             _interactor = interactor;
+            _hands = player.Hands;
             _economy = economy;
             _dayClock.SetDay(_placeholderDay, DayKind.PrepNight);
             _cash.SetAmount(_economy.BalanceCents);
-            _hints.Hints = _keyHints;
+            OnHeldChanged(_hands == null ? null : _hands.Held);
 
             _economy.BalanceChanged += OnBalanceChanged;
+            if (_hands != null)
+            {
+                _hands.HeldChanged += OnHeldChanged;
+            }
+
             _player.GameplayInputChanged += OnGameplayInputChanged;
             if (_interactor != null)
             {
@@ -114,6 +129,11 @@ namespace Game.Unity.UI.Hud
             if (_economy != null)
             {
                 _economy.BalanceChanged -= OnBalanceChanged;
+            }
+
+            if (_hands != null)
+            {
+                _hands.HeldChanged -= OnHeldChanged;
             }
         }
 
@@ -169,6 +189,20 @@ namespace Game.Unity.UI.Hud
                 default:
                     return _debugLabel;
             }
+        }
+
+        // The held item names its own verbs ("LMB Open · F Put down", "F Return to binder"), ahead of
+        // the standing hints. Runs only when the hand changes, not per frame.
+        private void OnHeldChanged(IHoldable held)
+        {
+            if (held == null)
+            {
+                _hints.Hints = _keyHints;
+                return;
+            }
+
+            string use = held.CanUse ? _useKey + ":" + held.UseVerb + ";" : string.Empty;
+            _hints.Hints = use + _dropKey + ":" + held.DropVerb + ";" + _keyHints;
         }
 
         private void OnHoveredChanged(IInteractable target)

@@ -60,7 +60,9 @@ namespace Game.Core.Session
         public StoreService Store { get; }
 
         /// <summary>
-        /// Opens one pack and adds its cards to the inventory at the pack's price, then returns them.
+        /// Opens one free pack of the default configuration and adds its cards to the inventory at the
+        /// pack's price, then returns them. Tests and tools only: nothing in the game calls it since the
+        /// floor pack was removed; players open packs they bought (<see cref="OpenSealedPack"/>).
         /// The cards are owned before the caller sees them, so a reveal is presentation only: closing
         /// or failing it can't lose cards.
         /// </summary>
@@ -72,25 +74,26 @@ namespace Game.Core.Session
         }
 
         /// <summary>
-        /// Opens one owned sealed pack of <paramref name="productId"/>: in one inventory change the pack
-        /// leaves and its cards arrive, carrying exactly what that pack was paid. As with
-        /// <see cref="OpenPack"/>, the cards are owned before the caller sees them.
+        /// Opens one owned sealed pack of <paramref name="productId"/> from <paramref name="from"/> (the
+        /// game opens the pack in the player's hand): in one inventory change the pack leaves and its
+        /// cards arrive in the binder, carrying exactly what that pack was paid. The cards are owned
+        /// before the caller sees them.
         /// </summary>
-        /// <exception cref="InvalidOperationException">The product isn't a booster pack the store sells, or none is owned.</exception>
-        public OpenedPack OpenSealedPack(string productId)
+        /// <exception cref="InvalidOperationException">The product isn't a booster pack the store sells, or none is there.</exception>
+        public OpenedPack OpenSealedPack(string productId, ItemLocation from = ItemLocation.Binder)
         {
             if (productId == null || !_productOpeners.TryGetValue(productId, out PackOpener opener))
             {
                 throw new InvalidOperationException($"'{productId}' isn't a booster pack the store sells.");
             }
 
-            if (Inventory.CountOfSealed(productId) == 0)
+            if (Inventory.CountOfSealed(productId, from) == 0)
             {
-                throw new InvalidOperationException($"No sealed '{productId}' is owned.");
+                throw new InvalidOperationException($"No sealed '{productId}' in {from}.");
             }
 
             OpenedPack opened = opener.Open();
-            Inventory.OpenSealed(productId, opened);
+            Inventory.OpenSealed(productId, opened, from);
             return opened;
         }
     }

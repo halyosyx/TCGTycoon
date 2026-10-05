@@ -1,12 +1,15 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Unity.Interaction
 {
     /// <summary>
     /// Finds the <see cref="IInteractable"/> under the centre of the view with one raycast per frame
-    /// and tracks hover. Knows nothing about input devices: <c>PlayerController</c> decides when to
-    /// update and when a click interacts.
+    /// and tracks hover. The ray stops at the first collider on an occluder layer (walls, the table), so
+    /// nothing is reachable through them, and the hit counts only when that collider is on an
+    /// interactable layer. Knows nothing about input devices: <c>PlayerController</c> decides when to
+    /// update and when Interact fires; it is the only raycast path for world interaction.
     /// </summary>
     public sealed class PlayerInteractor : MonoBehaviour
     {
@@ -16,8 +19,11 @@ namespace Game.Unity.Interaction
         [SerializeField, Min(0f), Tooltip("How far away, in metres, the player can reach.")]
         private float _maxDistance = 2.5f;
 
-        [SerializeField, Tooltip("Layers that can block or receive the ray.")]
-        private LayerMask _layers = ~0;
+        [SerializeField, FormerlySerializedAs("_layers"), Tooltip("Layers that stop the ray: world geometry plus the interactable layer.")]
+        private LayerMask _occluders = ~0;
+
+        [SerializeField, Tooltip("Layers whose colliders can be interacted with (the Interactable layer).")]
+        private LayerMask _interactable;
 
         private IInteractable _hovered;
         private Collider _lastHitCollider;
@@ -46,7 +52,7 @@ namespace Game.Unity.Interaction
         private void OnDisable() => ClearHover();
 
         /// <summary>Re-aims and updates hover. Call once per frame while the player can interact.</summary>
-        public void UpdateHover()
+        public void UpdateHover(InteractionContext context)
         {
             if (!enabled)
             {
@@ -54,7 +60,7 @@ namespace Game.Unity.Interaction
             }
 
             IInteractable target = FindTarget();
-            if (target != null && !target.CanInteract)
+            if (target != null && !target.CanInteract(context))
             {
                 target = null;
             }
@@ -63,16 +69,16 @@ namespace Game.Unity.Interaction
         }
 
         /// <summary>Interacts with the hovered object. Returns false when nothing usable is aimed at.</summary>
-        public bool TryInteract()
+        public bool TryInteract(InteractionContext context)
         {
-            if (_hovered == null || !_hovered.CanInteract)
+            if (!IsAlive(_hovered) || !_hovered.CanInteract(context))
             {
                 return false;
             }
 
             IInteractable target = _hovered;
             ClearHover();
-            target.Interact();
+            target.Interact(context);
             return true;
         }
 
@@ -81,7 +87,8 @@ namespace Game.Unity.Interaction
         private IInteractable FindTarget()
         {
             var ray = new Ray(_viewTransform.position, _viewTransform.forward);
-            if (!Physics.Raycast(ray, out RaycastHit hit, _maxDistance, _layers, QueryTriggerInteraction.Ignore))
+            if (!Physics.Raycast(ray, out RaycastHit hit, _maxDistance, _occluders | _interactable, QueryTriggerInteraction.Ignore)
+                || (_interactable.value & (1 << hit.collider.gameObject.layer)) == 0)
             {
                 return null;
             }

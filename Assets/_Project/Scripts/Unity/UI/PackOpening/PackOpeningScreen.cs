@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Core.Content;
+using Game.Core.Inventory;
 using Game.Core.Packs;
 using Game.Core.Session;
 using Game.Unity.Definitions;
@@ -11,8 +12,8 @@ using UnityEngine.UIElements;
 namespace Game.Unity.UI.PackOpening
 {
     /// <summary>
-    /// Pack opening screen: asks Core to open a bought pack when the player takes one from a stack on
-    /// the home table (<see cref="OpenSealedPack"/>), then presents
+    /// Pack opening screen: asks Core to open the pack in the player's hand when they use it (LMB,
+    /// <see cref="OpenSealedPack"/>), then presents
     /// the result as a face-down stack revealed one card at a time and finally a row, where any card
     /// can be lifted into a large showcase for inspection. Owns input, animation and layout only. The
     /// cards are in the inventory before anything is shown, so closing the screen at any point loses
@@ -206,21 +207,22 @@ namespace Game.Unity.UI.PackOpening
         }
 
         /// <summary>
-        /// Opens one owned sealed pack of <paramref name="productId"/> (taken from a stack on the home
-        /// table). Core removes the pack and adds its cards at the price paid first, then the screen shows
-        /// them, so the reveal is presentation only. Ignored when none is owned. Public so tests and debug
-        /// tools can drive the same path as a click on a stack.
+        /// Opens the pack of <paramref name="productId"/> in the player's hand (Use, LMB). Core takes the
+        /// held pack and adds its cards to the binder at the price paid first, then the screen shows them,
+        /// so the reveal is presentation only. Returns false (and does nothing) when no such pack is held
+        /// or another screen has the input. Public so tests and debug tools can drive the same path.
         /// </summary>
-        public void OpenSealedPack(string productId)
+        public bool OpenSealedPack(string productId)
         {
-            if (!CanOpen() || _session.Inventory.CountOfSealed(productId) == 0)
+            if (!CanOpen() || _session.Inventory.CountOfSealed(productId, ItemLocation.Held) == 0)
             {
-                return;
+                return false;
             }
 
             // From this line on the cards are owned; everything below is presentation.
-            OpenedPack pack = _session.OpenSealedPack(productId);
+            OpenedPack pack = _session.OpenSealedPack(productId, ItemLocation.Held);
             Reveal(pack);
+            return true;
         }
 
         private bool CanOpen() => _isInitialized && _reveal.State == PackRevealState.Idle && _player.IsInGameplay;

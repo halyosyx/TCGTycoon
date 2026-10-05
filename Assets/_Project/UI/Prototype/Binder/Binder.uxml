@@ -31,7 +31,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="binder-tabs" class="binder__tabs" />
             </ui:VisualElement>
-            <kit:KeyHints name="binder-hints" hints="A/D:Page;Q/E:Tab;Enter:Card details;I:Close" class="binder__hints" />
+            <kit:KeyHints name="binder-hints" hints="A/D:Page;Q/E:Tab;Enter:Card details;T:Take;I:Close" class="binder__hints" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

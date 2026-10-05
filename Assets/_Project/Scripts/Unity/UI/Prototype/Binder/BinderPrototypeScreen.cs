@@ -13,10 +13,11 @@ using UnityEngine.UIElements;
 namespace Game.Unity.UI.Prototype
 {
     /// <summary>
-    /// The binder inventory (prototype). Reads only <see cref="IBinderReadModel"/>, found through
-    /// <see cref="GameBootstrap"/>; nothing outside Prototype/ references this class, so deleting the
-    /// folder removes the screen cleanly. I opens and closes (Esc also closes), A/D turn a spread,
-    /// Q/E switch tabs, click selects a pocket and Enter asks for its details. The tabs are built from
+    /// The binder inventory (prototype). Reads only <see cref="IBinderReadModel"/> and acts only through
+    /// <see cref="IBinderActions"/>, both found through <see cref="GameBootstrap"/>; nothing outside
+    /// Prototype/ references this class, so deleting the folder removes the screen cleanly. I opens and
+    /// closes (Esc also closes), A/D turn a spread, Q/E switch tabs, click selects a pocket, Enter asks
+    /// for its details and T takes one copy into the player's hand. The tabs are built from
     /// the read model (one per card set, then Sealed), so a new set needs no change here.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
@@ -42,6 +43,7 @@ namespace Game.Unity.UI.Prototype
         private VisualElement[] _rightRows;
         private KitTab[] _tabs;
         private PlayerControls _controls;
+        private IBinderActions _actions;
         private ObjectPool<BinderPocket> _pocketPool;
         private List<BinderPocket> _visiblePockets;
         private IBinderReadModel _binder;
@@ -85,6 +87,7 @@ namespace Game.Unity.UI.Prototype
         private void Start()
         {
             _binder = _bootstrap == null ? null : _bootstrap.BinderReadModel;
+            _actions = _bootstrap == null ? null : _bootstrap.BinderActions;
             if (_binder == null || _player == null || !BindElements())
             {
                 Debug.LogError($"{name}: {nameof(BinderPrototypeScreen)} needs a GameBootstrap with a binder read model, a player and Binder.uxml.", this);
@@ -152,6 +155,17 @@ namespace Game.Unity.UI.Prototype
             {
                 RequestDetails();
             }
+            else if (actions.BinderTake.WasPressedThisFrame())
+            {
+                TakeSelectedToHand();
+            }
+        }
+
+        /// <summary>Takes one copy of the selected card into the player's hand (T). False when it can't.</summary>
+        public bool TakeSelectedToHand()
+        {
+            BinderEntry entry = SelectedEntry;
+            return entry != null && _actions != null && _actions.TryTakeToHand(entry.ItemId);
         }
 
         /// <summary>Opens the binder. Ignored while another screen (e.g. a pack reveal) has the player's input.</summary>

@@ -129,9 +129,11 @@ namespace Game.Unity.UI
             }
 
             // Stacks don't record their set, so the card lookup supplies it (and the name).
+            // Only what is stored in the binder: held cards, cased cards and set-down packs are elsewhere.
             foreach (InventoryStack stack in _inventory.Stacks)
             {
                 if (stack.Count > 0
+                    && stack.Location == ItemLocation.Binder
                     && _cards.TryGetCard(stack.CardId, out Card card)
                     && _tabIndexBySetId.TryGetValue(card.SetId, out int tabIndex))
                 {
@@ -141,7 +143,7 @@ namespace Game.Unity.UI
 
             foreach (SealedStack stack in _inventory.SealedStacks)
             {
-                if (stack.Count > 0)
+                if (stack.Count > 0 && stack.Location == ItemLocation.Binder)
                 {
                     _entriesByTab[_sealedTabIndex].Add(CreateSealedEntry(stack));
                 }

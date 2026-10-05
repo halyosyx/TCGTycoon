@@ -50,6 +50,20 @@ namespace Game.Unity.Definitions
 
         public StoreStrings Strings => _strings;
 
+        /// <summary>The listed product with this id, or null. Names and colours owned things (stacks, held packs).</summary>
+        public ProductDefinition FindProduct(string productId)
+        {
+            foreach (StoreListing listing in _listings)
+            {
+                if (listing != null && listing.Product != null && string.Equals(listing.Product.Id, productId, System.StringComparison.Ordinal))
+                {
+                    return listing.Product;
+                }
+            }
+
+            return null;
+        }
+
         /// <exception cref="System.InvalidOperationException">A listing has no product, or a booster pack has no pack configuration.</exception>
         /// <exception cref="System.ArgumentException">Two listings share a product id.</exception>
         public StoreCatalog ToCatalog()

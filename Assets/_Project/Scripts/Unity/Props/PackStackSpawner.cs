@@ -4,6 +4,8 @@ using System.Globalization;
 using Game.Core.Inventory;
 using Game.Core.Store;
 using Game.Unity.Definitions;
+using Game.Unity.Hands;
+using Game.Unity.Interaction;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -11,11 +13,12 @@ using UnityEngine.Pool;
 namespace Game.Unity.Props
 {
     /// <summary>
-    /// Keeps one <see cref="PackStackProp"/> per owned sealed booster product on the home table, in
-    /// purchase order, rebuilt from the inventory's Changed event: buying 12 Champions packs shows one
-    /// stack of 12, opening one leaves 11, an empty stack disappears. Clicking a stack raises
-    /// <see cref="PackTaken"/> with its product id; <c>GameBootstrap</c> hands that to pack opening.
-    /// Stacks are pooled. Sits on the table, at the centre of its top surface.
+    /// Keeps one <see cref="PackStackProp"/> per sealed booster product stored at home (Core:
+    /// <see cref="ItemLocation.Binder"/>) on the home table, in purchase order, rebuilt from the
+    /// inventory's Changed event: buying 12 Champions packs shows one stack of 12, taking one leaves 11,
+    /// an empty stack disappears. Taking from a stack (E) moves one pack into the hand (Binder to Held)
+    /// as a <see cref="SealedBoosterPack"/>. Stacks are pooled. Sits on the table, at the centre of its
+    /// top surface.
     /// </summary>
     public sealed class PackStackSpawner : MonoBehaviour
     {
@@ -56,18 +59,16 @@ namespace Game.Unity.Props
         private string _countFormat = "×{0}";
 
         [SerializeField, Tooltip("HUD prompt verb while aiming at a stack.")]
-        private string _promptVerb = "Open";
+        private string _promptVerb = "Take";
 
         [SerializeField, Tooltip("HUD prompt object; {0} = set short name, {1} = product type name.")]
-        private string _promptObjectFormat = "{0} {1}";
+        private string _promptObjectFormat = "{0} pack";
 
         private InventoryService _inventory;
-        private Dictionary<string, ProductDefinition> _boosterProducts;
+        private StoreConfigDefinition _store;
+        private HoldableFactory _holdables;
         private ObjectPool<PackStackProp> _pool;
         private List<PackStackProp> _stacks;
-
-        /// <summary>Raised with the product id when the player clicks a stack.</summary>
-        public event Action<string> PackTaken;
 
         private void Awake()
         {
@@ -78,31 +79,26 @@ namespace Game.Unity.Props
 
             // Private fields survive between Play sessions when scene reload is disabled.
             _inventory = null;
-            _boosterProducts = new Dictionary<string, ProductDefinition>(StringComparer.Ordinal);
+            _store = null;
+            _holdables = null;
             _stacks = new List<PackStackProp>();
             _pool = new ObjectPool<PackStackProp>(CreateStack, stack => stack.gameObject.SetActive(true), stack => stack.gameObject.SetActive(false), defaultCapacity: 4);
         }
 
         /// <summary>Starts following the inventory. Called once by <c>GameBootstrap</c>.</summary>
         /// <param name="store">Names and colours each booster product (its card set's colour).</param>
-        public void Initialize(InventoryService inventory, StoreConfigDefinition store)
+        /// <param name="holdables">Makes the pack object a taken pack becomes in the hand.</param>
+        public void Initialize(InventoryService inventory, StoreConfigDefinition store, HoldableFactory holdables)
         {
-            if (inventory == null || store == null || _packModel == null)
+            if (inventory == null || store == null || holdables == null || _packModel == null)
             {
-                Debug.LogError($"{name}: {nameof(PackStackSpawner)} needs the inventory, the store config and a Pack Model.", this);
+                Debug.LogError($"{name}: {nameof(PackStackSpawner)} needs the inventory, the store config, the holdables and a Pack Model.", this);
                 return;
             }
 
             _inventory = inventory;
-            foreach (StoreListing listing in store.Listings)
-            {
-                ProductDefinition product = listing == null ? null : listing.Product;
-                if (product != null && product.Type == ProductType.BoosterPack && !_boosterProducts.ContainsKey(product.Id))
-                {
-                    _boosterProducts.Add(product.Id, product);
-                }
-            }
-
+            _store = store;
+            _holdables = holdables;
             _inventory.Changed += Refresh;
             Refresh();
         }
@@ -125,7 +121,8 @@ namespace Game.Unity.Props
             _stacks.Clear();
             foreach (SealedStack sealedStack in _inventory.SealedStacks)
             {
-                if (sealedStack.Count <= 0 || !_boosterProducts.TryGetValue(sealedStack.ProductId, out ProductDefinition product))
+                ProductDefinition product = sealedStack.Location == ItemLocation.Binder && sealedStack.Count > 0 ? _store.FindProduct(sealedStack.ProductId) : null;
+                if (product == null || product.Type != ProductType.BoosterPack)
                 {
                     continue;
                 }
@@ -139,11 +136,35 @@ namespace Game.Unity.Props
             }
         }
 
+        // Core first: the pack moves into the hand location, then its object goes into the hand.
+        private void OnTakeRequested(PackStackProp stack, InteractionContext context)
+        {
+            if (!context.Hands.IsEmpty)
+            {
+                return;
+            }
+
+            ItemRef pack = ItemRef.Sealed(stack.ProductId);
+            if (!_inventory.Move(pack, ItemLocation.Binder, ItemLocation.Held).IsSuccess)
+            {
+                return;
+            }
+
+            SealedBoosterPack held = _holdables.GetPack(stack.ProductId);
+            if (!context.Hands.Hold(held))
+            {
+                // Can't happen with an empty hand; undo so Core never says Held without a held object.
+                _holdables.ReleasePack(held);
+                _inventory.Move(pack, ItemLocation.Held, ItemLocation.Binder);
+            }
+        }
+
         // A stack is built once from the pack model and reused: a click box, the layers, the count.
         private PackStackProp CreateStack()
         {
             var root = new GameObject("PackStack");
             root.transform.SetParent(transform, false);
+            root.layer = _holdables.InteractableLayer;
 
             var box = root.AddComponent<BoxCollider>();
             box.size = new Vector3(_footprint.x, _layerHeight, _footprint.y);
@@ -173,10 +194,8 @@ namespace Game.Unity.Props
 
             var stack = root.AddComponent<PackStackProp>();
             stack.Initialize(layers, label, box, _layerHeight, _labelGap);
-            stack.PickedUp += OnStackPickedUp;
+            stack.TakeRequested += OnTakeRequested;
             return stack;
         }
-
-        private void OnStackPickedUp(PackStackProp stack) => PackTaken?.Invoke(stack.ProductId);
     }
 }

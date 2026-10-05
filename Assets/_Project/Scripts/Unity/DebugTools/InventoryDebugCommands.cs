@@ -1,5 +1,7 @@
 using System;
+using System.Text;
 using Game.Core.Content;
+using Game.Core.Inventory;
 using Game.Core.Session;
 using static System.FormattableString;
 
@@ -17,7 +19,8 @@ namespace Game.Unity.DebugTools
         public const string HelpText =
             "Inventory commands (Play Mode, on the scene's session):\n" +
             "  inventory.sample                 grant every card in the pool once, plus extra copies of Commons,\n" +
-            "                                   Uncommons and one hit (fills the set tab past one spread)";
+            "                                   Uncommons and one hit (fills the set tab past one spread)\n" +
+            "  inventory.where                  units in each location (Binder, Held, DisplayCase, Placed)";
 
         // Extra copies so copy badges show on Commons, Uncommons and one hit.
         private const int ExtraCommonCopies = 2;
@@ -45,7 +48,26 @@ namespace Game.Unity.DebugTools
                 return Sample();
             }
 
+            if (parts.Length == 1 && string.Equals(parts[0], "inventory.where", StringComparison.OrdinalIgnoreCase))
+            {
+                return Where();
+            }
+
             return $"Unknown inventory command '{commandLine}'.\n{HelpText}";
+        }
+
+        // One line per location, in enum order, plus the total; units = single cards plus sealed units.
+        private string Where()
+        {
+            InventoryService inventory = _session.Inventory;
+            var output = new StringBuilder();
+            foreach (ItemLocation location in (ItemLocation[])Enum.GetValues(typeof(ItemLocation)))
+            {
+                output.AppendLine(Invariant($"{location}: {inventory.CountIn(location)}"));
+            }
+
+            output.Append(Invariant($"Total: {inventory.TotalItemCount}"));
+            return output.ToString();
         }
 
         private string Sample()

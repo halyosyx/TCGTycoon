@@ -170,6 +170,32 @@ namespace Game.Core.Tests.Session
         }
 
         [Test]
+        public void OpenSealedPack_FromHeld_OpensTheHeldPackAndCardsLandInBinder()
+        {
+            var session = CreateStoreSession();
+            session.Store.SetQuantity(StoreFixtures.ChampionsPackId, 3);
+            session.Store.PlaceOrder();
+            session.Inventory.Move(ItemRef.Sealed(StoreFixtures.ChampionsPackId), ItemLocation.Binder, ItemLocation.Held);
+
+            OpenedPack pack = session.OpenSealedPack(StoreFixtures.ChampionsPackId, ItemLocation.Held);
+
+            Assert.That(session.Inventory.CountOfSealed(StoreFixtures.ChampionsPackId, ItemLocation.Held), Is.EqualTo(0));
+            Assert.That(session.Inventory.CountOfSealed(StoreFixtures.ChampionsPackId, ItemLocation.Binder), Is.EqualTo(2));
+            Assert.That(session.Inventory.CountIn(ItemLocation.Binder), Is.EqualTo(2 + pack.Cards.Count));
+        }
+
+        [Test]
+        public void OpenSealedPack_NoneHeld_Throws()
+        {
+            var session = CreateStoreSession();
+            session.Store.SetQuantity(StoreFixtures.ChampionsPackId, 1);
+            session.Store.PlaceOrder();
+
+            Assert.Throws<InvalidOperationException>(() => session.OpenSealedPack(StoreFixtures.ChampionsPackId, ItemLocation.Held));
+            Assert.That(session.Inventory.CountOfSealed(StoreFixtures.ChampionsPackId), Is.EqualTo(1));
+        }
+
+        [Test]
         public void OpenSealedPack_NoneOwned_ThrowsAndChangesNothing()
         {
             var session = CreateStoreSession();

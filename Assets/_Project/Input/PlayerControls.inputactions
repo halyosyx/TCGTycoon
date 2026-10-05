@@ -37,9 +37,29 @@
                     "priority": 0
                 },
                 {
-                    "name": "Click",
+                    "name": "Use",
                     "type": "Button",
                     "id": "52fd254a-ab93-4e31-8757-8382b7eca609",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "Interact",
+                    "type": "Button",
+                    "id": "694710ff-a9f8-4638-abe0-9c4ab32ce2d8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "Drop",
+                    "type": "Button",
+                    "id": "951776da-6cfa-40b5-90a6-7cbde962d4c8",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -132,7 +152,29 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Click",
+                    "action": "Use",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7af3eb7e-4b34-4c9d-9d5a-287527674317",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "63cafde7-321f-4d93-a949-1366bde42d43",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Drop",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -226,6 +268,16 @@
                     "name": "OpenComputer",
                     "type": "Button",
                     "id": "abcc1496-8acd-44f7-9bac-c2bc05aa2378",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "BinderTake",
+                    "type": "Button",
+                    "id": "352aef31-ca0a-4a1c-bf18-2b4357e926af",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -352,6 +404,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "OpenComputer",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2593ed06-7ae8-4e76-b8a2-409846e79f86",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BinderTake",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

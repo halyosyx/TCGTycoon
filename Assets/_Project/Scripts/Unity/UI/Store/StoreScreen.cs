@@ -253,10 +253,14 @@ namespace Game.Unity.UI.Store
             }
         }
 
-        /// <summary>Opens the computer on the store. Ignored while another screen has the player's input.</summary>
+        /// <summary>
+        /// Opens the computer on the store. Ignored while another screen has the player's input, and
+        /// while the player is holding something (put it down first).
+        /// </summary>
         public bool Open()
         {
-            if (!_isInitialized || _mode != StoreScreenMode.Closed || !_player.IsInGameplay)
+            if (!_isInitialized || _mode != StoreScreenMode.Closed || !_player.IsInGameplay
+                || (_player.Hands != null && !_player.Hands.IsEmpty))
             {
                 return false;
             }

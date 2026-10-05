@@ -125,9 +125,29 @@ namespace Game.Unity.Player
                     ""priority"": 0
                 },
                 {
-                    ""name"": ""Click"",
+                    ""name"": ""Use"",
                     ""type"": ""Button"",
                     ""id"": ""52fd254a-ab93-4e31-8757-8382b7eca609"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""694710ff-a9f8-4638-abe0-9c4ab32ce2d8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Drop"",
+                    ""type"": ""Button"",
+                    ""id"": ""951776da-6cfa-40b5-90a6-7cbde962d4c8"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -220,7 +240,29 @@ namespace Game.Unity.Player
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Click"",
+                    ""action"": ""Use"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7af3eb7e-4b34-4c9d-9d5a-287527674317"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""63cafde7-321f-4d93-a949-1366bde42d43"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Drop"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -314,6 +356,16 @@ namespace Game.Unity.Player
                     ""name"": ""OpenComputer"",
                     ""type"": ""Button"",
                     ""id"": ""abcc1496-8acd-44f7-9bac-c2bc05aa2378"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""BinderTake"",
+                    ""type"": ""Button"",
+                    ""id"": ""352aef31-ca0a-4a1c-bf18-2b4357e926af"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -440,6 +492,17 @@ namespace Game.Unity.Player
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""OpenComputer"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2593ed06-7ae8-4e76-b8a2-409846e79f86"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BinderTake"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -704,7 +767,9 @@ namespace Game.Unity.Player
             m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
             m_Player_Look = m_Player.FindAction("Look", throwIfNotFound: true);
             m_Player_Cancel = m_Player.FindAction("Cancel", throwIfNotFound: true);
-            m_Player_Click = m_Player.FindAction("Click", throwIfNotFound: true);
+            m_Player_Use = m_Player.FindAction("Use", throwIfNotFound: true);
+            m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
+            m_Player_Drop = m_Player.FindAction("Drop", throwIfNotFound: true);
             // Screens
             m_Screens = asset.FindActionMap("Screens", throwIfNotFound: true);
             m_Screens_QuickOpen = m_Screens.FindAction("QuickOpen", throwIfNotFound: true);
@@ -716,6 +781,7 @@ namespace Game.Unity.Player
             m_Screens_BinderNextPage = m_Screens.FindAction("BinderNextPage", throwIfNotFound: true);
             m_Screens_Submit = m_Screens.FindAction("Submit", throwIfNotFound: true);
             m_Screens_OpenComputer = m_Screens.FindAction("OpenComputer", throwIfNotFound: true);
+            m_Screens_BinderTake = m_Screens.FindAction("BinderTake", throwIfNotFound: true);
             // Computer
             m_Computer = asset.FindActionMap("Computer", throwIfNotFound: true);
             m_Computer_MoveUp = m_Computer.FindAction("MoveUp", throwIfNotFound: true);
@@ -813,7 +879,9 @@ namespace Game.Unity.Player
         private readonly InputAction m_Player_Move;
         private readonly InputAction m_Player_Look;
         private readonly InputAction m_Player_Cancel;
-        private readonly InputAction m_Player_Click;
+        private readonly InputAction m_Player_Use;
+        private readonly InputAction m_Player_Interact;
+        private readonly InputAction m_Player_Drop;
         /// <summary>
         /// Provides access to input actions defined in input action map "Player".
         /// </summary>
@@ -838,9 +906,17 @@ namespace Game.Unity.Player
             /// </summary>
             public InputAction @Cancel => m_Wrapper.m_Player_Cancel;
             /// <summary>
-            /// Provides access to the underlying input action "Player/Click".
+            /// Provides access to the underlying input action "Player/Use".
             /// </summary>
-            public InputAction @Click => m_Wrapper.m_Player_Click;
+            public InputAction @Use => m_Wrapper.m_Player_Use;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Interact".
+            /// </summary>
+            public InputAction @Interact => m_Wrapper.m_Player_Interact;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Drop".
+            /// </summary>
+            public InputAction @Drop => m_Wrapper.m_Player_Drop;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -876,9 +952,15 @@ namespace Game.Unity.Player
                 @Cancel.started += instance.OnCancel;
                 @Cancel.performed += instance.OnCancel;
                 @Cancel.canceled += instance.OnCancel;
-                @Click.started += instance.OnClick;
-                @Click.performed += instance.OnClick;
-                @Click.canceled += instance.OnClick;
+                @Use.started += instance.OnUse;
+                @Use.performed += instance.OnUse;
+                @Use.canceled += instance.OnUse;
+                @Interact.started += instance.OnInteract;
+                @Interact.performed += instance.OnInteract;
+                @Interact.canceled += instance.OnInteract;
+                @Drop.started += instance.OnDrop;
+                @Drop.performed += instance.OnDrop;
+                @Drop.canceled += instance.OnDrop;
             }
 
             /// <summary>
@@ -899,9 +981,15 @@ namespace Game.Unity.Player
                 @Cancel.started -= instance.OnCancel;
                 @Cancel.performed -= instance.OnCancel;
                 @Cancel.canceled -= instance.OnCancel;
-                @Click.started -= instance.OnClick;
-                @Click.performed -= instance.OnClick;
-                @Click.canceled -= instance.OnClick;
+                @Use.started -= instance.OnUse;
+                @Use.performed -= instance.OnUse;
+                @Use.canceled -= instance.OnUse;
+                @Interact.started -= instance.OnInteract;
+                @Interact.performed -= instance.OnInteract;
+                @Interact.canceled -= instance.OnInteract;
+                @Drop.started -= instance.OnDrop;
+                @Drop.performed -= instance.OnDrop;
+                @Drop.canceled -= instance.OnDrop;
             }
 
             /// <summary>
@@ -948,6 +1036,7 @@ namespace Game.Unity.Player
         private readonly InputAction m_Screens_BinderNextPage;
         private readonly InputAction m_Screens_Submit;
         private readonly InputAction m_Screens_OpenComputer;
+        private readonly InputAction m_Screens_BinderTake;
         /// <summary>
         /// Provides access to input actions defined in input action map "Screens".
         /// </summary>
@@ -995,6 +1084,10 @@ namespace Game.Unity.Player
             /// Provides access to the underlying input action "Screens/OpenComputer".
             /// </summary>
             public InputAction @OpenComputer => m_Wrapper.m_Screens_OpenComputer;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/BinderTake".
+            /// </summary>
+            public InputAction @BinderTake => m_Wrapper.m_Screens_BinderTake;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1048,6 +1141,9 @@ namespace Game.Unity.Player
                 @OpenComputer.started += instance.OnOpenComputer;
                 @OpenComputer.performed += instance.OnOpenComputer;
                 @OpenComputer.canceled += instance.OnOpenComputer;
+                @BinderTake.started += instance.OnBinderTake;
+                @BinderTake.performed += instance.OnBinderTake;
+                @BinderTake.canceled += instance.OnBinderTake;
             }
 
             /// <summary>
@@ -1086,6 +1182,9 @@ namespace Game.Unity.Player
                 @OpenComputer.started -= instance.OnOpenComputer;
                 @OpenComputer.performed -= instance.OnOpenComputer;
                 @OpenComputer.canceled -= instance.OnOpenComputer;
+                @BinderTake.started -= instance.OnBinderTake;
+                @BinderTake.performed -= instance.OnBinderTake;
+                @BinderTake.canceled -= instance.OnBinderTake;
             }
 
             /// <summary>
@@ -1343,12 +1442,26 @@ namespace Game.Unity.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnCancel(InputAction.CallbackContext context);
             /// <summary>
-            /// Method invoked when associated input action "Click" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// Method invoked when associated input action "Use" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>
             /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-            void OnClick(InputAction.CallbackContext context);
+            void OnUse(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Interact" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnInteract(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Drop" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnDrop(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Screens" which allows adding and removing callbacks.
@@ -1420,6 +1533,13 @@ namespace Game.Unity.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnOpenComputer(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "BinderTake" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnBinderTake(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Computer" which allows adding and removing callbacks.

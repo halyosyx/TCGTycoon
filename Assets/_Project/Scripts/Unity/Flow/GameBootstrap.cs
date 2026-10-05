@@ -4,6 +4,7 @@ using Game.Core.Content;
 using Game.Core.Session;
 using Game.Core.Store;
 using Game.Unity.Definitions;
+using Game.Unity.Hands;
 using Game.Unity.Player;
 using Game.Unity.Props;
 using Game.Unity.UI;
@@ -58,10 +59,15 @@ namespace Game.Unity.Flow
         [SerializeField, Tooltip("The supplier website on the home computer (0 opens it for now).")]
         private StoreScreen _storeScreen;
 
-        [SerializeField, Tooltip("Stacks of bought packs on the home table; taking one opens it.")]
+        [SerializeField, Tooltip("Stacks of bought packs on the home table; E takes one into the hand.")]
         private PackStackSpawner _packStacks;
 
+        [SerializeField, Tooltip("Builds and pools what the player can hold: packs and the card stack.")]
+        private HoldableFactory _holdables;
+
         private InventoryBinderReadModel _binderReadModel;
+        private BinderToHand _binderActions;
+        private CardPool _allCards;
 
         /// <summary>The run's session; null if the content failed to load.</summary>
         public GameSession Session { get; private set; }
@@ -69,11 +75,16 @@ namespace Game.Unity.Flow
         /// <summary>The inventory as binder tabs, for any binder view. Created with the session in Awake.</summary>
         public IBinderReadModel BinderReadModel => _binderReadModel;
 
+        /// <summary>What a binder view may do with an entry (T takes it into the hand); null without hands.</summary>
+        public IBinderActions BinderActions => _binderActions;
+
         private void Awake()
         {
             // Survives between Play sessions when scene reload is disabled.
             Session = null;
             _binderReadModel = null;
+            _binderActions = null;
+            _allCards = null;
 
             if (_pack == null || _pack.CardSet == null || _palette == null || _economy == null || _store == null)
             {
@@ -98,7 +109,12 @@ namespace Game.Unity.Flow
             // TODO(F2 day cycle): the GameStateMachine calls Store.ResetNightlyStock() at the start of
             // each Prep Night. The run starts on one, with the catalog's full stock already in place.
 
+            _allCards = CreateAllCards();
             _binderReadModel = CreateBinderReadModel();
+            if (_player != null && _player.Hands != null && _holdables != null)
+            {
+                _binderActions = new BinderToHand(Session.Inventory, _allCards, _player.Hands, _holdables);
+            }
         }
 
         // Start runs after every Awake, so each view has already checked its own references.
@@ -109,16 +125,17 @@ namespace Game.Unity.Flow
                 return;
             }
 
-            // The stacks are the only way to open a pack, so they're required with the screen they feed.
-            if (_player == null || _packOpeningScreen == null || _packStacks == null)
+            // Packs reach the reveal only through the hand: stacks give a pack to the hand, and using
+            // the held pack opens it. All four are required together.
+            if (_player == null || _player.Hands == null || _packOpeningScreen == null || _packStacks == null || _holdables == null)
             {
-                Debug.LogError($"{name}: {nameof(GameBootstrap)} is missing a scene reference (player, pack opening screen or pack stacks).", this);
+                Debug.LogError($"{name}: {nameof(GameBootstrap)} is missing a scene reference (player with hands, pack opening screen, pack stacks or holdables).", this);
                 return;
             }
 
             _packOpeningScreen.Initialize(Session, _palette, _player);
-            _packStacks.Initialize(Session.Inventory, _store);
-            _packStacks.PackTaken += _packOpeningScreen.OpenSealedPack;
+            _holdables.Initialize(Session.Inventory, _allCards, _palette, _store, _packOpeningScreen.OpenSealedPack);
+            _packStacks.Initialize(Session.Inventory, _store, _holdables);
 
             // The HUD is optional so a scene without one still plays; pack opening never depends on it.
             if (_hud != null)
@@ -169,7 +186,24 @@ namespace Game.Unity.Flow
             return new InventoryBinderReadModel(Session.Inventory, new CardPool(cards), tabs, products);
         }
 
-        // Every product the scene loads contributes its card set: the floor pack's, then each store
+        // Every card the player can own, from every set the loaded products use: names the cards in a
+        // held card stack whatever the binder's tabs are.
+        private CardPool CreateAllCards()
+        {
+            var cards = new List<Card>();
+            var seenIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (CardSetDefinition set in AvailableCardSets())
+            {
+                if (set != null && !string.IsNullOrEmpty(set.Id) && seenIds.Add(set.Id))
+                {
+                    cards.AddRange(set.ToCardPool().Cards);
+                }
+            }
+
+            return new CardPool(cards);
+        }
+
+        // Every product the scene loads contributes its card set: the default pack's, then each store
         // listing's in listing order (Hidden ones too, since owned stock can outlive a listing).
         private IEnumerable<CardSetDefinition> AvailableCardSets()
         {
@@ -186,11 +220,6 @@ namespace Game.Unity.Flow
         // The read model subscribes to the inventory's Changed event; unsubscribe when the scene goes away.
         private void OnDestroy()
         {
-            if (_packStacks != null && _packOpeningScreen != null)
-            {
-                _packStacks.PackTaken -= _packOpeningScreen.OpenSealedPack;
-            }
-
             if (_binderReadModel != null)
             {
                 _binderReadModel.Dispose();

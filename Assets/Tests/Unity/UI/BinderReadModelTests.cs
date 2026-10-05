@@ -179,6 +179,23 @@ namespace Game.Unity.Tests.UI
         }
 
         [Test]
+        public void GetEntries_ItemsOutsideTheBinder_LeaveItsPockets()
+        {
+            Own(s_aHolo1, s_aHolo1, s_aCommon);
+            _inventory.AddSealed("SetA_Pack", 2, 500);
+            _inventory.Move(ItemRef.Card(s_aHolo1.Id, s_aHolo1.Tier), ItemLocation.Binder, ItemLocation.Held);
+            _inventory.Move(ItemRef.Card(s_aCommon.Id, s_aCommon.Tier), ItemLocation.Binder, ItemLocation.DisplayCase);
+            _inventory.Move(ItemRef.Sealed("SetA_Pack"), ItemLocation.Binder, ItemLocation.Placed);
+
+            IReadOnlyList<BinderEntry> cards = _binder.GetEntries(SetATab);
+            IReadOnlyList<BinderEntry> sealedEntries = _binder.GetEntries(SealedTab);
+
+            Assert.That(Ids(cards), Is.EqualTo(new[] { "RC_HFA_01" }));
+            Assert.That(cards[0].Copies, Is.EqualTo(1), "One copy is in the hand.");
+            Assert.That(sealedEntries[0].Copies, Is.EqualTo(1), "One pack is set down in the room.");
+        }
+
+        [Test]
         public void GetEntries_SealedUnknownProduct_ShownByItsId()
         {
             _inventory.AddSealed("Mystery", 1, 100);

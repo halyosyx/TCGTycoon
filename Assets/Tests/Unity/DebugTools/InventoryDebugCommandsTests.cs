@@ -31,6 +31,20 @@ namespace Game.Unity.Tests.DebugTools
         }
 
         [Test]
+        public void Execute_Where_ListsUnitsPerLocation()
+        {
+            GameSession session = CreateSession();
+            new InventoryDebugCommands(session).Execute("inventory.sample");
+            session.Inventory.Move(Game.Core.Inventory.ItemRef.Card("C1", RarityTier.Common), Game.Core.Inventory.ItemLocation.Binder, Game.Core.Inventory.ItemLocation.Held, 2);
+
+            string output = new InventoryDebugCommands(session).Execute("inventory.where");
+
+            Assert.That(output, Does.Contain("Held: 2"));
+            Assert.That(output, Does.Contain("Binder: " + (session.Inventory.TotalItemCount - 2)));
+            Assert.That(output, Does.Contain("DisplayCase: 0"));
+        }
+
+        [Test]
         public void Execute_UnknownCommand_ChangesNothing()
         {
             GameSession session = CreateSession();
