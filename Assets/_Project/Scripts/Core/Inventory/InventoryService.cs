@@ -8,14 +8,18 @@ namespace Game.Core.Inventory
     /// <summary>
     /// The player's owned items, each in one <see cref="ItemLocation"/>, with each stack's cost basis in
     /// cents: singles stacked by (card id, tier, location) and sealed products by (product id,
-    /// location). New items land in <see cref="ItemLocation.Binder"/>; <see cref="Move"/> is the only
-    /// way an item changes place, and it enforces each location's rules and capacity. All changes go
+    /// location). New items land in <see cref="ItemLocation.Binder"/>; <see cref="Move"/> (and its
+    /// whole-stack form <see cref="MoveAllCards"/>) is the only way an item changes place, and it
+    /// enforces each location's rules and capacity. All changes go
     /// through this service; its state is plain data ready for a future save.
     /// </summary>
     public sealed class InventoryService
     {
         private readonly InventoryState _state;
         private readonly LocationCapacities _capacities;
+
+        // Reused by MoveAllCards so placing a stack allocates nothing.
+        private readonly List<InventoryStack> _moving = new List<InventoryStack>();
 
         public InventoryService()
             : this(new InventoryState())
@@ -261,6 +265,68 @@ namespace Game.Core.Inventory
             return MoveResult.Moved(count);
         }
 
+        /// <summary>
+        /// Moves every single card at <paramref name="from"/> to <paramref name="to"/>, as many as there is
+        /// room for: placing the held stack in the display case in one go. Stacks go in order, each taking
+        /// what still fits, with cost basis moving by average as in <see cref="Move"/>. What doesn't fit
+        /// stays at <paramref name="from"/> (<see cref="MoveFailure.CapacityFull"/>); nothing is dropped or
+        /// created. Sealed products are never touched. Raises <see cref="Changed"/> once if anything moved.
+        /// </summary>
+        public CardsMoveResult MoveAllCards(ItemLocation from, ItemLocation to)
+        {
+            if (from == to)
+            {
+                return new CardsMoveResult(0, CardsIn(from), MoveFailure.InvalidMove);
+            }
+
+            int total = CardsIn(from);
+            if (total == 0)
+            {
+                return new CardsMoveResult(0, 0, MoveFailure.NotOwned);
+            }
+
+            int room = CardRoomIn(to, out MoveFailure refusal);
+            if (refusal != MoveFailure.None)
+            {
+                return new CardsMoveResult(0, total, refusal);
+            }
+
+            // Snapshot first: taking a whole stack removes it from the list being read.
+            _moving.Clear();
+            foreach (InventoryStack stack in _state.Stacks)
+            {
+                if (stack.Location == from)
+                {
+                    _moving.Add(stack);
+                }
+            }
+
+            int moved = 0;
+            foreach (InventoryStack stack in _moving)
+            {
+                int count = Math.Min(stack.Count, room - moved);
+                if (count <= 0)
+                {
+                    break;
+                }
+
+                string cardId = stack.CardId;
+                RarityTier tier = stack.Tier;
+                long costCents = TakeFrom(stack, count);
+                PutCards(cardId, tier, to, count, costCents);
+                moved += count;
+            }
+
+            _moving.Clear();
+            if (moved > 0)
+            {
+                Changed?.Invoke();
+            }
+
+            int left = total - moved;
+            return new CardsMoveResult(moved, left, left > 0 ? MoveFailure.CapacityFull : MoveFailure.None);
+        }
+
         public void Clear()
         {
             if (_state.Stacks.Count == 0 && _state.SealedStacks.Count == 0)
@@ -295,6 +361,30 @@ namespace Game.Core.Inventory
                         : MoveFailure.None;
                 default:
                     return MoveFailure.None;
+            }
+        }
+
+        // How many more single cards a location takes, or why it takes none.
+        private int CardRoomIn(ItemLocation location, out MoveFailure refusal)
+        {
+            refusal = MoveFailure.None;
+            switch (location)
+            {
+                case ItemLocation.Placed:
+                    refusal = MoveFailure.NotAllowedThere;
+                    return 0;
+                case ItemLocation.DisplayCase:
+                    return Math.Max(0, _capacities.DisplayCase - CardsIn(ItemLocation.DisplayCase));
+                case ItemLocation.Held:
+                    if (SealedIn(ItemLocation.Held) > 0)
+                    {
+                        refusal = MoveFailure.HeldMixed;
+                        return 0;
+                    }
+
+                    return Math.Max(0, _capacities.HeldCards - CardsIn(ItemLocation.Held));
+                default:
+                    return int.MaxValue;
             }
         }
 

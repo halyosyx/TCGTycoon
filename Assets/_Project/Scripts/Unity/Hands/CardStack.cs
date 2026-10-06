@@ -3,6 +3,7 @@ using System.Globalization;
 using Game.Core.Content;
 using Game.Core.Inventory;
 using Game.Unity.Cards;
+using TMPro;
 using UnityEngine;
 
 namespace Game.Unity.Hands
@@ -11,7 +12,8 @@ namespace Game.Unity.Hands
     /// The single cards in the player's hand, 1 to 10 (Core: <see cref="ItemLocation.Held"/>). It holds
     /// no list of its own: it mirrors the cards Core says are held and shows the most recent on top.
     /// Put down returns every held card to the binder; single cards never exist as loose world objects,
-    /// so a pulled card can never be lost. It has no use yet (the display case will give it one).
+    /// so a pulled card can never be lost. A count beside it shows how many are held. It has no use (LMB):
+    /// the display case takes it with E on the open case.
     /// </summary>
     public sealed class CardStack : MonoBehaviour, IHoldable
     {
@@ -20,6 +22,7 @@ namespace Game.Unity.Hands
 
         private HoldableFactory _factory;
         private WorldCardView _face;
+        private TMP_Text _count;
         private bool _isHeld;
 
         public string Noun => string.Format(CultureInfo.InvariantCulture, _factory.CardsNounFormat, Count);
@@ -32,10 +35,11 @@ namespace Game.Unity.Hands
 
         public string DropVerb => _factory.ReturnVerb;
 
-        public void Initialize(HoldableFactory factory, WorldCardView face)
+        public void Initialize(HoldableFactory factory, WorldCardView face, TMP_Text count)
         {
             _factory = factory;
             _face = face;
+            _count = count;
         }
 
         private void OnEnable()
@@ -56,12 +60,17 @@ namespace Game.Unity.Hands
             _isHeld = false;
         }
 
-        /// <summary>Shows the most recently taken held card on top.</summary>
+        /// <summary>Shows the most recently taken held card on top, and how many are held.</summary>
         public void Refresh()
         {
             if (_face == null || _factory.Inventory == null)
             {
                 return;
+            }
+
+            if (_count != null)
+            {
+                _count.text = string.Format(CultureInfo.InvariantCulture, _factory.CardCountFormat, Count);
             }
 
             IReadOnlyList<InventoryStack> stacks = _factory.Inventory.Stacks;

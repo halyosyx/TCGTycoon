@@ -17,8 +17,9 @@ namespace Game.Unity.UI.Prototype
     /// <see cref="IBinderActions"/>, both found through <see cref="GameBootstrap"/>; nothing outside
     /// Prototype/ references this class, so deleting the folder removes the screen cleanly. I opens and
     /// closes (Esc also closes), A/D turn a spread, Q/E switch tabs, click selects a pocket, Enter asks
-    /// for its details and T takes one copy into the player's hand. The tabs are built from
-    /// the read model (one per card set, then Sealed), so a new set needs no change here.
+    /// for its details, right click (or T) takes one copy into the player's hand and Shift+right click
+    /// puts the last-taken card back. A readout shows how many cards are in the hand. The tabs are built
+    /// from the read model (one per card set, then Sealed), so a new set needs no change here.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
     public sealed class BinderPrototypeScreen : MonoBehaviour
@@ -26,6 +27,7 @@ namespace Game.Unity.UI.Prototype
         private const int RowsPerPage = 3;
         private const int PocketsPerRow = 3;
         private const int NoSelection = -1;
+        private const int SecondaryPointerButton = 1;
         private const string SpacedTabClassName = "binder__tab--spaced";
 
         [SerializeField, Tooltip("Supplies the binder read model and the session.")]
@@ -34,11 +36,15 @@ namespace Game.Unity.UI.Prototype
         [SerializeField, Tooltip("Gameplay input is switched off while the binder is open.")]
         private PlayerController _player;
 
+        [SerializeField, Tooltip("Cards in the hand readout: {0} = held, {1} = how many the hand holds.")]
+        private string _heldCountFormat = "{0}/{1}";
+
         private UIDocument _document;
         private VisualElement _root;
         private VisualElement _tabBar;
         private Label _leftPageNumber;
         private Label _rightPageNumber;
+        private Label _heldCount;
         private VisualElement[] _leftRows;
         private VisualElement[] _rightRows;
         private KitTab[] _tabs;
@@ -108,6 +114,11 @@ namespace Game.Unity.UI.Prototype
                 _binder.Changed -= OnBinderChanged;
             }
 
+            if (_root != null)
+            {
+                _root.UnregisterCallback<PointerDownEvent>(OnBinderPointerDown);
+            }
+
             // Disable before disposing, or the generated wrapper warns about a leak when it is finalized.
             _controls.Screens.Disable();
             _controls.Dispose();
@@ -167,6 +178,21 @@ namespace Game.Unity.UI.Prototype
             BinderEntry entry = SelectedEntry;
             return entry != null && _actions != null && _actions.TryTakeToHand(entry.ItemId);
         }
+
+        /// <summary>Takes one copy of a visible pocket's card into the hand, as a right click on it does.</summary>
+        public bool TakeSlotToHand(int slot)
+        {
+            if (slot < 0 || slot >= _visiblePockets.Count || _visiblePockets[slot].Entry == null || _actions == null)
+            {
+                return false;
+            }
+
+            SelectSlot(slot);
+            return _actions.TryTakeToHand(_visiblePockets[slot].Entry.ItemId);
+        }
+
+        /// <summary>Puts the most recently taken card back into the binder, as Shift+right click does.</summary>
+        public bool PutBackFromHand() => _actions != null && _actions.TryPutBackToBinder();
 
         /// <summary>Opens the binder. Ignored while another screen (e.g. a pack reveal) has the player's input.</summary>
         public bool Open()
@@ -312,6 +338,52 @@ namespace Game.Unity.UI.Prototype
 
             _leftPageNumber.text = spread.LeftPageNumber.ToString(CultureInfo.InvariantCulture);
             _rightPageNumber.text = spread.RightPageNumber.ToString(CultureInfo.InvariantCulture);
+            UpdateHeldCount();
+        }
+
+        private void UpdateHeldCount()
+        {
+            if (_heldCount != null && _actions != null)
+            {
+                _heldCount.text = string.Format(CultureInfo.InvariantCulture, _heldCountFormat, _actions.HeldCardCount, _actions.HeldCardCapacity);
+            }
+        }
+
+        // Right click takes the pocket's card into the hand; Shift+right click anywhere puts the last one back.
+        private void OnBinderPointerDown(PointerDownEvent evt)
+        {
+            if (evt.button != SecondaryPointerButton || !_isOpen)
+            {
+                return;
+            }
+
+            if (evt.shiftKey)
+            {
+                PutBackFromHand();
+            }
+            else
+            {
+                BinderPocket pocket = PocketOf(evt.target as VisualElement);
+                if (pocket != null)
+                {
+                    TakeSlotToHand(_visiblePockets.IndexOf(pocket));
+                }
+            }
+
+            evt.StopPropagation();
+        }
+
+        private static BinderPocket PocketOf(VisualElement element)
+        {
+            for (VisualElement current = element; current != null; current = current.parent)
+            {
+                if (current.userData is BinderPocket pocket)
+                {
+                    return pocket;
+                }
+            }
+
+            return null;
         }
 
         private void FillPage(IReadOnlyList<BinderEntry> slots, VisualElement[] rows)
@@ -368,6 +440,8 @@ namespace Game.Unity.UI.Prototype
             _rightPageNumber = _root.Q<Label>("page-right-number");
             _leftRows = Rows(_root.Q<VisualElement>("page-left"));
             _rightRows = Rows(_root.Q<VisualElement>("page-right"));
+            _heldCount = _root.Q<Label>("binder-held-count");
+            _root.RegisterCallback<PointerDownEvent>(OnBinderPointerDown);
 
             return _tabBar != null && _leftPageNumber != null && _rightPageNumber != null && _leftRows != null && _rightRows != null;
         }

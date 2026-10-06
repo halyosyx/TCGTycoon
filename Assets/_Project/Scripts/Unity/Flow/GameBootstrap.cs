@@ -65,7 +65,11 @@ namespace Game.Unity.Flow
         [SerializeField, Tooltip("Builds and pools what the player can hold: packs and the card stack.")]
         private HoldableFactory _holdables;
 
+        [SerializeField, Tooltip("The glass display case on the vendor table. Optional: without it there is nowhere to show cards for sale.")]
+        private GlassCase _glassCase;
+
         private InventoryBinderReadModel _binderReadModel;
+        private HandCards _handCards;
         private BinderToHand _binderActions;
         private CardPool _allCards;
 
@@ -75,7 +79,7 @@ namespace Game.Unity.Flow
         /// <summary>The inventory as binder tabs, for any binder view. Created with the session in Awake.</summary>
         public IBinderReadModel BinderReadModel => _binderReadModel;
 
-        /// <summary>What a binder view may do with an entry (T takes it into the hand); null without hands.</summary>
+        /// <summary>What a binder view may do with an entry (take into the hand, put back); null without hands.</summary>
         public IBinderActions BinderActions => _binderActions;
 
         private void Awake()
@@ -83,6 +87,7 @@ namespace Game.Unity.Flow
             // Survives between Play sessions when scene reload is disabled.
             Session = null;
             _binderReadModel = null;
+            _handCards = null;
             _binderActions = null;
             _allCards = null;
 
@@ -113,7 +118,8 @@ namespace Game.Unity.Flow
             _binderReadModel = CreateBinderReadModel();
             if (_player != null && _player.Hands != null && _holdables != null)
             {
-                _binderActions = new BinderToHand(Session.Inventory, _allCards, _player.Hands, _holdables);
+                _handCards = new HandCards(Session.Inventory, _player.Hands, _holdables);
+                _binderActions = new BinderToHand(_allCards, _handCards);
             }
         }
 
@@ -146,6 +152,11 @@ namespace Game.Unity.Flow
             else
             {
                 Debug.LogWarning($"{name}: no HUD assigned, so day, cash and the interaction prompt aren't shown.", this);
+            }
+
+            if (_glassCase != null)
+            {
+                _glassCase.Initialize(Session.Inventory, _allCards, _palette, _handCards, _hud);
             }
 
             // Optional too: without it the store is reachable only through the debug console's buy.

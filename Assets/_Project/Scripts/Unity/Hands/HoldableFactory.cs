@@ -5,6 +5,7 @@ using Game.Unity.Cards;
 using Game.Unity.Definitions;
 using Game.Unity.Interaction;
 using Game.Unity.UI.PackOpening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -49,6 +50,18 @@ namespace Game.Unity.Hands
         [Header("Look")]
         [SerializeField, Tooltip("Base colour of a set-down pack while the player aims at it.")]
         private Color _highlightColor = new Color(0.55f, 0.45f, 0.85f);
+
+        [Header("Held card count")]
+        [SerializeField, Tooltip("Count beside the held card stack; {0} = cards held.")]
+        private string _cardCountFormat = "\u00D7{0}";
+
+        [SerializeField, Min(0.01f), Tooltip("World font size of the count (TextMesh Pro units).")]
+        private float _cardCountFontSize = 0.14f;
+
+        [SerializeField] private Color _cardCountColor = new Color(0.96f, 0.96f, 0.97f);
+
+        [SerializeField, Tooltip("Where the count sits relative to the held card, in metres (front is −Z).")]
+        private Vector3 _cardCountOffset = new Vector3(0.046f, -0.036f, -0.002f);
 
         [Header("Text")]
         [SerializeField] private string _takeVerb = "Take";
@@ -97,6 +110,8 @@ namespace Game.Unity.Hands
         public string ReturnVerb => _returnVerb;
 
         public string CardsNounFormat => _cardsNounFormat;
+
+        public string CardCountFormat => _cardCountFormat;
 
         private void Awake()
         {
@@ -154,8 +169,19 @@ namespace Game.Unity.Hands
                     modelCollider.enabled = false;
                 }
 
+                var countObject = new GameObject("Count");
+                countObject.transform.SetParent(root.transform, false);
+                countObject.transform.localPosition = _cardCountOffset;
+                var count = countObject.AddComponent<TextMeshPro>();
+                count.fontSize = _cardCountFontSize;
+                count.color = _cardCountColor;
+                count.fontStyle = FontStyles.Bold;
+                count.alignment = TextAlignmentOptions.Center;
+                count.textWrappingMode = TextWrappingModes.NoWrap;
+                count.rectTransform.sizeDelta = new Vector2(0.05f, 0.02f);
+
                 _cardStack = root.AddComponent<CardStack>();
-                _cardStack.Initialize(this, face.GetComponent<WorldCardView>());
+                _cardStack.Initialize(this, face.GetComponent<WorldCardView>(), count);
             }
 
             _cardStack.gameObject.SetActive(true);

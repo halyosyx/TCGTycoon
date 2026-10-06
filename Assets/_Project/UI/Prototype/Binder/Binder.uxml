@@ -31,7 +31,11 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="binder-tabs" class="binder__tabs" />
             </ui:VisualElement>
-            <kit:KeyHints name="binder-hints" hints="A/D:Page;Q/E:Tab;Enter:Card details;T:Take;I:Close" class="binder__hints" />
+            <ui:VisualElement class="binder__held">
+                <ui:Label text="In hand" class="text-caption" />
+                <ui:Label name="binder-held-count" text="0/10" class="num-sm binder__held-count" />
+            </ui:VisualElement>
+            <kit:KeyHints name="binder-hints" hints="A/D:Page;Q/E:Tab;Enter:Card details;T|RMB:Take;Shift+RMB:Put back;I:Close" class="binder__hints" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

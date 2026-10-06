@@ -91,6 +91,18 @@ namespace Game.Unity.Hands
             return true;
         }
 
+        /// <summary>
+        /// Empties the hand when the held item has already left by another way (the last card placed in
+        /// the display case or put back in the binder). The caller returns the object to its pool.
+        /// </summary>
+        public void Clear()
+        {
+            if (_held != null)
+            {
+                Release();
+            }
+        }
+
         private void Release()
         {
             _held = null;
