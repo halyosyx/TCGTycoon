@@ -6,6 +6,12 @@ namespace Game.Unity.UI.PackOpening
         /// <summary>No pack on screen.</summary>
         Idle,
 
+        /// <summary>
+        /// The pack is being torn open in the player's hand. Its cards are already owned (committed when
+        /// the tear started); the screen shows nothing until they rise out of the top.
+        /// </summary>
+        Tearing,
+
         /// <summary>Cards are shown as a stack and revealed one at a time.</summary>
         Revealing,
 

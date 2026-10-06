@@ -30,6 +30,9 @@ namespace Game.Unity.Hands
         /// <summary>The held item, or null.</summary>
         public IHoldable Held => _held;
 
+        /// <summary>The player camera, which a pack being torn open is posed against.</summary>
+        public Transform View => _view;
+
         private void Awake()
         {
             if (_socket == null || _view == null)

@@ -5,6 +5,7 @@ using Game.Core.Packs;
 using Game.Core.Session;
 using Game.Unity.Definitions;
 using Game.Unity.Player;
+using Game.Unity.UI.Hud;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.UIElements;
@@ -12,12 +13,12 @@ using UnityEngine.UIElements;
 namespace Game.Unity.UI.PackOpening
 {
     /// <summary>
-    /// Pack opening screen: asks Core to open the pack in the player's hand when they use it (LMB,
-    /// <see cref="OpenSealedPack"/>), then presents
-    /// the result as a face-down stack revealed one card at a time and finally a row, where any card
-    /// can be lifted into a large showcase for inspection. Owns input, animation and layout only. The
-    /// cards are in the inventory before anything is shown, so closing the screen at any point loses
-    /// nothing.
+    /// Pack opening: the player tears the pack in their hand open (LMB press and drag down,
+    /// <see cref="BeginTear"/>), the cards rise out of the top, then the screen presents them as a
+    /// face-down stack revealed one card at a time and finally a row, where any card can be lifted into
+    /// a large showcase for inspection. The cards are committed to the inventory once, at the start of
+    /// the tear, before a single frame is animated; everything after is presentation, so storing at any
+    /// point (even mid-tear) loses nothing. Owns input, animation and layout only.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
     public sealed class PackOpeningScreen : MonoBehaviour
@@ -51,6 +52,19 @@ namespace Game.Unity.UI.PackOpening
         [SerializeField, Tooltip("Glow strength per rarity tier. The glow colour comes from the Rarity Palette.")]
         private TierTell[] _tierTells = TierTell.CreateDefaults();
 
+        [Header("Tearing the pack")]
+        [SerializeField]
+        private PackTearPacing _tearPacing = new PackTearPacing();
+
+        [SerializeField]
+        private PackTearSounds _tearSounds = new PackTearSounds();
+
+        [SerializeField, Tooltip("Plays the tear's sounds. Optional: without it the tear is silent.")]
+        private AudioSource _tearAudio;
+
+        [SerializeField, Tooltip("HUD key hints while tearing, as Key:Label pairs separated by semicolons.")]
+        private string _tearHints = "LMB:Drag down to tear;Space:Skip;Esc:Store";
+
         [SerializeField]
         private string _revealHint = "Click or drag to reveal   ·   Space to skip";
 
@@ -75,6 +89,9 @@ namespace Game.Unity.UI.PackOpening
         private GameSession _session;
         private RarityPaletteDefinition _palette;
         private PlayerController _player;
+        private HudPresenter _hud;
+        private PackTearProgress _tearProgress;
+        private ITearablePack _tearingPack;
         private bool _isInitialized;
         private bool _isRowPending;
         private float _rowCountdown;
@@ -105,6 +122,10 @@ namespace Game.Unity.UI.PackOpening
             // runtime object is created here rather than in field initialisers.
             _controls = new PlayerControls();
             _reveal = new PackRevealStateMachine();
+            _tearProgress = new PackTearProgress(_tearPacing);
+            _tearProgress.CueReached += OnTearCue;
+            _tearingPack = null;
+            _hud = null;
             _cardViews = new List<CardView>(PrewarmedCardViews * 2);
             _cardViewPool = new ObjectPool<CardView>(
                 CreateCardView,
@@ -120,14 +141,16 @@ namespace Game.Unity.UI.PackOpening
         }
 
         /// <summary>Wires the screen to the session and the scene. Called once by <c>GameBootstrap</c>.</summary>
-        public void Initialize(GameSession session, RarityPaletteDefinition palette, PlayerController player)
+        /// <param name="hud">Shows the tear's key hints; may be null.</param>
+        public void Initialize(GameSession session, RarityPaletteDefinition palette, PlayerController player, HudPresenter hud)
         {
             _session = session;
             _palette = palette;
             _player = player;
-            if (_session == null || _palette == null || _player == null || _cardTemplate == null)
+            _hud = hud;
+            if (_session == null || _palette == null || _player == null || _player.Hands == null || _cardTemplate == null)
             {
-                Debug.LogError($"{name}: {nameof(PackOpeningScreen)} is missing its session, palette, player or card template.", this);
+                Debug.LogError($"{name}: {nameof(PackOpeningScreen)} is missing its session, palette, player (with hands) or card template.", this);
                 return;
             }
 
@@ -157,6 +180,8 @@ namespace Game.Unity.UI.PackOpening
                 _storeButton.clicked -= Store;
             }
 
+            _tearProgress.CueReached -= OnTearCue;
+
             // Disable before disposing, or the generated wrapper warns about a leak when it is finalized.
             _controls.Screens.Disable();
             _controls.Dispose();
@@ -170,6 +195,12 @@ namespace Game.Unity.UI.PackOpening
             }
 
             float deltaSeconds = Time.unscaledDeltaTime;
+            if (_reveal.State == PackRevealState.Tearing)
+            {
+                UpdateTear(deltaSeconds);
+                return;
+            }
+
             float hoverFactor = _layout.HoverScale / _layout.RowScale;
             for (int i = 0; i < _cardViews.Count; i++)
             {
@@ -207,30 +238,127 @@ namespace Game.Unity.UI.PackOpening
         }
 
         /// <summary>
-        /// Opens the pack of <paramref name="productId"/> in the player's hand (Use, LMB). Core takes the
-        /// held pack and adds its cards to the binder at the price paid first, then the screen shows them,
-        /// so the reveal is presentation only. Returns false (and does nothing) when no such pack is held
-        /// or another screen has the input. Public so tests and debug tools can drive the same path.
+        /// Starts tearing open the pack in the player's hand (Use, LMB press). The commit comes first:
+        /// Core takes the held pack and adds its cards to the binder at the price paid, atomically, before
+        /// a single tear frame is animated. The state machine runs that commit at most once, so a mashed
+        /// button can't open a second pack. Returns false (and does nothing) when no such pack is held, a
+        /// pack is already open or another screen has the input. Public so tests and debug tools can drive
+        /// the same path.
         /// </summary>
-        public bool OpenSealedPack(string productId)
+        public bool BeginTear(ITearablePack pack)
         {
-            if (!CanOpen() || _session.Inventory.CountOfSealed(productId, ItemLocation.Held) == 0)
+            if (pack == null || !CanOpen() || _session.Inventory.CountOfSealed(pack.ProductId, ItemLocation.Held) == 0)
             {
                 return false;
             }
 
-            // From this line on the cards are owned; everything below is presentation.
-            OpenedPack pack = _session.OpenSealedPack(productId, ItemLocation.Held);
-            Reveal(pack);
+            string productId = pack.ProductId;
+
+            // From this line on the cards are owned; everything after it is presentation.
+            if (!_reveal.TryBeginTear(() => _session.OpenSealedPack(productId, ItemLocation.Held)))
+            {
+                return false;
+            }
+
+            // The cursor stays captured: the mouse now drags the tear instead of looking around.
+            _player.SetGameplayInput(false, keepsCursorLocked: true);
+            _tearingPack = pack;
+            _tearProgress.Reset();
+            pack.BeginTear(_player.Hands.View, _tearPacing.TearPosePosition, _tearPacing.TearPoseRotation);
+            ApplyTearPose();
+            if (_hud != null)
+            {
+                _hud.SetContextHints(_tearHints);
+            }
+
             return true;
+        }
+
+        /// <summary>Tears further, as a downward drag of <paramref name="downPixels"/> with LMB held does.</summary>
+        public void DragTear(float downPixels)
+        {
+            if (_reveal.State == PackRevealState.Tearing)
+            {
+                _tearProgress.Drag(downPixels);
+            }
         }
 
         private bool CanOpen() => _isInitialized && _reveal.State == PackRevealState.Idle && _player.IsInGameplay;
 
-        private void Reveal(OpenedPack pack)
+        // LMB held drags the tear (down only; releasing pauses it). Time runs the pose and, once the strip
+        // is off, the cards rising out of the top; then the face-down stack takes over.
+        private void UpdateTear(float deltaSeconds)
         {
+            PlayerControls.ScreensActions actions = _controls.Screens;
+            if (actions.Dismiss.WasPressedThisFrame())
+            {
+                Store();
+                return;
+            }
+
+            if (actions.QuickOpen.WasPressedThisFrame())
+            {
+                QuickOpen();
+                return;
+            }
+
+            if (actions.TearGrip.IsPressed())
+            {
+                // Mouse delta is up-positive; a downward drag tears.
+                _tearProgress.Drag(-actions.TearPull.ReadValue<Vector2>().y);
+            }
+
+            _tearProgress.Tick(deltaSeconds);
+            ApplyTearPose();
+            if (_tearProgress.IsComplete)
+            {
+                FinishTear();
+            }
+        }
+
+        private void FinishTear()
+        {
+            _reveal.FinishTear();
+            EndTear();
+            ShowStack(_reveal.Pack);
+        }
+
+        // The wrapper goes, the tear hints go, and the cursor is freed for the reveal.
+        private void EndTear()
+        {
+            if (_tearingPack != null)
+            {
+                _tearingPack.Discard();
+                _tearingPack = null;
+            }
+
+            if (_hud != null)
+            {
+                _hud.ClearContextHints();
+            }
+
             _player.SetGameplayInput(false);
-            _reveal.Begin(pack);
+        }
+
+        private void ApplyTearPose()
+        {
+            if (_tearingPack != null)
+            {
+                _tearingPack.ApplyTear(PackTearMotion.Evaluate(_tearProgress.Tear, _tearProgress.Rise, _tearProgress.PoseBlend, _tearPacing));
+            }
+        }
+
+        private void OnTearCue(PackTearCue cue)
+        {
+            AudioClip clip = _tearSounds.ClipFor(cue);
+            if (clip != null && _tearAudio != null)
+            {
+                _tearAudio.PlayOneShot(clip, _tearSounds.Volume);
+            }
+        }
+
+        private void ShowStack(OpenedPack pack)
+        {
             SetVisible(true);
             BuildStack(pack);
             UpdateHint();
@@ -243,9 +371,17 @@ namespace Game.Unity.UI.PackOpening
         /// <summary>Reveals the next card, as a click on the stack does.</summary>
         public void RevealNext() => Advance(1f);
 
-        /// <summary>Skips straight to the row, as the quick-open key does.</summary>
+        /// <summary>Skips straight to the row, as the quick-open key does, mid-tear too.</summary>
         public void QuickOpen()
         {
+            if (_reveal.State == PackRevealState.Tearing)
+            {
+                _reveal.ShowRow();
+                EndTear();
+                ShowStack(_reveal.Pack);
+                return;
+            }
+
             if (_reveal.State == PackRevealState.Revealing)
             {
                 ShowRow(isAnimated: false);
@@ -299,12 +435,20 @@ namespace Game.Unity.UI.PackOpening
             UpdateHint();
         }
 
-        /// <summary>Closes the screen, as the Store button, Escape or a click outside the row does.</summary>
+        /// <summary>
+        /// Closes the screen, as the Store button, Escape or a click outside the row does. Mid-tear it ends
+        /// quietly: the cards are already in the binder.
+        /// </summary>
         public void Store()
         {
             if (_reveal.State == PackRevealState.Idle)
             {
                 return;
+            }
+
+            if (_reveal.State == PackRevealState.Tearing)
+            {
+                EndTear();
             }
 
             _reveal.Store();

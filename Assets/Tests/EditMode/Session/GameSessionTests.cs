@@ -184,6 +184,27 @@ namespace Game.Core.Tests.Session
             Assert.That(session.Inventory.CountIn(ItemLocation.Binder), Is.EqualTo(2 + pack.Cards.Count));
         }
 
+        // F2d: picking a pack up and putting it down is bookkeeping only. Nothing is rolled until the tear.
+        [Test]
+        public void MoveSealedToHandAndDown_OpensNothing()
+        {
+            var session = CreateStoreSession();
+            session.Store.SetQuantity(StoreFixtures.ChampionsPackId, 1);
+            session.Store.PlaceOrder();
+            int itemsBefore = session.Inventory.TotalItemCount;
+            long costBefore = session.Inventory.TotalCostBasisCents;
+            ItemRef pack = ItemRef.Sealed(StoreFixtures.ChampionsPackId);
+
+            session.Inventory.Move(pack, ItemLocation.Binder, ItemLocation.Held);
+            session.Inventory.Move(pack, ItemLocation.Held, ItemLocation.Placed);
+            session.Inventory.Move(pack, ItemLocation.Placed, ItemLocation.Held);
+
+            Assert.That(TotalCards(session.Inventory), Is.EqualTo(0));
+            Assert.That(session.Inventory.CountOfSealed(StoreFixtures.ChampionsPackId), Is.EqualTo(1));
+            Assert.That(session.Inventory.TotalItemCount, Is.EqualTo(itemsBefore));
+            Assert.That(session.Inventory.TotalCostBasisCents, Is.EqualTo(costBefore));
+        }
+
         [Test]
         public void OpenSealedPack_NoneHeld_Throws()
         {

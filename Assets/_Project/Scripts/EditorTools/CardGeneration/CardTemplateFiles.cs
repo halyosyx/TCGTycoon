@@ -99,7 +99,8 @@ namespace Game.EditorTools.CardGeneration
                 "- `Cards/<setId>/`: one CardDefinition per manifest row, named by its id (`RC_C_014`).\n" +
                 "- `<setId>.asset`: one card set per `Sets.csv` row. Pack configurations point at these.\n" +
                 "- `Materials/`: URP Lit materials whose colours come from the Rarity Palette (`Data/Visuals/RarityPalette.asset`).\n" +
-                "- `Prefabs/`: `BoosterPack` (pack prop) and `WorldCard` (world-space card, filled by `WorldCardView`).\n" +
+                "- `Meshes/`: the booster pack's body and top strip (`PackMeshBuilder`), split along the zigzag crimp so the strip can be torn away.\n" +
+                "- `Prefabs/`: `BoosterPack` (body, hinged top strip, cards inside, animated by `BoosterPackView`) and `WorldCard` (world-space card, filled by `WorldCardView`).\n" +
                 "- `UI/`: `CardTemplate.uxml` and `.uss`, the UI Toolkit card template (filled by `CardTemplate.Bind`).\n" +
                 "\n" +
                 "The generator upserts by id: new rows create assets, changed rows update them in place (same GUID), and rows " +

@@ -126,15 +126,16 @@ namespace Game.Unity.Flow
             }
 
             // Packs reach the reveal only through the hand: stacks give a pack to the hand, and using
-            // the held pack opens it. All four are required together.
+            // the held pack tears it open. All four are required together. The HUD (optional) shows the
+            // tear's hints.
             if (_player == null || _player.Hands == null || _packOpeningScreen == null || _packStacks == null || _holdables == null)
             {
                 Debug.LogError($"{name}: {nameof(GameBootstrap)} is missing a scene reference (player with hands, pack opening screen, pack stacks or holdables).", this);
                 return;
             }
 
-            _packOpeningScreen.Initialize(Session, _palette, _player);
-            _holdables.Initialize(Session.Inventory, _allCards, _palette, _store, _packOpeningScreen.OpenSealedPack);
+            _packOpeningScreen.Initialize(Session, _palette, _player, _hud);
+            _holdables.Initialize(Session.Inventory, _allCards, _palette, _store, _packOpeningScreen.BeginTear);
             _packStacks.Initialize(Session.Inventory, _store, _holdables);
 
             // The HUD is optional so a scene without one still plays; pack opening never depends on it.

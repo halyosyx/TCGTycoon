@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Unity.Cards;
 using UnityEngine;
 
 namespace Game.Unity.Interaction
@@ -32,10 +33,19 @@ namespace Game.Unity.Interaction
             }
         }
 
-        /// <summary>The renderers a pack model tints: its meshes, not its printed TextMeshPro label.</summary>
+        /// <summary>
+        /// The renderers a pack model tints: its wrapper (body and top strip), not the cards inside or its
+        /// printed TextMeshPro label.
+        /// </summary>
         public static List<Renderer> PackMeshes(GameObject root)
         {
             var renderers = new List<Renderer>();
+            if (root.TryGetComponent(out BoosterPackView view))
+            {
+                view.CollectWrapperRenderers(renderers);
+                return renderers;
+            }
+
             foreach (MeshRenderer meshRenderer in root.GetComponentsInChildren<MeshRenderer>(true))
             {
                 if (!meshRenderer.TryGetComponent(out TMPro.TextMeshPro _))

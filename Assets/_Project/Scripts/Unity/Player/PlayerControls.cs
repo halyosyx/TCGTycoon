@@ -371,6 +371,26 @@ namespace Game.Unity.Player
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""TearGrip"",
+                    ""type"": ""Button"",
+                    ""id"": ""fc3ecdc7-f682-4118-a1d4-3642c900320f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""TearPull"",
+                    ""type"": ""Value"",
+                    ""id"": ""a3cb25e8-0104-4a4a-a620-29502cd94992"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -503,6 +523,28 @@ namespace Game.Unity.Player
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""BinderTake"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d3a59869-9874-45ec-8c5d-bffabbc7bb42"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TearGrip"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""32dcc699-0b9c-4c7b-b631-e156ec0c2ea4"",
+                    ""path"": ""<Mouse>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TearPull"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -782,6 +824,8 @@ namespace Game.Unity.Player
             m_Screens_Submit = m_Screens.FindAction("Submit", throwIfNotFound: true);
             m_Screens_OpenComputer = m_Screens.FindAction("OpenComputer", throwIfNotFound: true);
             m_Screens_BinderTake = m_Screens.FindAction("BinderTake", throwIfNotFound: true);
+            m_Screens_TearGrip = m_Screens.FindAction("TearGrip", throwIfNotFound: true);
+            m_Screens_TearPull = m_Screens.FindAction("TearPull", throwIfNotFound: true);
             // Computer
             m_Computer = asset.FindActionMap("Computer", throwIfNotFound: true);
             m_Computer_MoveUp = m_Computer.FindAction("MoveUp", throwIfNotFound: true);
@@ -1037,6 +1081,8 @@ namespace Game.Unity.Player
         private readonly InputAction m_Screens_Submit;
         private readonly InputAction m_Screens_OpenComputer;
         private readonly InputAction m_Screens_BinderTake;
+        private readonly InputAction m_Screens_TearGrip;
+        private readonly InputAction m_Screens_TearPull;
         /// <summary>
         /// Provides access to input actions defined in input action map "Screens".
         /// </summary>
@@ -1088,6 +1134,14 @@ namespace Game.Unity.Player
             /// Provides access to the underlying input action "Screens/BinderTake".
             /// </summary>
             public InputAction @BinderTake => m_Wrapper.m_Screens_BinderTake;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/TearGrip".
+            /// </summary>
+            public InputAction @TearGrip => m_Wrapper.m_Screens_TearGrip;
+            /// <summary>
+            /// Provides access to the underlying input action "Screens/TearPull".
+            /// </summary>
+            public InputAction @TearPull => m_Wrapper.m_Screens_TearPull;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1144,6 +1198,12 @@ namespace Game.Unity.Player
                 @BinderTake.started += instance.OnBinderTake;
                 @BinderTake.performed += instance.OnBinderTake;
                 @BinderTake.canceled += instance.OnBinderTake;
+                @TearGrip.started += instance.OnTearGrip;
+                @TearGrip.performed += instance.OnTearGrip;
+                @TearGrip.canceled += instance.OnTearGrip;
+                @TearPull.started += instance.OnTearPull;
+                @TearPull.performed += instance.OnTearPull;
+                @TearPull.canceled += instance.OnTearPull;
             }
 
             /// <summary>
@@ -1185,6 +1245,12 @@ namespace Game.Unity.Player
                 @BinderTake.started -= instance.OnBinderTake;
                 @BinderTake.performed -= instance.OnBinderTake;
                 @BinderTake.canceled -= instance.OnBinderTake;
+                @TearGrip.started -= instance.OnTearGrip;
+                @TearGrip.performed -= instance.OnTearGrip;
+                @TearGrip.canceled -= instance.OnTearGrip;
+                @TearPull.started -= instance.OnTearPull;
+                @TearPull.performed -= instance.OnTearPull;
+                @TearPull.canceled -= instance.OnTearPull;
             }
 
             /// <summary>
@@ -1540,6 +1606,20 @@ namespace Game.Unity.Player
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnBinderTake(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "TearGrip" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnTearGrip(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "TearPull" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnTearPull(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Computer" which allows adding and removing callbacks.

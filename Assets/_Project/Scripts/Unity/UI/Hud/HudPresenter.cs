@@ -60,6 +60,8 @@ namespace Game.Unity.UI.Hud
         private PlayerInteractor _interactor;
         private PlayerHands _hands;
         private EconomyService _economy;
+        private string _heldHints;
+        private string _contextHints;
         private bool _isInitialized;
 
         public int Day => _isInitialized ? _dayClock.Day : _placeholderDay;
@@ -74,6 +76,8 @@ namespace Game.Unity.UI.Hud
             _interactor = null;
             _hands = null;
             _economy = null;
+            _heldHints = null;
+            _contextHints = null;
         }
 
         /// <summary>Binds the HUD to the player and the session's cash. Called once by <c>GameBootstrap</c>.</summary>
@@ -146,6 +150,22 @@ namespace Game.Unity.UI.Hud
             }
         }
 
+        /// <summary>
+        /// Replaces the key hints while a moment needs its own (tearing a pack: "LMB Drag down to tear ·
+        /// Space Skip · Esc Store"), until <see cref="ClearContextHints"/>.
+        /// </summary>
+        public void SetContextHints(string hints)
+        {
+            _contextHints = hints;
+            RefreshHints();
+        }
+
+        public void ClearContextHints()
+        {
+            _contextHints = null;
+            RefreshHints();
+        }
+
         public void ShowDay(int day, DayKind kind)
         {
             if (_isInitialized) _dayClock.SetDay(day, kind);
@@ -197,12 +217,23 @@ namespace Game.Unity.UI.Hud
         {
             if (held == null)
             {
-                _hints.Hints = _keyHints;
-                return;
+                _heldHints = _keyHints;
+            }
+            else
+            {
+                string use = held.CanUse ? _useKey + ":" + held.UseVerb + ";" : string.Empty;
+                _heldHints = use + _dropKey + ":" + held.DropVerb + ";" + _keyHints;
             }
 
-            string use = held.CanUse ? _useKey + ":" + held.UseVerb + ";" : string.Empty;
-            _hints.Hints = use + _dropKey + ":" + held.DropVerb + ";" + _keyHints;
+            RefreshHints();
+        }
+
+        private void RefreshHints()
+        {
+            if (_hints != null)
+            {
+                _hints.Hints = _contextHints ?? _heldHints ?? _keyHints;
+            }
         }
 
         private void OnHoveredChanged(IInteractable target)

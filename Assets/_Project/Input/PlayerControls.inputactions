@@ -283,6 +283,26 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "TearGrip",
+                    "type": "Button",
+                    "id": "fc3ecdc7-f682-4118-a1d4-3642c900320f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "TearPull",
+                    "type": "Value",
+                    "id": "a3cb25e8-0104-4a4a-a620-29502cd94992",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -415,6 +435,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "BinderTake",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d3a59869-9874-45ec-8c5d-bffabbc7bb42",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TearGrip",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "32dcc699-0b9c-4c7b-b631-e156ec0c2ea4",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TearPull",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

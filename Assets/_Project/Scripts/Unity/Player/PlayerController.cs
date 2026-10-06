@@ -89,13 +89,20 @@ namespace Game.Unity.Player
         }
 
         /// <summary>
-        /// Switches walking, looking and interacting on or off. Off frees the cursor for a screen;
-        /// on captures it again.
+        /// Switches walking, looking and interacting on or off. Off frees the cursor for a screen, unless
+        /// <paramref name="keepsCursorLocked"/>: tearing a pack keeps it captured so the mouse drags the
+        /// tear instead of pointing. Calling off again while already off only changes the cursor. On
+        /// captures it again.
         /// </summary>
-        public void SetGameplayInput(bool isEnabled)
+        public void SetGameplayInput(bool isEnabled, bool keepsCursorLocked = false)
         {
             if (_isInGameplay == isEnabled)
             {
+                if (!isEnabled)
+                {
+                    SetCursorLocked(keepsCursorLocked);
+                }
+
                 return;
             }
 
@@ -114,7 +121,7 @@ namespace Game.Unity.Player
             {
                 _controls.Player.Disable();
                 ClearHover();
-                SetCursorLocked(false);
+                SetCursorLocked(keepsCursorLocked);
             }
 
             GameplayInputChanged?.Invoke(isEnabled);

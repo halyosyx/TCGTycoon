@@ -4,6 +4,7 @@ using Game.Core.Inventory;
 using Game.Unity.Cards;
 using Game.Unity.Definitions;
 using Game.Unity.Interaction;
+using Game.Unity.UI.PackOpening;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -24,8 +25,8 @@ namespace Game.Unity.Hands
         [SerializeField, Tooltip("The world card model (Data/Generated/Prefabs/WorldCard), showing the top held card.")]
         private GameObject _cardModel;
 
-        [SerializeField, Tooltip("Size of a pack's click box (x, y, z) in metres, matching the pack model.")]
-        private Vector3 _packSize = new Vector3(0.072f, 0.125f, 0.008f);
+        [SerializeField, Tooltip("Size of a pack's click box (x, y, z) in metres, matching the pack model (PackShape.Default).")]
+        private Vector3 _packSize = new Vector3(0.07f, 0.12f, 0.007f);
 
         [Header("Layers")]
         [SerializeField, Range(0, 31), Tooltip("Layer of a set-down pack, so the interactor can find it.")]
@@ -52,7 +53,7 @@ namespace Game.Unity.Hands
         [Header("Text")]
         [SerializeField] private string _takeVerb = "Take";
         [SerializeField, Tooltip("{0} = set short name.")] private string _packNounFormat = "{0} pack";
-        [SerializeField] private string _openVerb = "Open";
+        [SerializeField] private string _openVerb = "Tear open";
         [SerializeField] private string _putDownVerb = "Put down";
         [SerializeField] private string _returnVerb = "Return to binder";
         [SerializeField, Tooltip("{0} = number of cards held.")] private string _cardsNounFormat = "{0} cards";
@@ -61,7 +62,7 @@ namespace Game.Unity.Hands
         private CardPool _cards;
         private RarityPaletteDefinition _palette;
         private StoreConfigDefinition _store;
-        private Func<string, bool> _openPack;
+        private Func<ITearablePack, bool> _openPack;
         private ObjectPool<SealedBoosterPack> _packPool;
         private CardStack _cardStack;
 
@@ -111,8 +112,8 @@ namespace Game.Unity.Hands
         }
 
         /// <param name="cards">Every card the player can own, for the card stack's face.</param>
-        /// <param name="openPack">Opens the held pack of a product; true when the reveal started.</param>
-        public void Initialize(InventoryService inventory, CardPool cards, RarityPaletteDefinition palette, StoreConfigDefinition store, Func<string, bool> openPack)
+        /// <param name="openPack">Starts tearing the held pack open; true when the tear (and its commit) started.</param>
+        public void Initialize(InventoryService inventory, CardPool cards, RarityPaletteDefinition palette, StoreConfigDefinition store, Func<ITearablePack, bool> openPack)
         {
             _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
             _cards = cards ?? throw new ArgumentNullException(nameof(cards));
@@ -168,8 +169,8 @@ namespace Game.Unity.Hands
             stack.gameObject.SetActive(false);
         }
 
-        /// <summary>Opens the held pack of a product through the pack opening screen.</summary>
-        public bool OpenHeldPack(string productId) => _openPack(productId);
+        /// <summary>Starts tearing the held pack open through the pack opening screen.</summary>
+        public bool OpenHeldPack(ITearablePack pack) => _openPack(pack);
 
         private SealedBoosterPack CreatePack()
         {
@@ -184,7 +185,12 @@ namespace Game.Unity.Hands
             var box = root.AddComponent<BoxCollider>();
             box.size = _packSize;
             var pack = root.AddComponent<SealedBoosterPack>();
-            pack.Initialize(this, box, new RendererTint(RendererTint.PackMeshes(model)));
+            if (!model.TryGetComponent(out BoosterPackView view))
+            {
+                Debug.LogError($"{name}: the Pack Model has no {nameof(BoosterPackView)}; regenerate it with TCG > Generate Card Data.", this);
+            }
+
+            pack.Initialize(this, box, new RendererTint(RendererTint.PackMeshes(model)), view);
             return pack;
         }
 

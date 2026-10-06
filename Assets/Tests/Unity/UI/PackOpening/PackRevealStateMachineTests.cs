@@ -260,6 +260,148 @@ namespace Game.Unity.Tests.UI.PackOpening
             Assert.That(pacing.IsSlowSlot(-1, PackSize), Is.False);
         }
 
+        // --- Tearing (F2d): the commit runs once, when the tear starts ---
+
+        [Test]
+        public void TryBeginTear_FromIdle_CommitsOnceAndEntersTearing()
+        {
+            var reveal = new PackRevealStateMachine();
+            int commits = 0;
+
+            bool isStarted = reveal.TryBeginTear(() => { commits++; return CreatePack(PackSize); });
+
+            Assert.That(isStarted, Is.True);
+            Assert.That(commits, Is.EqualTo(1));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Tearing));
+            Assert.That(reveal.CardCount, Is.EqualTo(PackSize));
+            Assert.That(reveal.RevealedCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TryBeginTear_WhileTearing_ReturnsFalseWithoutCommitting()
+        {
+            var reveal = new PackRevealStateMachine();
+            reveal.TryBeginTear(() => CreatePack(PackSize));
+            int commits = 0;
+
+            bool isStarted = reveal.TryBeginTear(() => { commits++; return CreatePack(PackSize); });
+
+            Assert.That(isStarted, Is.False);
+            Assert.That(commits, Is.EqualTo(0));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Tearing));
+        }
+
+        [Test]
+        public void TryBeginTear_WhileRevealing_ReturnsFalseWithoutCommitting()
+        {
+            var reveal = new PackRevealStateMachine();
+            reveal.Begin(CreatePack(PackSize));
+            int commits = 0;
+
+            bool isStarted = reveal.TryBeginTear(() => { commits++; return CreatePack(PackSize); });
+
+            Assert.That(isStarted, Is.False);
+            Assert.That(commits, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TryBeginTear_CommitThrows_StaysIdle()
+        {
+            var reveal = new PackRevealStateMachine();
+
+            Assert.Throws<InvalidOperationException>(() => reveal.TryBeginTear(() => throw new InvalidOperationException("No pack held.")));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Idle));
+            Assert.That(reveal.Pack, Is.Null);
+        }
+
+        [Test]
+        public void TryBeginTear_CommitReturnsNull_ThrowsAndStaysIdle()
+        {
+            var reveal = new PackRevealStateMachine();
+
+            Assert.Throws<InvalidOperationException>(() => reveal.TryBeginTear(() => null));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Idle));
+        }
+
+        [Test]
+        public void FinishTear_FromTearing_EntersRevealingWithNothingRevealed()
+        {
+            PackRevealStateMachine reveal = CreateTearing(PackSize);
+
+            reveal.FinishTear();
+
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Revealing));
+            Assert.That(reveal.RevealedCount, Is.EqualTo(0));
+            Assert.That(reveal.RevealNext(), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void FinishTear_EmptyPack_GoesStraightToRow()
+        {
+            PackRevealStateMachine reveal = CreateTearing(0);
+
+            reveal.FinishTear();
+
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Row));
+        }
+
+        [Test]
+        public void FinishTear_WhileIdle_Throws()
+        {
+            Assert.Throws<InvalidOperationException>(() => new PackRevealStateMachine().FinishTear());
+        }
+
+        [Test]
+        public void FinishTear_WhileRevealing_Throws()
+        {
+            var reveal = new PackRevealStateMachine();
+            reveal.Begin(CreatePack(PackSize));
+
+            Assert.Throws<InvalidOperationException>(() => reveal.FinishTear());
+        }
+
+        [Test]
+        public void ShowRow_FromTearing_EntersRowWithEveryCardRevealed()
+        {
+            PackRevealStateMachine reveal = CreateTearing(PackSize);
+
+            reveal.ShowRow();
+
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Row));
+            Assert.That(reveal.RevealedCount, Is.EqualTo(PackSize));
+        }
+
+        [Test]
+        public void Store_MidTear_ReturnsToIdleAndAcceptsNextTear()
+        {
+            PackRevealStateMachine reveal = CreateTearing(PackSize);
+
+            reveal.Store();
+
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Idle));
+            Assert.That(reveal.Pack, Is.Null);
+            Assert.That(reveal.TryBeginTear(() => CreatePack(PackSize)), Is.True);
+        }
+
+        [Test]
+        public void RevealShowcaseAndBegin_WhileTearing_Throw()
+        {
+            PackRevealStateMachine reveal = CreateTearing(PackSize);
+
+            Assert.Throws<InvalidOperationException>(() => reveal.RevealNext());
+            Assert.Throws<InvalidOperationException>(() => reveal.Showcase(0));
+            Assert.Throws<InvalidOperationException>(() => reveal.ReturnToRow());
+            Assert.Throws<InvalidOperationException>(() => reveal.Begin(CreatePack(PackSize)));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Tearing));
+        }
+
+        private static PackRevealStateMachine CreateTearing(int cardCount)
+        {
+            var reveal = new PackRevealStateMachine();
+            reveal.TryBeginTear(() => CreatePack(cardCount));
+            return reveal;
+        }
+
         private static PackRevealStateMachine CreateInRow()
         {
             var reveal = new PackRevealStateMachine();

@@ -4,10 +4,10 @@ using Game.Core.Packs;
 namespace Game.Unity.UI.PackOpening
 {
     /// <summary>
-    /// Presentation state of one pack reveal: Idle → Revealing → Row ⇄ Showcase, and back to Idle.
-    /// Cards are revealed in slot order. The pack's cards are already in the inventory when
-    /// <see cref="Begin"/> is called, so every transition here is display only; <see cref="Store"/>
-    /// is legal at any point.
+    /// Presentation state of one pack opening: Idle → Tearing → Revealing → Row ⇄ Showcase, and back to
+    /// Idle. The pack's cards are committed to the inventory once, when the tear starts
+    /// (<see cref="TryBeginTear"/>), before anything is animated; every later transition is display
+    /// only, and <see cref="Store"/> is legal at any point. Cards are revealed in slot order.
     /// </summary>
     public sealed class PackRevealStateMachine
     {
@@ -29,6 +29,42 @@ namespace Game.Unity.UI.PackOpening
 
         public bool HasUnrevealedCards => RevealedCount < CardCount;
 
+        /// <summary>
+        /// Starts tearing a pack open. From Idle it calls <paramref name="commit"/> exactly once (the call
+        /// that takes the pack and adds its cards to the inventory) and enters Tearing. In any other state
+        /// it returns false without calling it, so a mashed button can never open a second pack.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The commit returned no pack; the state stays Idle.</exception>
+        public bool TryBeginTear(Func<OpenedPack> commit)
+        {
+            if (commit == null) throw new ArgumentNullException(nameof(commit));
+            if (State != PackRevealState.Idle)
+            {
+                return false;
+            }
+
+            // A commit that throws leaves the machine Idle: nothing was taken, so nothing is shown.
+            OpenedPack pack = commit();
+            if (pack == null)
+            {
+                throw new InvalidOperationException("The tear's commit returned no pack.");
+            }
+
+            Pack = pack;
+            RevealedCount = 0;
+            ShowcasedSlot = NoSlot;
+            State = PackRevealState.Tearing;
+            return true;
+        }
+
+        /// <summary>The cards are out of the top: the face-down stack takes over (the row, for an empty pack).</summary>
+        public void FinishTear()
+        {
+            RequireState(PackRevealState.Tearing, nameof(FinishTear));
+            State = Pack.Cards.Count == 0 ? PackRevealState.Row : PackRevealState.Revealing;
+        }
+
+        /// <summary>Shows an already-committed pack without a tear (tests and tools).</summary>
         /// <exception cref="InvalidOperationException">A pack is already on screen.</exception>
         public void Begin(OpenedPack pack)
         {
@@ -56,10 +92,17 @@ namespace Game.Unity.UI.PackOpening
             return slotIndex;
         }
 
-        /// <summary>Lays every card out face up. Called after the last reveal, or early to skip (quick open).</summary>
+        /// <summary>
+        /// Lays every card out face up. Called after the last reveal, or early to skip (quick open), which
+        /// also works mid-tear.
+        /// </summary>
         public void ShowRow()
         {
-            RequireState(PackRevealState.Revealing, nameof(ShowRow));
+            if (State != PackRevealState.Tearing)
+            {
+                RequireState(PackRevealState.Revealing, nameof(ShowRow));
+            }
+
             RevealedCount = CardCount;
             State = PackRevealState.Row;
         }

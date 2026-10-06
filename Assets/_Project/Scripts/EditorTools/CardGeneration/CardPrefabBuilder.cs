@@ -16,9 +16,12 @@ namespace Game.EditorTools.CardGeneration
     {
         public const string PackLabelText = "Mythbound Booster Pack";
 
-        // Real-world sizes in metres: a trading card is 63 x 88 mm, a booster pack about 72 x 125 mm.
+        // Real-world sizes in metres: a trading card is 63 x 88 mm; the booster pack is PackShape.Default.
         private static readonly Vector2 s_cardSize = new Vector2(0.063f, 0.088f);
-        private static readonly Vector3 s_packSize = new Vector3(0.072f, 0.125f, 0.008f);
+
+        // The face-down card stack inside a pack: seven cards' depth, sitting just under the tear line.
+        private const float PackCardsDepth = 0.004f;
+        private const float PackCardsGap = 0.002f;
         private const float CardFrameWidth = 0.0035f;
         private const float TextMargin = 0.0055f;
 
@@ -51,20 +54,50 @@ namespace Game.EditorTools.CardGeneration
         private const float CardIdHeight = 0.006f;
         private const float PackLabelHeightShare = 0.5f;
 
-        public static bool BuildBoosterPack(GameObject root, RarityPaletteDefinition palette)
+        /// <summary>
+        /// The pack: a body and a top strip (two meshes split along the crimp, the strip on a hinge at the
+        /// back seam so it can be torn away), the face-down cards inside, the printed label, and a
+        /// <see cref="BoosterPackView"/> that animates them.
+        /// </summary>
+        public static bool BuildBoosterPack(GameObject root, RarityPaletteDefinition palette, PackShape shape, Mesh bodyMesh, Mesh stripMesh)
         {
             var tracker = new ChangeTracker();
 
-            Transform box = tracker.Child(root.transform, "Box", PrimitiveType.Cube);
-            tracker.Place(box, Vector3.zero, s_packSize);
-            tracker.Material(box.GetComponent<Renderer>(), palette.PackMaterial);
+            // The single-cube pack from before F2d.
+            tracker.RemoveChild(root.transform, "Box");
+
+            Transform body = tracker.Child(root.transform, "Body", null);
+            tracker.Place(body, Vector3.zero, Vector3.one);
+            Renderer bodyRenderer = tracker.MeshPart(body.gameObject, bodyMesh, palette.PackMaterial);
+
+            // The hinge sits on the back seam at the tear line; the strip mesh is in pack space, so it is
+            // offset back by the hinge's position.
+            var hingePosition = new Vector3(0f, shape.TearLineY, shape.CrimpThickness * 0.5f);
+            Transform hinge = tracker.Child(root.transform, "TopStripHinge", null);
+            tracker.Place(hinge, hingePosition, Vector3.one);
+            Transform strip = tracker.Child(hinge, "TopStrip", null);
+            tracker.Place(strip, -hingePosition, Vector3.one);
+            Renderer stripRenderer = tracker.MeshPart(strip.gameObject, stripMesh, palette.PackMaterial);
+
+            Transform cards = tracker.Child(root.transform, "Cards", PrimitiveType.Cube);
+            tracker.Remove<BoxCollider>(cards.gameObject);
+            float cardsCentreY = shape.TearLineY - PackCardsGap - s_cardSize.y * 0.5f;
+            tracker.Place(cards, new Vector3(0f, cardsCentreY, 0f), new Vector3(s_cardSize.x, s_cardSize.y, PackCardsDepth));
+            tracker.Material(cards.GetComponent<Renderer>(), palette.CardFaceMaterial);
+            tracker.Active(cards.gameObject, false);
 
             Transform label = tracker.Child(root.transform, "Label", null);
-            tracker.Place(label, new Vector3(0f, 0f, -s_packSize.z / 2f + PackLabelOffset), Vector3.one * TextScale);
+            tracker.Place(label, new Vector3(0f, 0f, -shape.Thickness / 2f + PackLabelOffset), Vector3.one * TextScale);
             tracker.Text(
                 tracker.Component<TextMeshPro>(label.gameObject),
                 new TextSpec(PackLabelText, PackLabelMaxFontSize, PackLabelMinFontSize, palette.PackLabelColor, FontStyles.Bold, TextAlignmentOptions.Center,
-                    new Vector2(s_packSize.x - TextMargin * 2f, s_packSize.y * PackLabelHeightShare)));
+                    new Vector2(shape.Width - TextMargin * 2f, shape.Height * PackLabelHeightShare)));
+
+            BoosterPackView view = tracker.Component<BoosterPackView>(root);
+            tracker.Reference(view, BoosterPackView.BodyRendererField, bodyRenderer);
+            tracker.Reference(view, BoosterPackView.StripRendererField, stripRenderer);
+            tracker.Reference(view, BoosterPackView.StripHingeField, hinge);
+            tracker.Reference(view, BoosterPackView.CardsField, cards);
 
             return tracker.Changed;
         }
@@ -191,6 +224,40 @@ namespace Game.EditorTools.CardGeneration
                 }
 
                 return component;
+            }
+
+            public void RemoveChild(Transform parent, string name)
+            {
+                Transform existing = parent.Find(name);
+                if (existing != null)
+                {
+                    Object.DestroyImmediate(existing.gameObject);
+                    Changed = true;
+                }
+            }
+
+            /// <summary>A mesh with one material: MeshFilter + MeshRenderer, set only where they differ.</summary>
+            public Renderer MeshPart(GameObject target, Mesh mesh, Material material)
+            {
+                MeshFilter filter = Component<MeshFilter>(target);
+                if (filter.sharedMesh != mesh)
+                {
+                    filter.sharedMesh = mesh;
+                    Changed = true;
+                }
+
+                MeshRenderer renderer = Component<MeshRenderer>(target);
+                Material(renderer, material);
+                return renderer;
+            }
+
+            public void Active(GameObject target, bool isActive)
+            {
+                if (target.activeSelf != isActive)
+                {
+                    target.SetActive(isActive);
+                    Changed = true;
+                }
             }
 
             public void Remove<TComponent>(GameObject target)

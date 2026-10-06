@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Game.Core.Content;
 using Game.Core.Packs;
+using Game.Unity.Cards;
 using Game.Unity.Definitions;
 using UnityEditor;
 using UnityEngine;
@@ -74,12 +75,16 @@ namespace Game.EditorTools.CardGeneration
             string materialsFolder = EnsureFolder(folder + "/Materials");
             string prefabsFolder = EnsureFolder(folder + "/Prefabs");
             string uiFolder = EnsureFolder(folder + "/UI");
+            string meshesFolder = EnsureFolder(folder + "/Meshes");
 
             EnsureTierPrices(options.PriceTablePath, plan.Prices, report);
             EnsureMaterials(materialsFolder, palette, report);
             Dictionary<string, CardDefinition> cards = EnsureCards(cardsFolder, existingCards, plan, report);
             Dictionary<string, CardSetDefinition> sets = EnsureSets(folder, plan, cards, report);
-            EnsurePrefab(prefabsFolder + "/BoosterPack.prefab", "BoosterPack", root => CardPrefabBuilder.BuildBoosterPack(root, palette), report);
+            PackShape packShape = PackShape.Default;
+            Mesh packBody = EnsureMesh(meshesFolder + "/BoosterPackBody.asset", PackMeshBuilder.BuildBody(packShape), report);
+            Mesh packStrip = EnsureMesh(meshesFolder + "/BoosterPackTopStrip.asset", PackMeshBuilder.BuildTopStrip(packShape), report);
+            EnsurePrefab(prefabsFolder + "/BoosterPack.prefab", "BoosterPack", root => CardPrefabBuilder.BuildBoosterPack(root, palette, packShape, packBody, packStrip), report);
             EnsurePrefab(prefabsFolder + "/WorldCard.prefab", "WorldCard", root => CardPrefabBuilder.BuildWorldCard(root, palette), report);
             // Stylesheet first: the UXML references it, and importing the UXML before the USS exists logs an error.
             EnsureTextFile(uiFolder + "/" + CardTemplateFiles.UssFileName, CardTemplateFiles.Uss(palette), report);
@@ -461,6 +466,58 @@ namespace Game.EditorTools.CardGeneration
                     Object.DestroyImmediate(root);
                 }
             }
+        }
+
+        // Updated in place (same asset, same GUID) and only when the geometry differs, so a repeat run
+        // writes nothing. The freshly built mesh is discarded once copied.
+        private static Mesh EnsureMesh(string path, Mesh built, CardGenerationReport report)
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            if (existing == null)
+            {
+                AssetDatabase.CreateAsset(built, path);
+                report.Count(AssetChange.Created);
+                return built;
+            }
+
+            bool isSame = HasSameGeometry(existing, built);
+            if (!isSame)
+            {
+                existing.Clear();
+                existing.vertices = built.vertices;
+                existing.triangles = built.triangles;
+                existing.normals = built.normals;
+                existing.RecalculateBounds();
+                EditorUtility.SetDirty(existing);
+            }
+
+            Object.DestroyImmediate(built);
+            report.Count(isSame ? AssetChange.Unchanged : AssetChange.Updated);
+            return existing;
+        }
+
+        private static bool HasSameGeometry(Mesh a, Mesh b)
+        {
+            Vector3[] verticesA = a.vertices;
+            Vector3[] verticesB = b.vertices;
+            int[] trianglesA = a.triangles;
+            int[] trianglesB = b.triangles;
+            if (verticesA.Length != verticesB.Length || trianglesA.Length != trianglesB.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < verticesA.Length; i++)
+            {
+                if (verticesA[i] != verticesB[i]) return false;
+            }
+
+            for (int i = 0; i < trianglesA.Length; i++)
+            {
+                if (trianglesA[i] != trianglesB[i]) return false;
+            }
+
+            return true;
         }
 
         private static void EnsureTextFile(string path, string content, CardGenerationReport report)
