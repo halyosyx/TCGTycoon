@@ -9,7 +9,7 @@ namespace Game.Unity.UI.PackOpening
         /// <summary>The back flaps start to swing open.</summary>
         WrapperOpen,
 
-        /// <summary>The cards start sliding out.</summary>
+        /// <summary>The wrapper is open: the cards are about to lift out to the reveal.</summary>
         CardsSlide,
     }
 }

@@ -20,9 +20,11 @@ namespace Game.Unity.UI.PackOpening
     /// <item>Zoom (uncommitted): the pack travels from the hand to a centre anchor, turns to show its
     /// back and scales up to nearly fill the screen; the world dims. Esc backs out with nothing committed.</item>
     /// <item>Rip: the click commits the cards once, before anything animates, then the back seam tears
-    /// top to bottom, the flaps open like a book and the cards slide out.</item>
-    /// <item>Reveal: the cards arrive face up as a large stack, swiped away along a downward curve;
-    /// a rare card flashes once (Special Full Art Holo also sparkles), locally and without blocking input.</item>
+    /// top to bottom and the flaps open like a book, showing the real first card face up inside.</item>
+    /// <item>Lift: that card is handed to the UI at exactly its place on screen and zooms to the stack,
+    /// the rest of the pile building under it, while the dimmed world darkens into the reveal backdrop.</item>
+    /// <item>Reveal: the cards are a large face-up stack, swiped away along a downward curve; a rare card
+    /// flashes once as it lands (Special Full Art Holo also sparkles), locally and without blocking input.</item>
     /// <item>Rows: 4 + 3, where any card can be lifted into a large showcase.</item>
     /// </list>
     /// Space skips to the rows (during the zoom it counts as the rip click). Storing at any point after
@@ -123,6 +125,12 @@ namespace Game.Unity.UI.PackOpening
         private bool _isRowPending;
         private float _rowCountdown;
         private float _stackScale;
+        private float _dimAlpha;
+        private bool _isLifting;
+        private bool _isCrossfading;
+        private float _liftElapsed;
+        private float _liftDimStart;
+        private Color _backdropColour;
         private bool _isPointerDown;
         private int _pointerId;
         private float _pointerStartX;
@@ -173,6 +181,10 @@ namespace Game.Unity.UI.PackOpening
             _isInitialized = false;
             _isPromptShown = false;
             _isRowPending = false;
+            _isLifting = false;
+            _isCrossfading = false;
+            _dimAlpha = 0f;
+            _backdropColour = Color.clear;
             _isPointerDown = false;
             _hoveredView = null;
             _returningView = null;
@@ -252,6 +264,10 @@ namespace Game.Unity.UI.PackOpening
 
             TickSparkles(deltaSeconds);
             UpdateShowcaseLayers(deltaSeconds);
+            if (_isLifting)
+            {
+                UpdateLift(deltaSeconds);
+            }
 
             PlayerControls.ScreensActions actions = _controls.Screens;
             if (actions.Dismiss.WasPressedThisFrame())
@@ -411,6 +427,13 @@ namespace Game.Unity.UI.PackOpening
                 return false;
             }
 
+            // The real first card sits face up inside, ready for the moment the back opens.
+            IReadOnlyList<Card> cards = _reveal.Pack.Cards;
+            if (cards.Count > 0)
+            {
+                _openingPack.ShowFirstCard(cards[0]);
+            }
+
             // Core no longer holds the pack, so the hand lets go of it; the screen keeps the wrapper.
             _player.Hands.Clear();
             _tearProgress.StartRip();
@@ -438,10 +461,18 @@ namespace Game.Unity.UI.PackOpening
             _player.SetGameplayInput(true);
         }
 
+        // The back is open and the first card shows inside: hand the cards to the UI where they are.
         private void FinishRip()
         {
             _reveal.FinishRip();
-            EndOpening();
+            ReleaseOpeningControls();
+            if (_reveal.State == PackRevealState.Revealing && TryGetFirstCardOnPanel(out Vector2 centre, out float height))
+            {
+                BeginLift(centre, height);
+                return;
+            }
+
+            DiscardWrapper();
             ShowStack(_reveal.Pack);
         }
 
@@ -455,13 +486,12 @@ namespace Game.Unity.UI.PackOpening
         // The wrapper goes, the dimmer and hints go, and the cursor is freed for the reveal.
         private void EndOpening()
         {
-            if (_openingPack != null)
-            {
-                _openingPack.Discard();
-                _openingPack = null;
-            }
+            DiscardWrapper();
+            ReleaseOpeningControls();
+        }
 
-            SetDim(0f);
+        private void ReleaseOpeningControls()
+        {
             ClearPrompt();
             if (_hud != null)
             {
@@ -471,9 +501,175 @@ namespace Game.Unity.UI.PackOpening
             _player.SetGameplayInput(false);
         }
 
+        private void DiscardWrapper()
+        {
+            if (_openingPack != null)
+            {
+                _openingPack.Discard();
+                _openingPack = null;
+            }
+
+            SetDim(0f);
+        }
+
+        // --- Lift: the cards leave the opened pack for the stack, and the screen darkens ---
+
+        // Where the first card inside the pack is on the panel: its centre and height in panel pixels.
+        private bool TryGetFirstCardOnPanel(out Vector2 centre, out float height)
+        {
+            centre = default;
+            height = 0f;
+            Camera camera = _player.Hands.HeldCamera;
+            if (_openingPack == null || camera == null || _root.panel == null || !_openingPack.TryGetFirstCardEdges(out Vector3 top, out Vector3 bottom))
+            {
+                return false;
+            }
+
+            Vector3 topScreen = camera.WorldToScreenPoint(top);
+            Vector3 bottomScreen = camera.WorldToScreenPoint(bottom);
+            if (topScreen.z <= 0f || bottomScreen.z <= 0f)
+            {
+                return false;
+            }
+
+            // Screen space has its origin at the bottom left; panels at the top left.
+            Vector2 topPanel = RuntimePanelUtils.ScreenToPanel(_root.panel, new Vector2(topScreen.x, Screen.height - topScreen.y));
+            Vector2 bottomPanel = RuntimePanelUtils.ScreenToPanel(_root.panel, new Vector2(bottomScreen.x, Screen.height - bottomScreen.y));
+            centre = (topPanel + bottomPanel) * 0.5f;
+            height = Vector2.Distance(topPanel, bottomPanel);
+            return height > 0f;
+        }
+
+        // The UI stack starts exactly over the first card in the pack and fades in there (the two card
+        // faces cross-fade, so the hand-over can't be seen), then zooms to its place; the other cards start
+        // under it and fan out into the pile on the way.
+        private void BeginLift(Vector2 cardCentre, float cardHeight)
+        {
+            SetVisible(true);
+            Vector2 panel = _root.panel.visualTree.layout.size;
+            float panelWidth = PanelSize(panel.x, FallbackPanelHeight * 16f / 9f);
+            float panelHeight = PanelSize(panel.y, FallbackPanelHeight);
+            _stackScale = _layout.StackScale(panelHeight);
+            var rest = new Vector2(panelWidth * 0.5f, panelHeight * RevealLayout.CardRestCentreShare);
+            Vector2 start = cardCentre - rest;
+            float startScale = cardHeight / CardView.Height;
+
+            IReadOnlyList<Card> cards = _reveal.Pack.Cards;
+            for (int slotIndex = 0; slotIndex < cards.Count; slotIndex++)
+            {
+                CardView view = _cardViewPool.Get();
+                view.Bind(cards[slotIndex], _palette, start, startScale, isCovered: slotIndex > 0);
+                view.PlaceAt(start, startScale, 0f);
+                view.MoveTo(start, startScale, 1f, _pacing.LiftCrossfadeSeconds, isHiddenWhenMoved: false);
+                _cardViews.Add(view);
+            }
+
+            // Later children draw on top, so the first slot is added last.
+            for (int slotIndex = _cardViews.Count - 1; slotIndex >= 0; slotIndex--)
+            {
+                _cardLayer.Add(_cardViews[slotIndex].Root);
+            }
+
+            if (_backdropColour.a <= 0f)
+            {
+                _backdropColour = _root.resolvedStyle.backgroundColor;
+            }
+
+            _isLifting = true;
+            _isCrossfading = true;
+            _liftElapsed = 0f;
+            _liftDimStart = _dimAlpha;
+            ApplyLiftDarkness(0f);
+            UpdateHint();
+        }
+
+        private void UpdateLift(float deltaSeconds)
+        {
+            _liftElapsed += deltaSeconds;
+            if (_isCrossfading)
+            {
+                if (_liftElapsed >= _pacing.LiftCrossfadeSeconds)
+                {
+                    StartLiftZoom();
+                }
+
+                return;
+            }
+
+            float progress = _liftElapsed / _pacing.LiftSeconds;
+            ApplyLiftDarkness(progress);
+            if (progress >= 1f && (_cardViews.Count == 0 || !_cardViews[0].IsAnimating))
+            {
+                EndLift(isRevealingTopCard: true);
+            }
+        }
+
+        // The reveal's cards now cover the ones in the pack completely: the pack lets them go, and the
+        // cards zoom to the stack.
+        private void StartLiftZoom()
+        {
+            _isCrossfading = false;
+            _liftElapsed = 0f;
+            if (_openingPack != null)
+            {
+                _openingPack.HideCards();
+            }
+
+            for (int slotIndex = 0; slotIndex < _cardViews.Count; slotIndex++)
+            {
+                _cardViews[slotIndex].MoveTo(StackPosition(slotIndex), _stackScale, 1f, _pacing.LiftSeconds, isHiddenWhenMoved: false);
+            }
+        }
+
+        // The world dimmer fades out as the reveal backdrop fades in, so the screen darkens smoothly; the
+        // hint and Store button fade in with it.
+        private void ApplyLiftDarkness(float progress)
+        {
+            RevealBackdrop.Blend(_liftDimStart, _backdropColour.a, progress, out float dim, out float backdrop);
+            SetDim(dim);
+            Color colour = _backdropColour;
+            colour.a = backdrop;
+            _root.style.backgroundColor = colour;
+            float footer = Mathf.Clamp01(progress);
+            _hint.style.opacity = footer;
+            _storeButton.style.opacity = footer;
+        }
+
+        // The lift is over (landed, skipped or stored): the wrapper goes and the backdrop is its own again.
+        private void EndLift(bool isRevealingTopCard)
+        {
+            if (!_isLifting)
+            {
+                return;
+            }
+
+            _isLifting = false;
+            _isCrossfading = false;
+            DiscardWrapper();
+            _root.style.backgroundColor = StyleKeyword.Null;
+            _hint.style.opacity = StyleKeyword.Null;
+            _storeButton.style.opacity = StyleKeyword.Null;
+            if (isRevealingTopCard)
+            {
+                // The first card is revealed as it lands: its tier reaction plays now.
+                RevealTopCard();
+            }
+        }
+
+        // A click during the lift lands the cards at once rather than swiping the first one away.
+        private void FinishLift()
+        {
+            for (int slotIndex = 0; slotIndex < _cardViews.Count; slotIndex++)
+            {
+                _cardViews[slotIndex].PlaceAt(StackPosition(slotIndex), _stackScale, 1f);
+            }
+
+            EndLift(isRevealingTopCard: true);
+        }
+
         private void ApplyOpeningPose()
         {
-            PackTearPose pose = PackTearMotion.Evaluate(_tearProgress.Zoom, _tearProgress.Seam, _tearProgress.Open, _tearProgress.Slide, _tearProgress.Dim, _tearPacing);
+            PackTearPose pose = PackTearMotion.Evaluate(_tearProgress.Zoom, _tearProgress.Seam, _tearProgress.Open, _tearProgress.Dim, _tearPacing);
             if (_openingPack != null)
             {
                 _openingPack.ApplyPose(pose);
@@ -494,6 +690,7 @@ namespace Game.Unity.UI.PackOpening
 
         private void SetDim(float alpha)
         {
+            _dimAlpha = alpha;
             if (_worldDim == null)
             {
                 return;
@@ -558,6 +755,7 @@ namespace Game.Unity.UI.PackOpening
                     SkipToRow();
                     break;
                 case PackRevealState.Revealing:
+                    EndLift(isRevealingTopCard: false);
                     ShowRow(isAnimated: false);
                     break;
             }
@@ -629,6 +827,7 @@ namespace Game.Unity.UI.PackOpening
                     break;
             }
 
+            EndLift(isRevealingTopCard: false);
             _reveal.Store();
             _isRowPending = false;
             _hoveredView = null;
@@ -672,6 +871,12 @@ namespace Game.Unity.UI.PackOpening
         {
             if (_reveal.State != PackRevealState.Revealing)
             {
+                return;
+            }
+
+            if (_isLifting)
+            {
+                FinishLift();
                 return;
             }
 
@@ -825,6 +1030,9 @@ namespace Game.Unity.UI.PackOpening
             _pointerStartX = evt.position.x;
             _pointerDeltaX = 0f;
             _root.CapturePointer(evt.pointerId);
+
+            // Taking hold of the top card shows the real card underneath, like lifting a real one.
+            SetNextCardPeeked(true);
         }
 
         private void OnPointerMove(PointerMoveEvent evt)
@@ -860,8 +1068,9 @@ namespace Game.Unity.UI.PackOpening
             }
             else if (dragged != null)
             {
-                // A short drag that isn't a swipe puts the card back.
+                // A short drag that isn't a swipe puts the card back, and the one underneath is covered again.
                 dragged.SetDragOffset(0f);
+                SetNextCardPeeked(false);
             }
         }
 
@@ -874,7 +1083,28 @@ namespace Game.Unity.UI.PackOpening
                 if (dragged != null)
                 {
                     dragged.SetDragOffset(0f);
+                    SetNextCardPeeked(false);
                 }
+            }
+        }
+
+        // The card directly under the top one: face up while the top card is held, a plain back otherwise.
+        // Its rarity reaction still waits until it becomes the top card.
+        private void SetNextCardPeeked(bool isPeeked)
+        {
+            if (_reveal.State != PackRevealState.Revealing || _isLifting || _reveal.RevealedCount < 1 || !_reveal.HasUnrevealedCards)
+            {
+                return;
+            }
+
+            CardView next = _cardViews[_reveal.RevealedCount];
+            if (isPeeked)
+            {
+                next.Uncover();
+            }
+            else
+            {
+                next.Cover();
             }
         }
 

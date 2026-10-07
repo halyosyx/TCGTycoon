@@ -31,6 +31,10 @@ namespace Game.Unity.UI.PackOpening
         private const float FaceCornerRadius = 12f;
         private const float CoverBorderWidth = 6f;
 
+        // The flash rises over this share of its duration, then fades over the rest, so it reads as a glow
+        // rather than a blink.
+        private const float FlashRiseShare = 0.2f;
+
         // The light pass over the face is gentler than the halo, so the card stays readable mid-flash.
         private const float FaceFlashShare = 0.6f;
 
@@ -148,8 +152,11 @@ namespace Game.Unity.UI.PackOpening
             Apply();
         }
 
-        /// <summary>The card has reached the top of the stack: face up at once, no flip.</summary>
+        /// <summary>The card has reached the top of the stack (or is being peeked at under it): face up at once, no flip.</summary>
         public void Uncover() => _cover.style.display = DisplayStyle.None;
+
+        /// <summary>Back to a plain back, waiting lower in the stack.</summary>
+        public void Cover() => _cover.style.display = DisplayStyle.Flex;
 
         /// <summary>
         /// The card's rarity reaction, once: a quick flash over the face and a halo in the tier colour that
@@ -322,12 +329,15 @@ namespace Game.Unity.UI.PackOpening
             _root.style.rotate = new Rotate(_rotation);
             _root.style.opacity = _opacity;
 
-            // One shot: the flash starts at its peak and fades out over its duration, then stays at zero.
+            // One shot: a short smooth rise to the peak, a slow smooth fade, then it stays at zero.
             float flash = 0f;
             if (_flashPeak > 0f && _flashSeconds > 0f && _flashElapsed < _flashSeconds)
             {
-                float remaining = 1f - _flashElapsed / _flashSeconds;
-                flash = _flashPeak * remaining * remaining;
+                float t = _flashElapsed / _flashSeconds;
+                float envelope = t < FlashRiseShare
+                    ? Mathf.SmoothStep(0f, 1f, t / FlashRiseShare)
+                    : Mathf.SmoothStep(1f, 0f, (t - FlashRiseShare) / (1f - FlashRiseShare));
+                flash = _flashPeak * envelope;
             }
 
             _flash.style.opacity = flash * FaceFlashShare;

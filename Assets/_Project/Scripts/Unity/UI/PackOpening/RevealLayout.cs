@@ -12,6 +12,12 @@ namespace Game.Unity.UI.PackOpening
     [Serializable]
     public sealed class RevealLayout
     {
+        /// <summary>
+        /// Where a card's rest centre sits down the panel, as a share of its height: `.card-view` in
+        /// PackOpening.uss is centred at 50% across and 46% down. Card positions are offsets from there.
+        /// </summary>
+        public const float CardRestCentreShare = 0.46f;
+
         [Header("Swipe sequence")]
         [SerializeField, Range(0.3f, 0.95f), Tooltip("Height of the card being swiped, as a share of the screen height. Keep it a little below the zoomed pack.")]
         private float _stackCardHeightShare = 0.72f;

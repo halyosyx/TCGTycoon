@@ -5,7 +5,8 @@ namespace Game.Unity.Cards
 {
     /// <summary>
     /// The generated booster pack model's moving parts for the back-seam opening: two back flaps, each on
-    /// a hinge at its side edge; a dark tear line that grows down the seam; and the card stack inside.
+    /// a hinge at its side edge; a dark tear line that grows down the seam; and the card stack inside,
+    /// which never moves (the first card's face is shown on top of it, <see cref="PlaceRevealCard"/>).
     /// Shows a pose it is given; it decides nothing. Sealed is the rest state, which pooled packs return to.
     /// </summary>
     public sealed class BoosterPackView : MonoBehaviour
@@ -35,7 +36,9 @@ namespace Game.Unity.Cards
         [SerializeField, Tooltip("The card stack inside the body, hidden until the flaps open.")]
         private Transform _cards;
 
-        private Vector3 _cardsRestPosition;
+        // The first card's face sits just proud of the stack, turned to face the back (+Z).
+        private const float RevealCardLift = 0.0002f;
+
         private bool _isReady;
 
         /// <summary>The wrapper's renderers (body and flaps), which take the set colour; not the cards, seam or label.</summary>
@@ -53,19 +56,41 @@ namespace Game.Unity.Cards
             if (!_isReady)
             {
                 Debug.LogError($"{name}: {nameof(BoosterPackView)} is missing a part; regenerate it with TCG > Generate Card Data.", this);
+            }
+        }
+
+        /// <summary>
+        /// Puts <paramref name="card"/> (a world card, a child of this pack) on top of the card stack, its face
+        /// turned to the back so it is the first thing seen when the flaps open.
+        /// </summary>
+        public void PlaceRevealCard(Transform card)
+        {
+            if (!_isReady)
+            {
                 return;
             }
 
-            _cardsRestPosition = _cards.localPosition;
+            Vector3 stackPosition = _cards.localPosition;
+            card.localPosition = new Vector3(stackPosition.x, stackPosition.y, stackPosition.z + _cards.localScale.z * 0.5f + RevealCardLift);
+            card.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            card.localScale = Vector3.one;
+        }
+
+        /// <summary>The cards have lifted out to the reveal: the opened wrapper is left empty.</summary>
+        public void HideCards()
+        {
+            if (_isReady && _cards.gameObject.activeSelf)
+            {
+                _cards.gameObject.SetActive(false);
+            }
         }
 
         /// <summary>Back to a sealed pack: flaps shut, seam whole, cards inside and hidden.</summary>
-        public void ResetSealed() => ShowOpen(0f, 0f, 0f, areCardsVisible: false);
+        public void ResetSealed() => ShowOpen(0f, 0f, areCardsVisible: false);
 
         /// <param name="seamTear">How far down the back seam has torn, 0 to 1.</param>
         /// <param name="flapAngle">Degrees each flap has opened outward (toward the back) about its side edge.</param>
-        /// <param name="cardsSlide">Metres the card stack has slid up out of the opened wrapper.</param>
-        public void ShowOpen(float seamTear, float flapAngle, float cardsSlide, bool areCardsVisible)
+        public void ShowOpen(float seamTear, float flapAngle, bool areCardsVisible)
         {
             if (!_isReady)
             {
@@ -86,7 +111,6 @@ namespace Game.Unity.Cards
 
             _seamTear.localScale = new Vector3(1f, Mathf.Max(seamTear, 0.0001f), 1f);
 
-            _cards.localPosition = _cardsRestPosition + Vector3.up * cardsSlide;
             if (_cards.gameObject.activeSelf != areCardsVisible)
             {
                 _cards.gameObject.SetActive(areCardsVisible);

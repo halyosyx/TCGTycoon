@@ -6,15 +6,16 @@ namespace Game.Unity.UI.PackOpening
     /// The opening's timeline, advanced by time only. First the zoom: the pack travels to the centre
     /// anchor (<see cref="Zoom"/> 0 to 1) and settles; backing out runs it in reverse
     /// (<see cref="ZoomOut"/>). Nothing here commits: the screen commits on the rip click, then calls
-    /// <see cref="StartRip"/>, which plays the seam tearing, the wrapper opening and the cards sliding out,
-    /// then a short hand-off before <see cref="IsComplete"/>. Plain C#: the screen feeds it time.
+    /// <see cref="StartRip"/>, which plays the seam tearing and the wrapper opening (the first card shows in
+    /// place), then a short hold before <see cref="IsComplete"/>, when the screen lifts the cards out. Plain
+    /// C#: the screen feeds it time.
     /// </summary>
     public sealed class PackTearProgress
     {
         private readonly PackTearPacing _pacing;
         private float _handOffElapsed;
         private bool _isOpenCued;
-        private bool _isSlideCued;
+        private bool _isLiftCued;
 
         public PackTearProgress(PackTearPacing pacing)
         {
@@ -46,10 +47,7 @@ namespace Game.Unity.UI.PackOpening
         /// <summary>How far the back flaps have opened, 0 to 1.</summary>
         public float Open { get; private set; }
 
-        /// <summary>How far the cards have slid out, 0 to 1.</summary>
-        public float Slide { get; private set; }
-
-        public bool IsComplete => IsRipping && Slide >= 1f && _handOffElapsed >= _pacing.HandOffSeconds;
+        public bool IsComplete => IsRipping && Open >= 1f && _handOffElapsed >= _pacing.HandOffSeconds;
 
         /// <summary>Starts over for the next pack: in the hand, zooming in.</summary>
         public void Reset()
@@ -60,10 +58,9 @@ namespace Game.Unity.UI.PackOpening
             IsRipping = false;
             Seam = 0f;
             Open = 0f;
-            Slide = 0f;
             _handOffElapsed = 0f;
             _isOpenCued = false;
-            _isSlideCued = false;
+            _isLiftCued = false;
         }
 
         /// <summary>Backs out: the zoom runs back to the hand from where it is. Ignored once ripping.</summary>
@@ -120,13 +117,8 @@ namespace Game.Unity.UI.PackOpening
                 return;
             }
 
-            Cue(ref _isSlideCued, PackTearCue.CardsSlide);
-            Slide = Advance(Slide, _pacing.CardsSlideSeconds, ref left);
-            if (Slide < 1f)
-            {
-                return;
-            }
-
+            // The wrapper is open and the first card shows: the cards are about to lift out.
+            Cue(ref _isLiftCued, PackTearCue.CardsSlide);
             _handOffElapsed += left;
         }
 

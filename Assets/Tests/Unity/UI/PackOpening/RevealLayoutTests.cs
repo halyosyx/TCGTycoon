@@ -86,7 +86,7 @@ namespace Game.Unity.Tests.UI.PackOpening
 
         // The cards are centred 46% down the panel (.card-view in PackOpening.uss); the footer (hint and
         // Store button) takes the bottom of the panel.
-        private const float CardCentreShare = 0.46f;
+        private const float CardCentreShare = RevealLayout.CardRestCentreShare;
         private const float FooterHeight = 140f;
         private const float EdgeMargin = 24f;
 

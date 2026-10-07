@@ -20,8 +20,8 @@ namespace Game.Unity.UI.PackOpening
         [SerializeField, Range(0f, 1f), Tooltip("Peak opacity of the flash. 0 = no reaction. Keep it subtle.")]
         private float _flashIntensity;
 
-        [SerializeField, Range(0.05f, 0.5f), Tooltip("Seconds the flash takes to fade. One shot: it never repeats.")]
-        private float _flashSeconds = 0.2f;
+        [SerializeField, Range(0.05f, 1f), Tooltip("Seconds the flash lasts: a short rise, then a slow fade. One shot: it never repeats.")]
+        private float _flashSeconds = 0.45f;
 
         [SerializeField, Min(0f), Tooltip("How far the tier-coloured halo reaches beyond the card edge, in card pixels.")]
         private float _haloSpread;
@@ -90,10 +90,10 @@ namespace Game.Unity.UI.PackOpening
         {
             return new[]
             {
-                new TierTell(RarityTier.Common, 0f, 0.2f, 0f, 0),
-                new TierTell(RarityTier.Uncommon, 0f, 0.2f, 0f, 0),
-                new TierTell(RarityTier.HoloFullArt, 0.25f, 0.18f, 12f, 0),
-                new TierTell(RarityTier.SpecialFullArtHolo, 0.35f, 0.22f, 16f, 14),
+                new TierTell(RarityTier.Common, 0f, 0.45f, 0f, 0),
+                new TierTell(RarityTier.Uncommon, 0f, 0.45f, 0f, 0),
+                new TierTell(RarityTier.HoloFullArt, 0.25f, 0.45f, 12f, 0),
+                new TierTell(RarityTier.SpecialFullArtHolo, 0.35f, 0.55f, 16f, 14),
             };
         }
     }

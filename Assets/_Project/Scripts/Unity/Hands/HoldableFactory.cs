@@ -26,6 +26,9 @@ namespace Game.Unity.Hands
         [SerializeField, Tooltip("The world card model (Data/Generated/Prefabs/WorldCard), showing the top held card.")]
         private GameObject _cardModel;
 
+        [SerializeField, Min(0.01f), Tooltip("Height of a card in metres (88 mm), matching the card model; used to line the reveal up with the first card in an opened pack.")]
+        private float _cardHeight = 0.088f;
+
         [SerializeField, Tooltip("Size of a pack's click box (x, y, z) in metres, matching the pack model (PackShape.Default).")]
         private Vector3 _packSize = new Vector3(0.07f, 0.12f, 0.007f);
 
@@ -90,6 +93,8 @@ namespace Game.Unity.Hands
         public LayerMask Surfaces => _surfaces;
 
         public Vector3 PackSize => _packSize;
+
+        public float CardHeight => _cardHeight;
 
         public Quaternion PackHeldRotation => Quaternion.Euler(_packHeldRotation);
 
@@ -216,7 +221,15 @@ namespace Game.Unity.Hands
                 Debug.LogError($"{name}: the Pack Model has no {nameof(BoosterPackView)}; regenerate it with TCG > Generate Card Data.", this);
             }
 
-            pack.Initialize(this, box, new RendererTint(RendererTint.PackMeshes(model)), view);
+            // The first card, face up on the stack inside: what the player sees when the back opens.
+            GameObject firstCardModel = Instantiate(_cardModel, model.transform);
+            foreach (Collider cardCollider in firstCardModel.GetComponentsInChildren<Collider>(true))
+            {
+                cardCollider.enabled = false;
+            }
+
+            firstCardModel.TryGetComponent(out WorldCardView firstCard);
+            pack.Initialize(this, box, new RendererTint(RendererTint.PackMeshes(model)), view, firstCard);
             return pack;
         }
 

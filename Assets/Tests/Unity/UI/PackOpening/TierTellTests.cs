@@ -52,13 +52,13 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [Test]
-        public void Defaults_EveryFlashIsOneQuickShot()
+        public void Defaults_EveryFlashIsOneShotUnderASecond()
         {
             foreach (TierTell tell in TierTell.CreateDefaults())
             {
                 if (TierTell.KindOf(tell) != TierTellKind.None)
                 {
-                    Assert.That(tell.FlashSeconds, Is.GreaterThan(0f).And.LessThanOrEqualTo(0.3f), tell.Tier.ToString());
+                    Assert.That(tell.FlashSeconds, Is.GreaterThan(0f).And.LessThan(1f), tell.Tier.ToString());
                 }
             }
         }

@@ -49,6 +49,9 @@ namespace Game.Unity.Hands
         /// <summary>Field of view of the camera that draws held items (and a pack being opened).</summary>
         public float HeldFieldOfView => _heldFieldOfView;
 
+        /// <summary>The camera that draws held items (and a pack being opened), for projecting them onto the screen.</summary>
+        public Camera HeldCamera => _heldCamera;
+
         private void Awake()
         {
             if (_socket == null || _view == null)

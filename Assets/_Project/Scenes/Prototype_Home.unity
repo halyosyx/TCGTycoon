@@ -5367,6 +5367,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Unity::Game.Unity.Hands.HoldableFactory
   _packModel: {fileID: 7266014729542792536, guid: abec44f2b8be56243b0d35defa3f727e, type: 3}
   _cardModel: {fileID: 7209709483039496075, guid: 4823a15dd57577244902d49213ca40e9, type: 3}
+  _cardHeight: 0.088
   _packSize: {x: 0.07, y: 0.12, z: 0.007}
   _interactableLayer: 6
   _surfaces:
@@ -9901,6 +9902,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Unity::Game.Unity.UI.PackOpening.PackOpeningScreen
   _cardTemplate: {fileID: 9197481963319205126, guid: d367a78940df2c54d98013b52f9de4db, type: 3}
   _pacing:
+    _liftCrossfadeSeconds: 0.1
+    _liftSeconds: 0.5
     _swipeSeconds: 0.28
     _rowLayoutSeconds: 0.35
     _lastCardHoldSeconds: 1.2
@@ -9924,22 +9927,22 @@ MonoBehaviour:
   _tierTells:
   - _tier: 0
     _flashIntensity: 0
-    _flashSeconds: 0.2
+    _flashSeconds: 0.45
     _haloSpread: 0
     _sparkleCount: 0
   - _tier: 1
     _flashIntensity: 0
-    _flashSeconds: 0.2
+    _flashSeconds: 0.45
     _haloSpread: 0
     _sparkleCount: 0
   - _tier: 7
     _flashIntensity: 0.25
-    _flashSeconds: 0.18
+    _flashSeconds: 0.45
     _haloSpread: 12
     _sparkleCount: 0
   - _tier: 8
     _flashIntensity: 0.35
-    _flashSeconds: 0.22
+    _flashSeconds: 0.55
     _haloSpread: 16
     _sparkleCount: 14
   _sparkles:
@@ -9959,8 +9962,6 @@ MonoBehaviour:
     _seamTearSeconds: 0.3
     _openSeconds: 0.35
     _openAngle: 150
-    _cardsSlideDistance: 0.08
-    _cardsSlideSeconds: 0.3
     _handOffSeconds: 0.1
   _tearSounds:
     _seamTear: {fileID: 8300000, guid: b5c69cc23ace5664392dcdaada30c121, type: 3}

@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace Game.Unity.Tests.UI.PackOpening
 {
-    /// <summary>The opening timeline (zoom, then rip: seam, open, slide, hand-off) and the pose it gives.</summary>
+    /// <summary>The opening timeline (zoom, then rip: seam, open, hold) and the pose it gives. The cards don't slide in the world: the screen lifts them out in the UI.</summary>
     public sealed class PackTearProgressTests
     {
         private const float Epsilon = 0.0001f;
@@ -72,7 +72,7 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [Test]
-        public void Tick_Ripping_SeamThenOpenThenSlideThenComplete()
+        public void Tick_Ripping_SeamThenOpenThenHoldThenComplete()
         {
             var pacing = new PackTearPacing();
             var progress = new PackTearProgress(pacing);
@@ -86,12 +86,10 @@ namespace Game.Unity.Tests.UI.PackOpening
             progress.Tick(pacing.SeamTearSeconds * 0.5f + pacing.OpenSeconds * 0.5f);
             Assert.That(progress.Seam, Is.EqualTo(1f));
             Assert.That(progress.Open, Is.EqualTo(0.5f).Within(Epsilon));
-            Assert.That(progress.Slide, Is.EqualTo(0f));
 
-            progress.Tick(pacing.OpenSeconds * 0.5f + pacing.CardsSlideSeconds);
-            Assert.That(progress.Open, Is.EqualTo(1f));
-            Assert.That(progress.Slide, Is.EqualTo(1f).Within(Epsilon));
-            Assert.That(progress.IsComplete, Is.False, "The hand-off pause still runs.");
+            progress.Tick(pacing.OpenSeconds * 0.5f);
+            Assert.That(progress.Open, Is.EqualTo(1f).Within(Epsilon));
+            Assert.That(progress.IsComplete, Is.False, "The opened pack holds before the cards lift.");
 
             progress.Tick(pacing.HandOffSeconds + Epsilon);
             Assert.That(progress.IsComplete, Is.True);
@@ -170,13 +168,12 @@ namespace Game.Unity.Tests.UI.PackOpening
         [Test]
         public void Evaluate_InHand_NothingMovedNothingShown()
         {
-            PackTearPose pose = PackTearMotion.Evaluate(0f, 0f, 0f, 0f, 0f, new PackTearPacing());
+            PackTearPose pose = PackTearMotion.Evaluate(0f, 0f, 0f, 0f, new PackTearPacing());
 
             Assert.That(pose.ZoomBlend, Is.EqualTo(0f));
             Assert.That(pose.SeamTear, Is.EqualTo(0f));
             Assert.That(pose.FlapAngle, Is.EqualTo(0f));
             Assert.That(pose.AreCardsVisible, Is.False);
-            Assert.That(pose.CardsSlide, Is.EqualTo(0f));
             Assert.That(pose.DimAlpha, Is.EqualTo(0f));
         }
 
@@ -185,7 +182,7 @@ namespace Game.Unity.Tests.UI.PackOpening
         {
             var pacing = new PackTearPacing();
 
-            PackTearPose pose = PackTearMotion.Evaluate(1f, 0f, 0f, 0f, 1f, pacing);
+            PackTearPose pose = PackTearMotion.Evaluate(1f, 0f, 0f, 1f, pacing);
 
             Assert.That(pose.ZoomBlend, Is.EqualTo(1f).Within(Epsilon));
             Assert.That(pose.DimAlpha, Is.EqualTo(pacing.DimAlpha).Within(Epsilon));
@@ -193,17 +190,17 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [Test]
-        public void Evaluate_Opened_FlapsAtTheOpenAngleCardsShown()
+        public void Evaluate_Opened_FlapsAtTheOpenAngleCardsShownInPlace()
         {
             var pacing = new PackTearPacing();
 
-            PackTearPose half = PackTearMotion.Evaluate(1f, 1f, 0.5f, 0f, 1f, pacing);
-            PackTearPose open = PackTearMotion.Evaluate(1f, 1f, 1f, 1f, 1f, pacing);
+            PackTearPose half = PackTearMotion.Evaluate(1f, 1f, 0.5f, 1f, pacing);
+            PackTearPose open = PackTearMotion.Evaluate(1f, 1f, 1f, 1f, pacing);
 
             Assert.That(half.FlapAngle, Is.GreaterThan(0f).And.LessThan(pacing.OpenAngle));
+            Assert.That(half.AreCardsVisible, Is.True, "The first card shows as soon as the flaps part.");
             Assert.That(open.FlapAngle, Is.EqualTo(pacing.OpenAngle).Within(Epsilon));
             Assert.That(open.AreCardsVisible, Is.True);
-            Assert.That(open.CardsSlide, Is.EqualTo(pacing.CardsSlideDistance).Within(Epsilon));
             Assert.That(open.SeamTear, Is.EqualTo(1f));
         }
 
@@ -215,7 +212,7 @@ namespace Game.Unity.Tests.UI.PackOpening
 
             for (int step = 0; step <= 40; step++)
             {
-                float angle = PackTearMotion.Evaluate(1f, 1f, step / 40f, 0f, 1f, pacing).FlapAngle;
+                float angle = PackTearMotion.Evaluate(1f, 1f, step / 40f, 1f, pacing).FlapAngle;
                 Assert.That(angle, Is.GreaterThanOrEqualTo(previous), $"Step {step}");
                 previous = angle;
             }

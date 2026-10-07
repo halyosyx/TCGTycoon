@@ -6,8 +6,9 @@ namespace Game.Unity.UI.PackOpening
     /// <summary>
     /// How opening a pack feels, tuned in the Inspector. The pack zooms from the hand to the centre of the
     /// view with its back turned to the player (uncommitted), then the rip: the back seam tears top to
-    /// bottom, the two back flaps open outward like a book and the cards slide out. Plain durations: there
-    /// is no drag.
+    /// bottom and the two back flaps open outward like a book, showing the first card in place. The cards
+    /// never move in the world: the screen lifts them out to the reveal (<see cref="RevealPacing.LiftSeconds"/>).
+    /// Plain durations: there is no drag.
     /// </summary>
     [Serializable]
     public sealed class PackTearPacing
@@ -41,14 +42,8 @@ namespace Game.Unity.UI.PackOpening
         [SerializeField, Range(0f, 180f), Tooltip("Degrees each back flap opens to, about its side edge.")]
         private float _openAngle = 150f;
 
-        [SerializeField, Min(0f), Tooltip("How far the card stack slides out of the opened wrapper, in metres.")]
-        private float _cardsSlideDistance = 0.08f;
-
-        [SerializeField, Min(0.01f), Tooltip("Seconds for the cards to slide out.")]
-        private float _cardsSlideSeconds = 0.3f;
-
-        [SerializeField, Min(0f), Tooltip("Seconds the slid-out cards stay before the reveal takes over.")]
-        private float _handOffSeconds = 0.1f;
+        [SerializeField, Min(0f), Tooltip("Seconds the opened pack holds, first card showing, before the cards lift out to the reveal.")]
+        private float _handOffSeconds = 0.15f;
 
         public float ZoomSeconds => _zoomSeconds;
 
@@ -67,10 +62,6 @@ namespace Game.Unity.UI.PackOpening
         public float OpenSeconds => _openSeconds;
 
         public float OpenAngle => _openAngle;
-
-        public float CardsSlideDistance => _cardsSlideDistance;
-
-        public float CardsSlideSeconds => _cardsSlideSeconds;
 
         public float HandOffSeconds => _handOffSeconds;
 

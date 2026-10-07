@@ -3,13 +3,12 @@ namespace Game.Unity.UI.PackOpening
     /// <summary>Where the pack, its flaps and its cards are at one moment of the opening (<see cref="PackTearMotion"/>).</summary>
     public readonly struct PackTearPose
     {
-        public PackTearPose(float zoomBlend, float seamTear, float flapAngle, bool areCardsVisible, float cardsSlide, float dimAlpha)
+        public PackTearPose(float zoomBlend, float seamTear, float flapAngle, bool areCardsVisible, float dimAlpha)
         {
             ZoomBlend = zoomBlend;
             SeamTear = seamTear;
             FlapAngle = flapAngle;
             AreCardsVisible = areCardsVisible;
-            CardsSlide = cardsSlide;
             DimAlpha = dimAlpha;
         }
 
@@ -22,10 +21,8 @@ namespace Game.Unity.UI.PackOpening
         /// <summary>Degrees each back flap has opened about its side edge.</summary>
         public float FlapAngle { get; }
 
+        /// <summary>The cards (the first one face up) show inside the pack once the flaps part.</summary>
         public bool AreCardsVisible { get; }
-
-        /// <summary>Metres the card stack has slid out.</summary>
-        public float CardsSlide { get; }
 
         /// <summary>Opacity of the dark layer over the world.</summary>
         public float DimAlpha { get; }

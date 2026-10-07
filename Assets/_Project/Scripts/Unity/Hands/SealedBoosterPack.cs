@@ -1,3 +1,4 @@
+using Game.Core.Content;
 using Game.Core.Inventory;
 using Game.Unity.Cards;
 using Game.Unity.Interaction;
@@ -24,6 +25,9 @@ namespace Game.Unity.Hands
         private BoxCollider _collider;
         private RendererTint _tint;
         private BoosterPackView _view;
+        private WorldCardView _firstCard;
+        private bool _hasFirstCard;
+        private bool _areCardsHidden;
         private Transform _socket;
         private int _heldLayer;
         private Vector3 _zoomFromPosition;
@@ -52,12 +56,20 @@ namespace Game.Unity.Hands
 
         public string PromptObject => _noun;
 
-        public void Initialize(HoldableFactory factory, BoxCollider box, RendererTint tint, BoosterPackView view)
+        /// <param name="firstCard">A world card inside the model, shown face up on the stack once the rip commits.</param>
+        public void Initialize(HoldableFactory factory, BoxCollider box, RendererTint tint, BoosterPackView view, WorldCardView firstCard)
         {
             _factory = factory;
             _collider = box;
             _tint = tint;
             _view = view;
+            _firstCard = firstCard;
+            if (_firstCard != null && _view != null)
+            {
+                _view.PlaceRevealCard(_firstCard.transform);
+            }
+
+            ClearFirstCard();
         }
 
         /// <summary>Gives a pooled pack its product. It starts out of the world until held or placed.</summary>
@@ -69,6 +81,7 @@ namespace Game.Unity.Hands
             _isHeld = false;
             _tint.Set(_colour);
             transform.localScale = Vector3.one;
+            ClearFirstCard();
             if (_view != null)
             {
                 _view.ResetSealed();
@@ -141,15 +154,56 @@ namespace Game.Unity.Hands
             transform.localPosition = Vector3.Lerp(_zoomFromPosition, _anchorPosition, pose.ZoomBlend);
             transform.localRotation = Quaternion.Slerp(_zoomFromRotation, _anchorRotation, pose.ZoomBlend);
             transform.localScale = Vector3.one * Mathf.Lerp(1f, _anchorScale, pose.ZoomBlend);
+            bool areCardsVisible = pose.AreCardsVisible && !_areCardsHidden;
             if (_view != null)
             {
-                _view.ShowOpen(pose.SeamTear, pose.FlapAngle, pose.CardsSlide, pose.AreCardsVisible);
+                _view.ShowOpen(pose.SeamTear, pose.FlapAngle, areCardsVisible);
+            }
+
+            SetFirstCardVisible(areCardsVisible && _hasFirstCard);
+        }
+
+        public void ShowFirstCard(Card card)
+        {
+            if (_firstCard == null || card == null)
+            {
+                return;
+            }
+
+            _firstCard.Show(card, _factory.Palette);
+            _hasFirstCard = true;
+        }
+
+        public bool TryGetFirstCardEdges(out Vector3 topCentre, out Vector3 bottomCentre)
+        {
+            if (!_hasFirstCard || _firstCard == null)
+            {
+                topCentre = default;
+                bottomCentre = default;
+                return false;
+            }
+
+            float halfHeight = _factory.CardHeight * 0.5f;
+            Transform card = _firstCard.transform;
+            topCentre = card.TransformPoint(new Vector3(0f, halfHeight, 0f));
+            bottomCentre = card.TransformPoint(new Vector3(0f, -halfHeight, 0f));
+            return true;
+        }
+
+        public void HideCards()
+        {
+            _areCardsHidden = true;
+            SetFirstCardVisible(false);
+            if (_view != null)
+            {
+                _view.HideCards();
             }
         }
 
         public void ReturnToHand()
         {
             transform.localScale = Vector3.one;
+            ClearFirstCard();
             if (_view != null)
             {
                 _view.ResetSealed();
@@ -162,12 +216,28 @@ namespace Game.Unity.Hands
         {
             _isHeld = false;
             transform.localScale = Vector3.one;
+            ClearFirstCard();
             if (_view != null)
             {
                 _view.ResetSealed();
             }
 
             _factory.ReleasePack(this);
+        }
+
+        private void ClearFirstCard()
+        {
+            _hasFirstCard = false;
+            _areCardsHidden = false;
+            SetFirstCardVisible(false);
+        }
+
+        private void SetFirstCardVisible(bool isVisible)
+        {
+            if (_firstCard != null && _firstCard.gameObject.activeSelf != isVisible)
+            {
+                _firstCard.gameObject.SetActive(isVisible);
+            }
         }
 
         /// <summary>
