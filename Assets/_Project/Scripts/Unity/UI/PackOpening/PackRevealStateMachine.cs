@@ -4,10 +4,11 @@ using Game.Core.Packs;
 namespace Game.Unity.UI.PackOpening
 {
     /// <summary>
-    /// Presentation state of one pack opening: Idle → Tearing → Revealing → Row ⇄ Showcase, and back to
-    /// Idle. The pack's cards are committed to the inventory once, when the tear starts
-    /// (<see cref="TryBeginTear"/>), before anything is animated; every later transition is display
-    /// only, and <see cref="Store"/> is legal at any point. Cards are revealed in slot order.
+    /// Presentation state of one pack opening: Idle → Zooming → Ripping → Revealing → Row ⇄ Showcase, and
+    /// back to Idle. The zoom commits nothing (<see cref="CancelZoom"/> backs out). The pack's cards are
+    /// committed to the inventory once, by the rip click (<see cref="TryBeginRip"/>), before anything of
+    /// the rip is animated; every later transition is display only, and <see cref="Store"/> is legal at
+    /// any point. Cards are revealed in slot order.
     /// </summary>
     public sealed class PackRevealStateMachine
     {
@@ -29,42 +30,60 @@ namespace Game.Unity.UI.PackOpening
 
         public bool HasUnrevealedCards => RevealedCount < CardCount;
 
+        /// <summary>The held pack starts moving to the centre of the view. Commits nothing.</summary>
+        /// <exception cref="InvalidOperationException">A pack is already open.</exception>
+        public void BeginZoom()
+        {
+            RequireState(PackRevealState.Idle, nameof(BeginZoom));
+            Pack = null;
+            RevealedCount = 0;
+            ShowcasedSlot = NoSlot;
+            State = PackRevealState.Zooming;
+        }
+
+        /// <summary>Backs out of the zoom: the pack goes back to the hand, and nothing was ever committed.</summary>
+        public void CancelZoom()
+        {
+            RequireState(PackRevealState.Zooming, nameof(CancelZoom));
+            State = PackRevealState.Idle;
+        }
+
         /// <summary>
-        /// Starts tearing a pack open. From Idle it calls <paramref name="commit"/> exactly once (the call
-        /// that takes the pack and adds its cards to the inventory) and enters Tearing. In any other state
-        /// it returns false without calling it, so a mashed button can never open a second pack.
+        /// The rip click. From Zooming it calls <paramref name="commit"/> exactly once (the call that takes
+        /// the held pack and adds its cards to the inventory) and enters Ripping. In any other state it
+        /// returns false without calling it, so a mashed click can never open a second pack.
         /// </summary>
-        /// <exception cref="InvalidOperationException">The commit returned no pack; the state stays Idle.</exception>
-        public bool TryBeginTear(Func<OpenedPack> commit)
+        /// <exception cref="InvalidOperationException">The commit returned no pack; the state stays Zooming.</exception>
+        public bool TryBeginRip(Func<OpenedPack> commit)
         {
             if (commit == null) throw new ArgumentNullException(nameof(commit));
-            if (State != PackRevealState.Idle)
+            if (State != PackRevealState.Zooming)
             {
                 return false;
             }
 
-            // A commit that throws leaves the machine Idle: nothing was taken, so nothing is shown.
+            // A commit that throws leaves the machine Zooming: nothing was taken, so nothing is shown.
             OpenedPack pack = commit();
             if (pack == null)
             {
-                throw new InvalidOperationException("The tear's commit returned no pack.");
+                throw new InvalidOperationException("The rip's commit returned no pack.");
             }
 
             Pack = pack;
             RevealedCount = 0;
             ShowcasedSlot = NoSlot;
-            State = PackRevealState.Tearing;
+            State = PackRevealState.Ripping;
             return true;
         }
 
-        /// <summary>The cards are out of the top: the face-down stack takes over (the row, for an empty pack).</summary>
-        public void FinishTear()
+        /// <summary>The cards are out of the wrapper: the face-up stack takes over (the row, for an empty pack).</summary>
+        public void FinishRip()
         {
-            RequireState(PackRevealState.Tearing, nameof(FinishTear));
+            RequireState(PackRevealState.Ripping, nameof(FinishRip));
             State = Pack.Cards.Count == 0 ? PackRevealState.Row : PackRevealState.Revealing;
         }
 
-        /// <summary>Shows an already-committed pack without a tear (tests and tools).</summary>
+        /// <summary>Shows an already-committed pack without a zoom or rip (tests and tools).</summary>
         /// <exception cref="InvalidOperationException">A pack is already on screen.</exception>
         public void Begin(OpenedPack pack)
         {
@@ -94,11 +113,11 @@ namespace Game.Unity.UI.PackOpening
 
         /// <summary>
         /// Lays every card out face up. Called after the last reveal, or early to skip (quick open), which
-        /// also works mid-tear.
+        /// also works mid-rip.
         /// </summary>
         public void ShowRow()
         {
-            if (State != PackRevealState.Tearing)
+            if (State != PackRevealState.Ripping)
             {
                 RequireState(PackRevealState.Revealing, nameof(ShowRow));
             }

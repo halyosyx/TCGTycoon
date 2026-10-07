@@ -7,7 +7,10 @@ namespace Game.Unity.Hands
     /// The player's one hand slot. Holds at most one <see cref="IHoldable"/>, carried at a socket in
     /// front of the camera on the Held layer, which a dedicated overlay camera draws, so held items never
     /// clip through walls. Use (LMB) and Put down (F) are delegated to the holdable. Core already knows
-    /// what is held (<c>ItemLocation.Held</c>); this only presents it.
+    /// what is held (<c>ItemLocation.Held</c>); this only presents it. Held items read close because the
+    /// overlay camera's field of view is narrower than the player camera's, not because they sit nearer
+    /// the lens (that would distort and clip their corners); the socket offset keeps them at the same
+    /// place on screen.
     /// </summary>
     public sealed class PlayerHands : MonoBehaviour
     {
@@ -20,6 +23,16 @@ namespace Game.Unity.Hands
         [SerializeField, Range(0, 31), Tooltip("Layer held items render on (drawn by the held-items overlay camera only).")]
         private int _heldLayer = 7;
 
+        [Header("Apparent size")]
+        [SerializeField, Tooltip("The overlay camera that draws held items (PlayerCamera/HeldItemsCamera).")]
+        private Camera _heldCamera;
+
+        [SerializeField, Range(10f, 90f), Tooltip("Field of view of the held-items camera. Lower makes held items look bigger without moving them toward the lens.")]
+        private float _heldFieldOfView = 45f;
+
+        [SerializeField, Tooltip("Where the hand socket sits in front of the player camera, in metres (x right, y up, z forward). When you change the field of view, scale x and y by tan(new/2) / tan(old/2) to keep the item at the same place on screen.")]
+        private Vector3 _socketOffset = new Vector3(0.115f, -0.086f, 0.45f);
+
         private IHoldable _held;
 
         /// <summary>Raised with the new held item, or null when the hand empties.</summary>
@@ -30,14 +43,30 @@ namespace Game.Unity.Hands
         /// <summary>The held item, or null.</summary>
         public IHoldable Held => _held;
 
-        /// <summary>The player camera, which a pack being torn open is posed against.</summary>
+        /// <summary>The player camera, which a pack being opened is posed against.</summary>
         public Transform View => _view;
+
+        /// <summary>Field of view of the camera that draws held items (and a pack being opened).</summary>
+        public float HeldFieldOfView => _heldFieldOfView;
 
         private void Awake()
         {
             if (_socket == null || _view == null)
             {
                 Debug.LogError($"{name}: {nameof(PlayerHands)} needs a Socket and a View.", this);
+            }
+            else
+            {
+                _socket.localPosition = _socketOffset;
+            }
+
+            if (_heldCamera == null)
+            {
+                Debug.LogError($"{name}: {nameof(PlayerHands)} needs the Held Camera to set its field of view.", this);
+            }
+            else
+            {
+                _heldCamera.fieldOfView = _heldFieldOfView;
             }
 
             // Private fields survive between Play sessions when scene reload is disabled.

@@ -3,16 +3,17 @@ using System;
 namespace Game.Unity.UI.PackOpening
 {
     /// <summary>
-    /// How far one pack's tear has got. The drag moves <see cref="Tear"/> (downward only, so releasing or
-    /// moving up pauses it); once the strip is off, time moves the cards' <see cref="Rise"/>, then a short
-    /// hand-off before <see cref="IsComplete"/>. Plain C#: the screen feeds it input and time.
+    /// The opening's timeline, advanced by time only. First the zoom: the pack travels to the centre
+    /// anchor (<see cref="Zoom"/> 0 to 1) and settles; backing out runs it in reverse
+    /// (<see cref="ZoomOut"/>). Nothing here commits: the screen commits on the rip click, then calls
+    /// <see cref="StartRip"/>, which plays the seam tearing, the wrapper opening and the cards sliding out,
+    /// then a short hand-off before <see cref="IsComplete"/>. Plain C#: the screen feeds it time.
     /// </summary>
     public sealed class PackTearProgress
     {
         private readonly PackTearPacing _pacing;
         private float _handOffElapsed;
-        private bool _isFlapCued;
-        private bool _isCrimpCued;
+        private bool _isOpenCued;
         private bool _isSlideCued;
 
         public PackTearProgress(PackTearPacing pacing)
@@ -23,48 +24,71 @@ namespace Game.Unity.UI.PackOpening
         /// <summary>Raised once per pack for each cue, in order.</summary>
         public event Action<PackTearCue> CueReached;
 
-        /// <summary>0 sealed, 1 the top strip has come away.</summary>
-        public float Tear { get; private set; }
+        /// <summary>0 in the hand, 1 at the centre anchor.</summary>
+        public float Zoom { get; private set; }
 
-        /// <summary>0 cards inside, 1 risen out of the top.</summary>
-        public float Rise { get; private set; }
+        /// <summary>0 world as normal, 1 fully dimmed.</summary>
+        public float Dim { get; private set; }
 
-        /// <summary>0 in the hand pose, 1 in the tearing pose.</summary>
-        public float PoseBlend { get; private set; }
+        public bool IsZoomingOut { get; private set; }
 
-        public bool IsTorn => Tear >= 1f;
+        public bool IsRipping { get; private set; }
 
-        public bool IsComplete => Rise >= 1f && _handOffElapsed >= _pacing.HandOffSeconds;
+        /// <summary>At the anchor and waiting for the rip click.</summary>
+        public bool IsSettled => !IsRipping && !IsZoomingOut && Zoom >= 1f;
 
-        /// <summary>Starts over for the next pack.</summary>
+        /// <summary>Backing out has brought the pack all the way back to the hand.</summary>
+        public bool IsBackInHand => IsZoomingOut && Zoom <= 0f;
+
+        /// <summary>How far down the back seam has torn, 0 to 1.</summary>
+        public float Seam { get; private set; }
+
+        /// <summary>How far the back flaps have opened, 0 to 1.</summary>
+        public float Open { get; private set; }
+
+        /// <summary>How far the cards have slid out, 0 to 1.</summary>
+        public float Slide { get; private set; }
+
+        public bool IsComplete => IsRipping && Slide >= 1f && _handOffElapsed >= _pacing.HandOffSeconds;
+
+        /// <summary>Starts over for the next pack: in the hand, zooming in.</summary>
         public void Reset()
         {
-            Tear = 0f;
-            Rise = 0f;
-            PoseBlend = 0f;
+            Zoom = 0f;
+            Dim = 0f;
+            IsZoomingOut = false;
+            IsRipping = false;
+            Seam = 0f;
+            Open = 0f;
+            Slide = 0f;
             _handOffElapsed = 0f;
-            _isFlapCued = false;
-            _isCrimpCued = false;
+            _isOpenCued = false;
             _isSlideCued = false;
         }
 
-        /// <summary>Moves the tear by a drag of <paramref name="downPixels"/>; upward drags are ignored.</summary>
-        public void Drag(float downPixels)
+        /// <summary>Backs out: the zoom runs back to the hand from where it is. Ignored once ripping.</summary>
+        public void ZoomOut()
         {
-            if (downPixels <= 0f || IsTorn)
+            if (!IsRipping)
+            {
+                IsZoomingOut = true;
+            }
+        }
+
+        /// <summary>The rip has been committed: the pack snaps to the anchor and the seam starts to tear.</summary>
+        public void StartRip()
+        {
+            if (IsRipping)
             {
                 return;
             }
 
-            Tear = Math.Min(1f, Tear + downPixels / _pacing.DragPixels);
-            Cue(ref _isFlapCued, PackTearCue.FlapLift);
-            if (Tear > _pacing.FlapShare)
-            {
-                Cue(ref _isCrimpCued, PackTearCue.CrimpTear);
-            }
+            Zoom = 1f;
+            IsZoomingOut = false;
+            IsRipping = true;
+            CueReached?.Invoke(PackTearCue.SeamTear);
         }
 
-        /// <summary>Advances the pose blend, and once torn the cards' rise and the hand-off.</summary>
         public void Tick(float deltaSeconds)
         {
             if (deltaSeconds <= 0f)
@@ -72,28 +96,57 @@ namespace Game.Unity.UI.PackOpening
                 return;
             }
 
-            PoseBlend = Math.Min(1f, PoseBlend + deltaSeconds / _pacing.PoseSeconds);
-            if (!IsTorn)
+            if (!IsRipping)
+            {
+                float zoomStep = deltaSeconds / _pacing.ZoomSeconds;
+                float dimStep = deltaSeconds / _pacing.DimSeconds;
+                Zoom = IsZoomingOut ? Math.Max(0f, Zoom - zoomStep) : Math.Min(1f, Zoom + zoomStep);
+                Dim = IsZoomingOut ? Math.Max(0f, Dim - dimStep) : Math.Min(1f, Dim + dimStep);
+                return;
+            }
+
+            // Each phase hands its leftover time to the next, so no tick is lost.
+            float left = deltaSeconds;
+            Seam = Advance(Seam, _pacing.SeamTearSeconds, ref left);
+            if (Seam < 1f)
+            {
+                return;
+            }
+
+            Cue(ref _isOpenCued, PackTearCue.WrapperOpen);
+            Open = Advance(Open, _pacing.OpenSeconds, ref left);
+            if (Open < 1f)
             {
                 return;
             }
 
             Cue(ref _isSlideCued, PackTearCue.CardsSlide);
-            if (Rise < 1f)
+            Slide = Advance(Slide, _pacing.CardsSlideSeconds, ref left);
+            if (Slide < 1f)
             {
-                // Time past the end of the rise counts toward the hand-off, so no tick is lost.
-                float riseSecondsLeft = (1f - Rise) * _pacing.CardsRiseSeconds;
-                if (deltaSeconds < riseSecondsLeft)
-                {
-                    Rise += deltaSeconds / _pacing.CardsRiseSeconds;
-                    return;
-                }
-
-                Rise = 1f;
-                deltaSeconds -= riseSecondsLeft;
+                return;
             }
 
-            _handOffElapsed += deltaSeconds;
+            _handOffElapsed += left;
+        }
+
+        private static float Advance(float value, float seconds, ref float left)
+        {
+            if (value >= 1f || left <= 0f)
+            {
+                return value;
+            }
+
+            float secondsLeft = (1f - value) * seconds;
+            if (left < secondsLeft)
+            {
+                value += left / seconds;
+                left = 0f;
+                return value;
+            }
+
+            left -= secondsLeft;
+            return 1f;
         }
 
         private void Cue(ref bool isCued, PackTearCue cue)

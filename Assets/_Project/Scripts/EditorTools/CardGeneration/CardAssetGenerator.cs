@@ -83,8 +83,9 @@ namespace Game.EditorTools.CardGeneration
             Dictionary<string, CardSetDefinition> sets = EnsureSets(folder, plan, cards, report);
             PackShape packShape = PackShape.Default;
             Mesh packBody = EnsureMesh(meshesFolder + "/BoosterPackBody.asset", PackMeshBuilder.BuildBody(packShape), report);
-            Mesh packStrip = EnsureMesh(meshesFolder + "/BoosterPackTopStrip.asset", PackMeshBuilder.BuildTopStrip(packShape), report);
-            EnsurePrefab(prefabsFolder + "/BoosterPack.prefab", "BoosterPack", root => CardPrefabBuilder.BuildBoosterPack(root, palette, packShape, packBody, packStrip), report);
+            Mesh packLeftFlap = EnsureMesh(meshesFolder + "/BoosterPackFlapLeft.asset", PackMeshBuilder.BuildBackFlap(packShape, isLeft: true), report);
+            Mesh packRightFlap = EnsureMesh(meshesFolder + "/BoosterPackFlapRight.asset", PackMeshBuilder.BuildBackFlap(packShape, isLeft: false), report);
+            EnsurePrefab(prefabsFolder + "/BoosterPack.prefab", "BoosterPack", root => CardPrefabBuilder.BuildBoosterPack(root, palette, packShape, packBody, packLeftFlap, packRightFlap), report);
             EnsurePrefab(prefabsFolder + "/WorldCard.prefab", "WorldCard", root => CardPrefabBuilder.BuildWorldCard(root, palette), report);
             // Stylesheet first: the UXML references it, and importing the UXML before the USS exists logs an error.
             EnsureTextFile(uiFolder + "/" + CardTemplateFiles.UssFileName, CardTemplateFiles.Uss(palette), report);

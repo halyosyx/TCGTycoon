@@ -66,7 +66,7 @@ namespace Game.Unity.Hands
         [Header("Text")]
         [SerializeField] private string _takeVerb = "Take";
         [SerializeField, Tooltip("{0} = set short name.")] private string _packNounFormat = "{0} pack";
-        [SerializeField] private string _openVerb = "Tear open";
+        [SerializeField] private string _openVerb = "Open pack";
         [SerializeField] private string _putDownVerb = "Put down";
         [SerializeField] private string _returnVerb = "Return to binder";
         [SerializeField, Tooltip("{0} = number of cards held.")] private string _cardsNounFormat = "{0} cards";
@@ -127,7 +127,7 @@ namespace Game.Unity.Hands
         }
 
         /// <param name="cards">Every card the player can own, for the card stack's face.</param>
-        /// <param name="openPack">Starts tearing the held pack open; true when the tear (and its commit) started.</param>
+        /// <param name="openPack">Starts opening the held pack (the zoom, which commits nothing); true when it started.</param>
         public void Initialize(InventoryService inventory, CardPool cards, RarityPaletteDefinition palette, StoreConfigDefinition store, Func<ITearablePack, bool> openPack)
         {
             _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
@@ -195,7 +195,7 @@ namespace Game.Unity.Hands
             stack.gameObject.SetActive(false);
         }
 
-        /// <summary>Starts tearing the held pack open through the pack opening screen.</summary>
+        /// <summary>Starts opening the held pack through the pack opening screen (it stays in the hand until the rip).</summary>
         public bool OpenHeldPack(ITearablePack pack) => _openPack(pack);
 
         private SealedBoosterPack CreatePack()

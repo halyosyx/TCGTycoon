@@ -19,9 +19,14 @@ namespace Game.EditorTools.CardGeneration
         // Real-world sizes in metres: a trading card is 63 x 88 mm; the booster pack is PackShape.Default.
         private static readonly Vector2 s_cardSize = new Vector2(0.063f, 0.088f);
 
-        // The face-down card stack inside a pack: seven cards' depth, sitting just under the tear line.
-        private const float PackCardsDepth = 0.004f;
+        // The card stack inside a pack: seven cards' depth, sitting in the back half (behind the front
+        // shell, under the flaps) just below the top crimp.
+        private const float PackCardsDepth = 0.003f;
         private const float PackCardsGap = 0.002f;
+
+        // The dark line that grows down the back seam as it tears, standing just proud of the seam lip.
+        private const float SeamTearWidth = 0.0016f;
+        private const float SeamTearLift = 0.0002f;
         private const float CardFrameWidth = 0.0035f;
         private const float TextMargin = 0.0055f;
 
@@ -55,34 +60,54 @@ namespace Game.EditorTools.CardGeneration
         private const float PackLabelHeightShare = 0.5f;
 
         /// <summary>
-        /// The pack: a body and a top strip (two meshes split along the crimp, the strip on a hinge at the
-        /// back seam so it can be torn away), the face-down cards inside, the printed label, and a
-        /// <see cref="BoosterPackView"/> that animates them.
+        /// The pack, for the back-seam opening: a body (front half-shell and both zigzag crimps), two back
+        /// flaps hinged at the side edges that meet at the seam down the back, a tear line that grows down
+        /// the seam, the cards inside, the printed label, and a <see cref="BoosterPackView"/> that animates them.
         /// </summary>
-        public static bool BuildBoosterPack(GameObject root, RarityPaletteDefinition palette, PackShape shape, Mesh bodyMesh, Mesh stripMesh)
+        public static bool BuildBoosterPack(GameObject root, RarityPaletteDefinition palette, PackShape shape, Mesh bodyMesh, Mesh leftFlapMesh, Mesh rightFlapMesh)
         {
             var tracker = new ChangeTracker();
 
-            // The single-cube pack from before F2d.
+            // Earlier models: the single cube (before F2d) and the top-crimp strip (F2d).
             tracker.RemoveChild(root.transform, "Box");
+            tracker.RemoveChild(root.transform, "TopStripHinge");
 
             Transform body = tracker.Child(root.transform, "Body", null);
             tracker.Place(body, Vector3.zero, Vector3.one);
             Renderer bodyRenderer = tracker.MeshPart(body.gameObject, bodyMesh, palette.PackMaterial);
 
-            // The hinge sits on the back seam at the tear line; the strip mesh is in pack space, so it is
-            // offset back by the hinge's position.
-            var hingePosition = new Vector3(0f, shape.TearLineY, shape.CrimpThickness * 0.5f);
-            Transform hinge = tracker.Child(root.transform, "TopStripHinge", null);
-            tracker.Place(hinge, hingePosition, Vector3.one);
-            Transform strip = tracker.Child(hinge, "TopStrip", null);
-            tracker.Place(strip, -hingePosition, Vector3.one);
-            Renderer stripRenderer = tracker.MeshPart(strip.gameObject, stripMesh, palette.PackMaterial);
+            // Each flap hangs on a hinge at its side edge; the flap meshes are in pack space, so each is
+            // offset back by its hinge's position.
+            var leftHingePosition = new Vector3(-shape.Width * 0.5f, 0f, 0f);
+            Transform leftHinge = tracker.Child(root.transform, "LeftFlapHinge", null);
+            tracker.Place(leftHinge, leftHingePosition, Vector3.one);
+            Transform leftFlap = tracker.Child(leftHinge, "LeftFlap", null);
+            tracker.Place(leftFlap, -leftHingePosition, Vector3.one);
+            Renderer leftRenderer = tracker.MeshPart(leftFlap.gameObject, leftFlapMesh, palette.PackMaterial);
+
+            var rightHingePosition = new Vector3(shape.Width * 0.5f, 0f, 0f);
+            Transform rightHinge = tracker.Child(root.transform, "RightFlapHinge", null);
+            tracker.Place(rightHinge, rightHingePosition, Vector3.one);
+            Transform rightFlap = tracker.Child(rightHinge, "RightFlap", null);
+            tracker.Place(rightFlap, -rightHingePosition, Vector3.one);
+            Renderer rightRenderer = tracker.MeshPart(rightFlap.gameObject, rightFlapMesh, palette.PackMaterial);
+
+            // The tear line: a pivot at the top of the seam whose Y scale grows the line downward. The quad
+            // is turned to face the back (+Z).
+            float seamLength = shape.CrimpLineY * 2f;
+            Transform seam = tracker.Child(root.transform, "SeamTear", null);
+            tracker.Place(seam, new Vector3(0f, shape.CrimpLineY, shape.Thickness * 0.5f + shape.SeamLipHeight + SeamTearLift), Vector3.one);
+            Transform seamLine = tracker.Child(seam, "Line", PrimitiveType.Quad);
+            tracker.Remove<MeshCollider>(seamLine.gameObject);
+            tracker.Place(seamLine, new Vector3(0f, -seamLength * 0.5f, 0f), Quaternion.Euler(0f, 180f, 0f), new Vector3(SeamTearWidth, seamLength, 1f));
+            tracker.Material(seamLine.GetComponent<Renderer>(), palette.CardFaceMaterial);
+            tracker.Active(seam.gameObject, false);
 
             Transform cards = tracker.Child(root.transform, "Cards", PrimitiveType.Cube);
             tracker.Remove<BoxCollider>(cards.gameObject);
-            float cardsCentreY = shape.TearLineY - PackCardsGap - s_cardSize.y * 0.5f;
-            tracker.Place(cards, new Vector3(0f, cardsCentreY, 0f), new Vector3(s_cardSize.x, s_cardSize.y, PackCardsDepth));
+            float cardsCentreY = shape.CrimpLineY - PackCardsGap - s_cardSize.y * 0.5f;
+            float cardsCentreZ = PackCardsDepth * 0.5f + SeamTearLift;
+            tracker.Place(cards, new Vector3(0f, cardsCentreY, cardsCentreZ), new Vector3(s_cardSize.x, s_cardSize.y, PackCardsDepth));
             tracker.Material(cards.GetComponent<Renderer>(), palette.CardFaceMaterial);
             tracker.Active(cards.gameObject, false);
 
@@ -95,8 +120,11 @@ namespace Game.EditorTools.CardGeneration
 
             BoosterPackView view = tracker.Component<BoosterPackView>(root);
             tracker.Reference(view, BoosterPackView.BodyRendererField, bodyRenderer);
-            tracker.Reference(view, BoosterPackView.StripRendererField, stripRenderer);
-            tracker.Reference(view, BoosterPackView.StripHingeField, hinge);
+            tracker.Reference(view, BoosterPackView.LeftFlapRendererField, leftRenderer);
+            tracker.Reference(view, BoosterPackView.RightFlapRendererField, rightRenderer);
+            tracker.Reference(view, BoosterPackView.LeftHingeField, leftHinge);
+            tracker.Reference(view, BoosterPackView.RightHingeField, rightHinge);
+            tracker.Reference(view, BoosterPackView.SeamTearField, seam);
             tracker.Reference(view, BoosterPackView.CardsField, cards);
 
             return tracker.Changed;
@@ -194,15 +222,20 @@ namespace Game.EditorTools.CardGeneration
 
             public void Place(Transform target, Vector3 localPosition, Vector3 localScale)
             {
+                Place(target, localPosition, Quaternion.identity, localScale);
+            }
+
+            public void Place(Transform target, Vector3 localPosition, Quaternion localRotation, Vector3 localScale)
+            {
                 if (target.localPosition != localPosition)
                 {
                     target.localPosition = localPosition;
                     Changed = true;
                 }
 
-                if (target.localRotation != Quaternion.identity)
+                if (target.localRotation != localRotation)
                 {
-                    target.localRotation = Quaternion.identity;
+                    target.localRotation = localRotation;
                     Changed = true;
                 }
 

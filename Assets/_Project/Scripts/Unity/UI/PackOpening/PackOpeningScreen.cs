@@ -3,6 +3,7 @@ using Game.Core.Content;
 using Game.Core.Inventory;
 using Game.Core.Packs;
 using Game.Core.Session;
+using Game.Unity.Cards;
 using Game.Unity.Definitions;
 using Game.Unity.Player;
 using Game.Unity.UI.Hud;
@@ -13,12 +14,19 @@ using UnityEngine.UIElements;
 namespace Game.Unity.UI.PackOpening
 {
     /// <summary>
-    /// Pack opening: the player tears the pack in their hand open (LMB press and drag down,
-    /// <see cref="BeginTear"/>), the cards rise out of the top, then the screen presents them as a
-    /// face-down stack revealed one card at a time and finally a row, where any card can be lifted into
-    /// a large showcase for inspection. The cards are committed to the inventory once, at the start of
-    /// the tear, before a single frame is animated; everything after is presentation, so storing at any
-    /// point (even mid-tear) loses nothing. Owns input, animation and layout only.
+    /// Pack opening, owned end to end by this screen; the pack in the hand only hands itself over
+    /// (<see cref="BeginOpen"/>) and shows the poses it is given.
+    /// <list type="number">
+    /// <item>Zoom (uncommitted): the pack travels from the hand to a centre anchor, turns to show its
+    /// back and scales up to nearly fill the screen; the world dims. Esc backs out with nothing committed.</item>
+    /// <item>Rip: the click commits the cards once, before anything animates, then the back seam tears
+    /// top to bottom, the flaps open like a book and the cards slide out.</item>
+    /// <item>Reveal: the cards arrive face up as a large stack, swiped away along a downward curve;
+    /// a rare card flashes once (Special Full Art Holo also sparkles), locally and without blocking input.</item>
+    /// <item>Rows: 4 + 3, where any card can be lifted into a large showcase.</item>
+    /// </list>
+    /// Space skips to the rows (during the zoom it counts as the rip click). Storing at any point after
+    /// the commit loses nothing. Owns input, animation and layout only.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
     public sealed class PackOpeningScreen : MonoBehaviour
@@ -40,6 +48,8 @@ namespace Game.Unity.UI.PackOpening
         // Used only if the panel hasn't been laid out yet; matches the panel settings' reference height.
         private const float FallbackPanelHeight = 1080f;
 
+        private static readonly int s_baseColorId = Shader.PropertyToID("_BaseColor");
+
         [SerializeField, Tooltip("UI Toolkit card template (Data/Generated/UI/CardTemplate.uxml).")]
         private VisualTreeAsset _cardTemplate;
 
@@ -49,24 +59,37 @@ namespace Game.Unity.UI.PackOpening
         [SerializeField]
         private RevealLayout _layout = new RevealLayout();
 
-        [SerializeField, Tooltip("Glow strength per rarity tier. The glow colour comes from the Rarity Palette.")]
+        [SerializeField, Tooltip("Reaction per rarity tier when its card is revealed. Halo and sparkle colour come from the Rarity Palette.")]
         private TierTell[] _tierTells = TierTell.CreateDefaults();
 
-        [Header("Tearing the pack")]
+        [SerializeField]
+        private SparkleSettings _sparkles = new SparkleSettings();
+
+        [Header("Opening the pack")]
         [SerializeField]
         private PackTearPacing _tearPacing = new PackTearPacing();
 
         [SerializeField]
         private PackTearSounds _tearSounds = new PackTearSounds();
 
-        [SerializeField, Tooltip("Plays the tear's sounds. Optional: without it the tear is silent.")]
+        [SerializeField, Tooltip("Plays the rip's sounds. Optional: without it the rip is silent.")]
         private AudioSource _tearAudio;
 
-        [SerializeField, Tooltip("HUD key hints while tearing, as Key:Label pairs separated by semicolons.")]
-        private string _tearHints = "LMB:Drag down to tear;Space:Skip;Esc:Store";
+        [SerializeField, Tooltip("Dark quad on the Held layer behind the zoom anchor (under HeldItemsCamera): dims the world, not the pack. Optional.")]
+        private Renderer _worldDim;
+
+        [SerializeField] private string _ripPromptKey = "LMB";
+        [SerializeField] private string _ripPromptVerb = "Rip";
+        [SerializeField] private string _ripPromptObject = "the back seam";
+
+        [SerializeField, Tooltip("HUD key hints while the pack is zoomed, as Key:Label pairs separated by semicolons.")]
+        private string _zoomHints = "LMB:Rip;Space:Skip to row;Esc:Put back";
+
+        [SerializeField, Tooltip("HUD key hints while the pack rips open.")]
+        private string _ripHints = "Space:Skip to row;Esc:Store";
 
         [SerializeField]
-        private string _revealHint = "Click or drag to reveal   ·   Space to skip";
+        private string _revealHint = "Click or swipe for the next card   ·   Space to skip";
 
         [SerializeField]
         private string _rowHint = "Click a card to inspect it   ·   Click outside the cards or press Store";
@@ -85,16 +108,21 @@ namespace Game.Unity.UI.PackOpening
         private PackRevealStateMachine _reveal;
         private ObjectPool<CardView> _cardViewPool;
         private List<CardView> _cardViews;
+        private ObjectPool<SparkleBurst> _sparklePool;
+        private List<SparkleBurst> _activeBursts;
+        private MaterialPropertyBlock _dimBlock;
 
         private GameSession _session;
         private RarityPaletteDefinition _palette;
         private PlayerController _player;
         private HudPresenter _hud;
         private PackTearProgress _tearProgress;
-        private ITearablePack _tearingPack;
+        private ITearablePack _openingPack;
         private bool _isInitialized;
+        private bool _isPromptShown;
         private bool _isRowPending;
         private float _rowCountdown;
+        private float _stackScale;
         private bool _isPointerDown;
         private int _pointerId;
         private float _pointerStartX;
@@ -104,6 +132,9 @@ namespace Game.Unity.UI.PackOpening
         private float _backdropLevel;
 
         public PackRevealState State => _reveal == null ? PackRevealState.Idle : _reveal.State;
+
+        /// <summary>The pack is at the anchor and waiting for the rip click.</summary>
+        public bool IsSettled => _reveal != null && _reveal.State == PackRevealState.Zooming && _tearProgress.IsSettled;
 
         /// <summary>Cards on screen in slot order, for tests and debugging.</summary>
         public IReadOnlyList<CardView> CardViews => _cardViews;
@@ -124,24 +155,33 @@ namespace Game.Unity.UI.PackOpening
             _reveal = new PackRevealStateMachine();
             _tearProgress = new PackTearProgress(_tearPacing);
             _tearProgress.CueReached += OnTearCue;
-            _tearingPack = null;
+            _openingPack = null;
             _hud = null;
+            _dimBlock = new MaterialPropertyBlock();
             _cardViews = new List<CardView>(PrewarmedCardViews * 2);
             _cardViewPool = new ObjectPool<CardView>(
                 CreateCardView,
                 actionOnRelease: ReleaseCardView,
                 defaultCapacity: PrewarmedCardViews,
                 maxSize: MaxPooledCardViews);
+            _activeBursts = new List<SparkleBurst>(_sparkles.PooledBursts);
+            _sparklePool = new ObjectPool<SparkleBurst>(
+                () => new SparkleBurst(_sparkles.MaxSparklesPerBurst),
+                actionOnRelease: burst => burst.Stop(),
+                defaultCapacity: _sparkles.PooledBursts,
+                maxSize: _sparkles.PooledBursts);
             _isInitialized = false;
+            _isPromptShown = false;
             _isRowPending = false;
             _isPointerDown = false;
             _hoveredView = null;
             _returningView = null;
             _backdropLevel = 0f;
+            SetDim(0f);
         }
 
         /// <summary>Wires the screen to the session and the scene. Called once by <c>GameBootstrap</c>.</summary>
-        /// <param name="hud">Shows the tear's key hints; may be null.</param>
+        /// <param name="hud">Shows the opening's prompt and key hints; may be null.</param>
         public void Initialize(GameSession session, RarityPaletteDefinition palette, PlayerController player, HudPresenter hud)
         {
             _session = session;
@@ -195,9 +235,9 @@ namespace Game.Unity.UI.PackOpening
             }
 
             float deltaSeconds = Time.unscaledDeltaTime;
-            if (_reveal.State == PackRevealState.Tearing)
+            if (_reveal.State == PackRevealState.Zooming || _reveal.State == PackRevealState.Ripping)
             {
-                UpdateTear(deltaSeconds);
+                UpdateOpening(deltaSeconds);
                 return;
             }
 
@@ -210,6 +250,7 @@ namespace Game.Unity.UI.PackOpening
                 view.Tick(deltaSeconds);
             }
 
+            TickSparkles(deltaSeconds);
             UpdateShowcaseLayers(deltaSeconds);
 
             PlayerControls.ScreensActions actions = _controls.Screens;
@@ -237,101 +278,191 @@ namespace Game.Unity.UI.PackOpening
             }
         }
 
+        // --- Opening: zoom (uncommitted), then the rip ---
+
         /// <summary>
-        /// Starts tearing open the pack in the player's hand (Use, LMB press). The commit comes first:
-        /// Core takes the held pack and adds its cards to the binder at the price paid, atomically, before
-        /// a single tear frame is animated. The state machine runs that commit at most once, so a mashed
-        /// button can't open a second pack. Returns false (and does nothing) when no such pack is held, a
-        /// pack is already open or another screen has the input. Public so tests and debug tools can drive
-        /// the same path.
+        /// Starts opening the pack in the player's hand (Use, LMB): the zoom. Commits nothing; the pack
+        /// stays in the hand and in Core until the rip click. Returns false (and does nothing) when no such
+        /// pack is held, a pack is already open or another screen has the input. Public so tests and debug
+        /// tools can drive the same path.
         /// </summary>
-        public bool BeginTear(ITearablePack pack)
+        public bool BeginOpen(ITearablePack pack)
         {
             if (pack == null || !CanOpen() || _session.Inventory.CountOfSealed(pack.ProductId, ItemLocation.Held) == 0)
             {
                 return false;
             }
 
-            string productId = pack.ProductId;
-
-            // From this line on the cards are owned; everything after it is presentation.
-            if (!_reveal.TryBeginTear(() => _session.OpenSealedPack(productId, ItemLocation.Held)))
-            {
-                return false;
-            }
-
-            // The cursor stays captured: the mouse now drags the tear instead of looking around.
-            _player.SetGameplayInput(false, keepsCursorLocked: true);
-            _tearingPack = pack;
+            _reveal.BeginZoom();
+            _openingPack = pack;
             _tearProgress.Reset();
-            pack.BeginTear(_player.Hands.View, _tearPacing.TearPosePosition, _tearPacing.TearPoseRotation);
-            ApplyTearPose();
+            _isPromptShown = false;
+
+            // The cursor stays captured: nothing needs pointing until the reveal.
+            _player.SetGameplayInput(false, keepsCursorLocked: true);
+            float anchorScale = _tearPacing.AnchorScale(PackShape.Default.Height, _player.Hands.HeldFieldOfView);
+            pack.BeginZoom(_player.Hands.View, new Vector3(0f, 0f, _tearPacing.ZoomDistance), _tearPacing.AnchorRotation, anchorScale);
+            ApplyOpeningPose();
             if (_hud != null)
             {
-                _hud.SetContextHints(_tearHints);
+                _hud.SetContextHints(_zoomHints);
             }
 
             return true;
         }
 
-        /// <summary>Tears further, as a downward drag of <paramref name="downPixels"/> with LMB held does.</summary>
-        public void DragTear(float downPixels)
+        /// <summary>
+        /// The rip click: commits the cards once (Core takes the held pack and adds its cards to the binder
+        /// at the price paid) before anything of the rip animates, then plays it. Only once the pack has
+        /// settled at the anchor; any other time (and every click after the first) it does nothing.
+        /// </summary>
+        public bool RipOpen()
         {
-            if (_reveal.State == PackRevealState.Tearing)
+            return IsSettled && TryRip();
+        }
+
+        /// <summary>Backs out of the zoom (Esc): the pack goes back to the hand; nothing was committed.</summary>
+        public void BackOut()
+        {
+            if (_reveal.State != PackRevealState.Zooming || _tearProgress.IsZoomingOut)
             {
-                _tearProgress.Drag(downPixels);
+                return;
+            }
+
+            _tearProgress.ZoomOut();
+            ClearPrompt();
+            if (_hud != null)
+            {
+                _hud.ClearContextHints();
             }
         }
 
         private bool CanOpen() => _isInitialized && _reveal.State == PackRevealState.Idle && _player.IsInGameplay;
 
-        // LMB held drags the tear (down only; releasing pauses it). Time runs the pose and, once the strip
-        // is off, the cards rising out of the top; then the face-down stack takes over.
-        private void UpdateTear(float deltaSeconds)
+        private void UpdateOpening(float deltaSeconds)
         {
             PlayerControls.ScreensActions actions = _controls.Screens;
-            if (actions.Dismiss.WasPressedThisFrame())
+            if (_reveal.State == PackRevealState.Zooming && !_tearProgress.IsZoomingOut)
             {
-                Store();
-                return;
+                if (actions.Dismiss.WasPressedThisFrame())
+                {
+                    BackOut();
+                }
+                else if (actions.QuickOpen.WasPressedThisFrame())
+                {
+                    // Space during the zoom counts as the rip click, then skips to the rows.
+                    if (TryRip())
+                    {
+                        SkipToRow();
+                        return;
+                    }
+                }
+                else if (_tearProgress.IsSettled && actions.RipPack.WasPressedThisFrame())
+                {
+                    TryRip();
+                }
             }
-
-            if (actions.QuickOpen.WasPressedThisFrame())
+            else if (_reveal.State == PackRevealState.Ripping)
             {
-                QuickOpen();
-                return;
-            }
+                if (actions.Dismiss.WasPressedThisFrame())
+                {
+                    Store();
+                    return;
+                }
 
-            if (actions.TearGrip.IsPressed())
-            {
-                // Mouse delta is up-positive; a downward drag tears.
-                _tearProgress.Drag(-actions.TearPull.ReadValue<Vector2>().y);
+                if (actions.QuickOpen.WasPressedThisFrame())
+                {
+                    SkipToRow();
+                    return;
+                }
             }
 
             _tearProgress.Tick(deltaSeconds);
-            ApplyTearPose();
-            if (_tearProgress.IsComplete)
+            ApplyOpeningPose();
+
+            if (_reveal.State == PackRevealState.Zooming)
             {
-                FinishTear();
+                if (_tearProgress.IsBackInHand)
+                {
+                    FinishBackOut();
+                }
+                else if (_tearProgress.IsSettled && !_isPromptShown)
+                {
+                    _isPromptShown = true;
+                    if (_hud != null)
+                    {
+                        _hud.SetContextPrompt(_ripPromptKey, _ripPromptVerb, _ripPromptObject);
+                    }
+                }
+            }
+            else if (_tearProgress.IsComplete)
+            {
+                FinishRip();
             }
         }
 
-        private void FinishTear()
+        private bool TryRip()
         {
-            _reveal.FinishTear();
-            EndTear();
+            string productId = _openingPack.ProductId;
+
+            // From this line on the cards are owned; everything after it is presentation.
+            if (!_reveal.TryBeginRip(() => _session.OpenSealedPack(productId, ItemLocation.Held)))
+            {
+                return false;
+            }
+
+            // Core no longer holds the pack, so the hand lets go of it; the screen keeps the wrapper.
+            _player.Hands.Clear();
+            _tearProgress.StartRip();
+            ClearPrompt();
+            if (_hud != null)
+            {
+                _hud.SetContextHints(_ripHints);
+            }
+
+            return true;
+        }
+
+        private void FinishBackOut()
+        {
+            _openingPack.ReturnToHand();
+            _openingPack = null;
+            _reveal.CancelZoom();
+            SetDim(0f);
+            ClearPrompt();
+            if (_hud != null)
+            {
+                _hud.ClearContextHints();
+            }
+
+            _player.SetGameplayInput(true);
+        }
+
+        private void FinishRip()
+        {
+            _reveal.FinishRip();
+            EndOpening();
             ShowStack(_reveal.Pack);
         }
 
-        // The wrapper goes, the tear hints go, and the cursor is freed for the reveal.
-        private void EndTear()
+        private void SkipToRow()
         {
-            if (_tearingPack != null)
+            _reveal.ShowRow();
+            EndOpening();
+            ShowStack(_reveal.Pack);
+        }
+
+        // The wrapper goes, the dimmer and hints go, and the cursor is freed for the reveal.
+        private void EndOpening()
+        {
+            if (_openingPack != null)
             {
-                _tearingPack.Discard();
-                _tearingPack = null;
+                _openingPack.Discard();
+                _openingPack = null;
             }
 
+            SetDim(0f);
+            ClearPrompt();
             if (_hud != null)
             {
                 _hud.ClearContextHints();
@@ -340,11 +471,44 @@ namespace Game.Unity.UI.PackOpening
             _player.SetGameplayInput(false);
         }
 
-        private void ApplyTearPose()
+        private void ApplyOpeningPose()
         {
-            if (_tearingPack != null)
+            PackTearPose pose = PackTearMotion.Evaluate(_tearProgress.Zoom, _tearProgress.Seam, _tearProgress.Open, _tearProgress.Slide, _tearProgress.Dim, _tearPacing);
+            if (_openingPack != null)
             {
-                _tearingPack.ApplyTear(PackTearMotion.Evaluate(_tearProgress.Tear, _tearProgress.Rise, _tearProgress.PoseBlend, _tearPacing));
+                _openingPack.ApplyPose(pose);
+            }
+
+            SetDim(pose.DimAlpha);
+        }
+
+        private void ClearPrompt()
+        {
+            if (_isPromptShown && _hud != null)
+            {
+                _hud.ClearContextPrompt();
+            }
+
+            _isPromptShown = false;
+        }
+
+        private void SetDim(float alpha)
+        {
+            if (_worldDim == null)
+            {
+                return;
+            }
+
+            bool isVisible = alpha > 0.001f;
+            if (_worldDim.enabled != isVisible)
+            {
+                _worldDim.enabled = isVisible;
+            }
+
+            if (isVisible)
+            {
+                _dimBlock.SetColor(s_baseColorId, new Color(0f, 0f, 0f, alpha));
+                _worldDim.SetPropertyBlock(_dimBlock);
             }
         }
 
@@ -357,34 +521,45 @@ namespace Game.Unity.UI.PackOpening
             }
         }
 
+        // --- Reveal ---
+
         private void ShowStack(OpenedPack pack)
         {
             SetVisible(true);
+            _stackScale = _layout.StackScale(PanelSize(_root.layout.height, FallbackPanelHeight));
             BuildStack(pack);
             UpdateHint();
             if (_reveal.State == PackRevealState.Row)
             {
                 ShowRow(isAnimated: false);
-            }
-        }
-
-        /// <summary>Reveals the next card, as a click on the stack does.</summary>
-        public void RevealNext() => Advance(1f);
-
-        /// <summary>Skips straight to the row, as the quick-open key does, mid-tear too.</summary>
-        public void QuickOpen()
-        {
-            if (_reveal.State == PackRevealState.Tearing)
-            {
-                _reveal.ShowRow();
-                EndTear();
-                ShowStack(_reveal.Pack);
                 return;
             }
 
-            if (_reveal.State == PackRevealState.Revealing)
+            // The first card arrives face up: it is revealed the moment the stack appears.
+            RevealTopCard();
+        }
+
+        /// <summary>Swipes the top card away and reveals the next, as a click on the stack does.</summary>
+        public void RevealNext() => Advance(1f);
+
+        /// <summary>Skips straight to the rows, as Space does: mid-rip too, and during the zoom it rips first.</summary>
+        public void QuickOpen()
+        {
+            switch (_reveal.State)
             {
-                ShowRow(isAnimated: false);
+                case PackRevealState.Zooming:
+                    if (!_tearProgress.IsZoomingOut && TryRip())
+                    {
+                        SkipToRow();
+                    }
+
+                    break;
+                case PackRevealState.Ripping:
+                    SkipToRow();
+                    break;
+                case PackRevealState.Revealing:
+                    ShowRow(isAnimated: false);
+                    break;
             }
         }
 
@@ -436,19 +611,22 @@ namespace Game.Unity.UI.PackOpening
         }
 
         /// <summary>
-        /// Closes the screen, as the Store button, Escape or a click outside the row does. Mid-tear it ends
-        /// quietly: the cards are already in the binder.
+        /// Closes the screen, as the Store button, Escape or a click outside the row does. Mid-rip it ends
+        /// quietly: the cards are already in the binder. During the zoom (nothing committed) it puts the
+        /// pack straight back in the hand.
         /// </summary>
         public void Store()
         {
-            if (_reveal.State == PackRevealState.Idle)
+            switch (_reveal.State)
             {
-                return;
-            }
-
-            if (_reveal.State == PackRevealState.Tearing)
-            {
-                EndTear();
+                case PackRevealState.Idle:
+                    return;
+                case PackRevealState.Zooming:
+                    FinishBackOut();
+                    return;
+                case PackRevealState.Ripping:
+                    EndOpening();
+                    break;
             }
 
             _reveal.Store();
@@ -460,6 +638,7 @@ namespace Game.Unity.UI.PackOpening
             _showcaseBackdrop.style.opacity = 0f;
             _showcaseBackdrop.style.display = DisplayStyle.None;
             CancelPointer();
+            StopSparkles();
             for (int i = 0; i < _cardViews.Count; i++)
             {
                 _cardViewPool.Release(_cardViews[i]);
@@ -476,8 +655,8 @@ namespace Game.Unity.UI.PackOpening
             for (int slotIndex = 0; slotIndex < cards.Count; slotIndex++)
             {
                 CardView view = _cardViewPool.Get();
-                Card card = cards[slotIndex];
-                view.Bind(card, _palette, TellFor(card.Tier), StackPosition(slotIndex));
+                // Waiting cards are plain backs, so the pile's edges never give a tier away.
+                view.Bind(cards[slotIndex], _palette, StackPosition(slotIndex), _stackScale, isCovered: true);
                 _cardViews.Add(view);
             }
 
@@ -488,19 +667,11 @@ namespace Game.Unity.UI.PackOpening
             }
         }
 
-        // One click or swipe: the face-up card leaves, the next one reveals.
+        // One click or swipe: the top card curves away and the next one, already face up, is revealed.
         private void Advance(float direction)
         {
             if (_reveal.State != PackRevealState.Revealing)
             {
-                return;
-            }
-
-            int topIndex = _reveal.RevealedCount - 1;
-            if (topIndex >= 0 && _cardViews[topIndex].IsAnimating)
-            {
-                // A click during a reveal completes it instead of skipping the card.
-                _cardViews[topIndex].Finish();
                 return;
             }
 
@@ -510,22 +681,26 @@ namespace Game.Unity.UI.PackOpening
                 return;
             }
 
+            int topIndex = _reveal.RevealedCount - 1;
             if (topIndex >= 0)
             {
-                CardView leaving = _cardViews[topIndex];
-                var offscreen = new Vector2(Mathf.Sign(direction) * _layout.SlideDistance, leaving.Position.y);
-                leaving.MoveTo(offscreen, 1f, 0f, _pacing.SlideOutSeconds, isHiddenWhenMoved: true);
+                _cardViews[topIndex].SwipeAway(direction, _layout.SwipeDistance, _layout.SwipeDrop, _layout.SwipeCurve, _layout.SwipeTiltDegrees, _pacing.SwipeSeconds);
             }
 
+            RevealTopCard();
+        }
+
+        private void RevealTopCard()
+        {
             int slotIndex = _reveal.RevealNext();
-            CardView revealing = _cardViews[slotIndex];
-            if (_pacing.IsSlowSlot(slotIndex, _reveal.CardCount))
+            Card card = _reveal.Pack.Cards[slotIndex];
+            TierTell tell = TierTell.Find(_tierTells, card.Tier);
+            CardView view = _cardViews[slotIndex];
+            view.Uncover();
+            view.PlayTell(tell);
+            if (TierTell.KindOf(tell) == TierTellKind.FlashAndSparkle)
             {
-                revealing.RevealSlow(_pacing.SlowTellSeconds, _pacing.SlowFlipSeconds);
-            }
-            else
-            {
-                revealing.RevealFast(_pacing.FastFlipSeconds);
+                PlaySparkles(view, tell.SparkleCount, _palette.ColorOf(card.Tier));
             }
 
             if (!_reveal.HasUnrevealedCards)
@@ -533,6 +708,42 @@ namespace Game.Unity.UI.PackOpening
                 _isRowPending = true;
                 _rowCountdown = _pacing.LastCardHoldSeconds;
             }
+        }
+
+        // Pooled: at most the configured number of bursts exist; a new one beyond that reuses the oldest.
+        private void PlaySparkles(CardView view, int count, Color colour)
+        {
+            if (_activeBursts.Count >= _sparkles.PooledBursts)
+            {
+                _sparklePool.Release(_activeBursts[0]);
+                _activeBursts.RemoveAt(0);
+            }
+
+            SparkleBurst burst = _sparklePool.Get();
+            burst.Play(view.Root, new Vector2(CardView.Width, CardView.Height), count, colour, _sparkles);
+            _activeBursts.Add(burst);
+        }
+
+        private void TickSparkles(float deltaSeconds)
+        {
+            for (int i = _activeBursts.Count - 1; i >= 0; i--)
+            {
+                if (!_activeBursts[i].Tick(deltaSeconds))
+                {
+                    _sparklePool.Release(_activeBursts[i]);
+                    _activeBursts.RemoveAt(i);
+                }
+            }
+        }
+
+        private void StopSparkles()
+        {
+            for (int i = 0; i < _activeBursts.Count; i++)
+            {
+                _sparklePool.Release(_activeBursts[i]);
+            }
+
+            _activeBursts.Clear();
         }
 
         private void ShowRow(bool isAnimated)
@@ -548,7 +759,7 @@ namespace Game.Unity.UI.PackOpening
             {
                 CardView view = _cardViews[slotIndex];
                 view.Finish();
-                view.ShowFaceUp();
+                view.Uncover();
                 Vector2 target = RowPosition(slotIndex, _cardViews.Count);
                 if (isAnimated)
                 {
@@ -678,7 +889,7 @@ namespace Game.Unity.UI.PackOpening
             _pointerDeltaX = 0f;
         }
 
-        // The face-up card is swiped away; before the first reveal, the face-down top card moves.
+        // The face-up card on top of the stack is the one dragged and swiped.
         private CardView DragTarget()
         {
             if (_reveal.State != PackRevealState.Revealing)
@@ -687,12 +898,7 @@ namespace Game.Unity.UI.PackOpening
             }
 
             int topIndex = _reveal.RevealedCount - 1;
-            if (topIndex >= 0)
-            {
-                return _cardViews[topIndex];
-            }
-
-            return _reveal.HasUnrevealedCards ? _cardViews[_reveal.RevealedCount] : null;
+            return topIndex >= 0 ? _cardViews[topIndex] : null;
         }
 
         private bool IsAnyCardAnimating()
@@ -708,7 +914,7 @@ namespace Game.Unity.UI.PackOpening
             return false;
         }
 
-        // A tell saved under the seven-tier ladder never matches a card, so that tier would silently lose its glow.
+        // A tell saved under the seven-tier ladder never matches a card, so that tier would silently lose its reaction.
         private void ReportStaleTierTells()
         {
             if (_tierTells == null)
@@ -725,23 +931,7 @@ namespace Game.Unity.UI.PackOpening
             }
         }
 
-        private TierTell TellFor(RarityTier tier)
-        {
-            if (_tierTells != null)
-            {
-                foreach (TierTell tell in _tierTells)
-                {
-                    if (tell != null && tell.Tier == tier)
-                    {
-                        return tell;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private Vector2 StackPosition(int slotIndex) => _layout.StackStep * slotIndex;
+        private Vector2 StackPosition(int slotIndex) => _layout.StackStep * (slotIndex * _stackScale);
 
         private Vector2 RowPosition(int slotIndex, int cardCount)
         {
@@ -868,6 +1058,17 @@ namespace Game.Unity.UI.PackOpening
             for (int i = 0; i < warm.Length; i++)
             {
                 _cardViewPool.Release(warm[i]);
+            }
+
+            var bursts = new SparkleBurst[_sparkles.PooledBursts];
+            for (int i = 0; i < bursts.Length; i++)
+            {
+                bursts[i] = _sparklePool.Get();
+            }
+
+            for (int i = 0; i < bursts.Length; i++)
+            {
+                _sparklePool.Release(bursts[i]);
             }
         }
 

@@ -7,12 +7,18 @@ namespace Game.Unity.UI.PackOpening
         Idle,
 
         /// <summary>
-        /// The pack is being torn open in the player's hand. Its cards are already owned (committed when
-        /// the tear started); the screen shows nothing until they rise out of the top.
+        /// The held pack is moving to the centre of the view, back turned to the player, and waits for the
+        /// rip click. Nothing is committed: backing out leaves the pack in the hand.
         /// </summary>
-        Tearing,
+        Zooming,
 
-        /// <summary>Cards are shown as a stack and revealed one at a time.</summary>
+        /// <summary>
+        /// The back seam is tearing and the wrapper opening. The cards are already owned: they were
+        /// committed by the rip click, before this started.
+        /// </summary>
+        Ripping,
+
+        /// <summary>Cards are shown face up as a stack and swiped away one at a time.</summary>
         Revealing,
 
         /// <summary>Every card is face up in a row.</summary>

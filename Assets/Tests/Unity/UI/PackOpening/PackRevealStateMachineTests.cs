@@ -206,32 +206,6 @@ namespace Game.Unity.Tests.UI.PackOpening
             Assert.That(reveal.ShowcasedSlot, Is.EqualTo(PackRevealStateMachine.NoSlot));
         }
 
-        [Test]
-        public void IsSlowSlot_DefaultPacingSevenCards_OnlySlotsSixAndSevenAreSlow()
-        {
-            var pacing = new RevealPacing();
-
-            bool[] isSlow = new bool[PackSize];
-            for (int slot = 0; slot < PackSize; slot++)
-            {
-                isSlow[slot] = pacing.IsSlowSlot(slot, PackSize);
-            }
-
-            Assert.That(isSlow, Is.EqualTo(new[] { false, false, false, false, false, true, true }));
-        }
-
-        [TestCase(3)]
-        [TestCase(12)]
-        public void IsSlowSlot_AnyPackSize_LastTwoSlotsCountedFromTheEnd(int cardCount)
-        {
-            var pacing = new RevealPacing();
-
-            for (int slot = 0; slot < cardCount; slot++)
-            {
-                Assert.That(pacing.IsSlowSlot(slot, cardCount), Is.EqualTo(slot >= cardCount - 2), $"Slot {slot + 1} of {cardCount}");
-            }
-        }
-
         [TestCase(3)]
         [TestCase(7)]
         [TestCase(12)]
@@ -251,84 +225,121 @@ namespace Game.Unity.Tests.UI.PackOpening
             Assert.That(reveal.RevealedCount, Is.EqualTo(cardCount));
         }
 
-        [Test]
-        public void IsSlowSlot_OutOfRangeSlot_IsFalse()
-        {
-            var pacing = new RevealPacing();
-
-            Assert.That(pacing.IsSlowSlot(PackSize, PackSize), Is.False);
-            Assert.That(pacing.IsSlowSlot(-1, PackSize), Is.False);
-        }
-
-        // --- Tearing (F2d): the commit runs once, when the tear starts ---
+        // --- Zoom and rip (F2e): the zoom never commits; the rip click commits once ---
 
         [Test]
-        public void TryBeginTear_FromIdle_CommitsOnceAndEntersTearing()
+        public void BeginZoom_FromIdle_EntersZoomingWithNoPack()
         {
             var reveal = new PackRevealStateMachine();
+
+            reveal.BeginZoom();
+
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Zooming));
+            Assert.That(reveal.Pack, Is.Null);
+            Assert.That(reveal.CardCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void BeginZoom_WhileRevealing_Throws()
+        {
+            var reveal = new PackRevealStateMachine();
+            reveal.Begin(CreatePack(PackSize));
+
+            Assert.Throws<InvalidOperationException>(() => reveal.BeginZoom());
+        }
+
+        [Test]
+        public void CancelZoom_FromZooming_BackToIdleAndAcceptsTheNextZoom()
+        {
+            var reveal = new PackRevealStateMachine();
+            reveal.BeginZoom();
+
+            reveal.CancelZoom();
+
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Idle));
+            Assert.That(reveal.Pack, Is.Null);
+            reveal.BeginZoom();
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Zooming));
+        }
+
+        [Test]
+        public void CancelZoom_WhileRipping_Throws()
+        {
+            PackRevealStateMachine reveal = CreateRipping(PackSize);
+
+            Assert.Throws<InvalidOperationException>(() => reveal.CancelZoom());
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Ripping));
+        }
+
+        [Test]
+        public void TryBeginRip_FromZooming_CommitsOnceAndEntersRipping()
+        {
+            var reveal = new PackRevealStateMachine();
+            reveal.BeginZoom();
             int commits = 0;
 
-            bool isStarted = reveal.TryBeginTear(() => { commits++; return CreatePack(PackSize); });
+            bool isStarted = reveal.TryBeginRip(() => { commits++; return CreatePack(PackSize); });
 
             Assert.That(isStarted, Is.True);
             Assert.That(commits, Is.EqualTo(1));
-            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Tearing));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Ripping));
             Assert.That(reveal.CardCount, Is.EqualTo(PackSize));
             Assert.That(reveal.RevealedCount, Is.EqualTo(0));
         }
 
         [Test]
-        public void TryBeginTear_WhileTearing_ReturnsFalseWithoutCommitting()
+        public void TryBeginRip_WhileRipping_ReturnsFalseWithoutCommitting()
         {
-            var reveal = new PackRevealStateMachine();
-            reveal.TryBeginTear(() => CreatePack(PackSize));
+            PackRevealStateMachine reveal = CreateRipping(PackSize);
             int commits = 0;
 
-            bool isStarted = reveal.TryBeginTear(() => { commits++; return CreatePack(PackSize); });
+            bool isStarted = reveal.TryBeginRip(() => { commits++; return CreatePack(PackSize); });
 
             Assert.That(isStarted, Is.False);
             Assert.That(commits, Is.EqualTo(0));
-            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Tearing));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Ripping));
         }
 
         [Test]
-        public void TryBeginTear_WhileRevealing_ReturnsFalseWithoutCommitting()
+        public void TryBeginRip_WhileIdleOrRevealing_ReturnsFalseWithoutCommitting()
         {
-            var reveal = new PackRevealStateMachine();
-            reveal.Begin(CreatePack(PackSize));
+            var idle = new PackRevealStateMachine();
+            var revealing = new PackRevealStateMachine();
+            revealing.Begin(CreatePack(PackSize));
             int commits = 0;
 
-            bool isStarted = reveal.TryBeginTear(() => { commits++; return CreatePack(PackSize); });
-
-            Assert.That(isStarted, Is.False);
+            Assert.That(idle.TryBeginRip(() => { commits++; return CreatePack(PackSize); }), Is.False);
+            Assert.That(revealing.TryBeginRip(() => { commits++; return CreatePack(PackSize); }), Is.False);
             Assert.That(commits, Is.EqualTo(0));
         }
 
         [Test]
-        public void TryBeginTear_CommitThrows_StaysIdle()
+        public void TryBeginRip_CommitThrows_StaysZooming()
         {
             var reveal = new PackRevealStateMachine();
+            reveal.BeginZoom();
 
-            Assert.Throws<InvalidOperationException>(() => reveal.TryBeginTear(() => throw new InvalidOperationException("No pack held.")));
-            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Idle));
+            Assert.Throws<InvalidOperationException>(() => reveal.TryBeginRip(() => throw new InvalidOperationException("No pack held.")));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Zooming));
             Assert.That(reveal.Pack, Is.Null);
         }
 
         [Test]
-        public void TryBeginTear_CommitReturnsNull_ThrowsAndStaysIdle()
+        public void TryBeginRip_CommitReturnsNull_ThrowsAndStaysZooming()
         {
             var reveal = new PackRevealStateMachine();
+            reveal.BeginZoom();
 
-            Assert.Throws<InvalidOperationException>(() => reveal.TryBeginTear(() => null));
-            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Idle));
+            Assert.Throws<InvalidOperationException>(() => reveal.TryBeginRip(() => null));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Zooming));
         }
 
         [Test]
-        public void FinishTear_FromTearing_EntersRevealingWithNothingRevealed()
+        public void FinishRip_FromRipping_EntersRevealingWithNothingRevealed()
         {
-            PackRevealStateMachine reveal = CreateTearing(PackSize);
+            PackRevealStateMachine reveal = CreateRipping(PackSize);
 
-            reveal.FinishTear();
+            reveal.FinishRip();
 
             Assert.That(reveal.State, Is.EqualTo(PackRevealState.Revealing));
             Assert.That(reveal.RevealedCount, Is.EqualTo(0));
@@ -336,34 +347,31 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [Test]
-        public void FinishTear_EmptyPack_GoesStraightToRow()
+        public void FinishRip_EmptyPack_GoesStraightToRow()
         {
-            PackRevealStateMachine reveal = CreateTearing(0);
+            PackRevealStateMachine reveal = CreateRipping(0);
 
-            reveal.FinishTear();
+            reveal.FinishRip();
 
             Assert.That(reveal.State, Is.EqualTo(PackRevealState.Row));
         }
 
         [Test]
-        public void FinishTear_WhileIdle_Throws()
+        public void FinishRip_WhileZoomingOrRevealing_Throws()
         {
-            Assert.Throws<InvalidOperationException>(() => new PackRevealStateMachine().FinishTear());
+            var zooming = new PackRevealStateMachine();
+            zooming.BeginZoom();
+            var revealing = new PackRevealStateMachine();
+            revealing.Begin(CreatePack(PackSize));
+
+            Assert.Throws<InvalidOperationException>(() => zooming.FinishRip());
+            Assert.Throws<InvalidOperationException>(() => revealing.FinishRip());
         }
 
         [Test]
-        public void FinishTear_WhileRevealing_Throws()
+        public void ShowRow_FromRipping_EntersRowWithEveryCardRevealed()
         {
-            var reveal = new PackRevealStateMachine();
-            reveal.Begin(CreatePack(PackSize));
-
-            Assert.Throws<InvalidOperationException>(() => reveal.FinishTear());
-        }
-
-        [Test]
-        public void ShowRow_FromTearing_EntersRowWithEveryCardRevealed()
-        {
-            PackRevealStateMachine reveal = CreateTearing(PackSize);
+            PackRevealStateMachine reveal = CreateRipping(PackSize);
 
             reveal.ShowRow();
 
@@ -372,33 +380,48 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [Test]
-        public void Store_MidTear_ReturnsToIdleAndAcceptsNextTear()
+        public void ShowRow_WhileZooming_Throws()
         {
-            PackRevealStateMachine reveal = CreateTearing(PackSize);
+            var reveal = new PackRevealStateMachine();
+            reveal.BeginZoom();
+
+            Assert.Throws<InvalidOperationException>(() => reveal.ShowRow());
+        }
+
+        [Test]
+        public void Store_MidRip_ReturnsToIdleAndAcceptsTheNextZoom()
+        {
+            PackRevealStateMachine reveal = CreateRipping(PackSize);
 
             reveal.Store();
 
             Assert.That(reveal.State, Is.EqualTo(PackRevealState.Idle));
             Assert.That(reveal.Pack, Is.Null);
-            Assert.That(reveal.TryBeginTear(() => CreatePack(PackSize)), Is.True);
+            reveal.BeginZoom();
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Zooming));
         }
 
         [Test]
-        public void RevealShowcaseAndBegin_WhileTearing_Throw()
+        public void RevealShowcaseAndBegin_WhileZoomingOrRipping_Throw()
         {
-            PackRevealStateMachine reveal = CreateTearing(PackSize);
+            var zooming = new PackRevealStateMachine();
+            zooming.BeginZoom();
+            PackRevealStateMachine ripping = CreateRipping(PackSize);
 
-            Assert.Throws<InvalidOperationException>(() => reveal.RevealNext());
-            Assert.Throws<InvalidOperationException>(() => reveal.Showcase(0));
-            Assert.Throws<InvalidOperationException>(() => reveal.ReturnToRow());
-            Assert.Throws<InvalidOperationException>(() => reveal.Begin(CreatePack(PackSize)));
-            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Tearing));
+            foreach (PackRevealStateMachine reveal in new[] { zooming, ripping })
+            {
+                Assert.Throws<InvalidOperationException>(() => reveal.RevealNext());
+                Assert.Throws<InvalidOperationException>(() => reveal.Showcase(0));
+                Assert.Throws<InvalidOperationException>(() => reveal.ReturnToRow());
+                Assert.Throws<InvalidOperationException>(() => reveal.Begin(CreatePack(PackSize)));
+            }
         }
 
-        private static PackRevealStateMachine CreateTearing(int cardCount)
+        private static PackRevealStateMachine CreateRipping(int cardCount)
         {
             var reveal = new PackRevealStateMachine();
-            reveal.TryBeginTear(() => CreatePack(cardCount));
+            reveal.BeginZoom();
+            reveal.TryBeginRip(() => CreatePack(cardCount));
             return reveal;
         }
 

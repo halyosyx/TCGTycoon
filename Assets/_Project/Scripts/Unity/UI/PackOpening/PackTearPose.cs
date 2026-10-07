@@ -1,34 +1,33 @@
-using UnityEngine;
-
 namespace Game.Unity.UI.PackOpening
 {
-    /// <summary>Where the two pack pieces and the cards are at one moment of a tear (<see cref="PackTearMotion"/>).</summary>
+    /// <summary>Where the pack, its flaps and its cards are at one moment of the opening (<see cref="PackTearMotion"/>).</summary>
     public readonly struct PackTearPose
     {
-        public PackTearPose(float stripAngle, Vector3 stripOffset, bool isStripVisible, bool areCardsVisible, float cardsRise, float poseBlend)
+        public PackTearPose(float zoomBlend, float seamTear, float flapAngle, bool areCardsVisible, float cardsSlide, float dimAlpha)
         {
-            StripAngle = stripAngle;
-            StripOffset = stripOffset;
-            IsStripVisible = isStripVisible;
+            ZoomBlend = zoomBlend;
+            SeamTear = seamTear;
+            FlapAngle = flapAngle;
             AreCardsVisible = areCardsVisible;
-            CardsRise = cardsRise;
-            PoseBlend = poseBlend;
+            CardsSlide = cardsSlide;
+            DimAlpha = dimAlpha;
         }
 
-        /// <summary>Degrees the top strip has hinged back off the back seam.</summary>
-        public float StripAngle { get; }
+        /// <summary>0 in the hand, 1 at the centre anchor (eased).</summary>
+        public float ZoomBlend { get; }
 
-        /// <summary>The strip's offset from its sealed place, in pack space (metres).</summary>
-        public Vector3 StripOffset { get; }
+        /// <summary>How far down the back seam has torn, 0 to 1.</summary>
+        public float SeamTear { get; }
 
-        public bool IsStripVisible { get; }
+        /// <summary>Degrees each back flap has opened about its side edge.</summary>
+        public float FlapAngle { get; }
 
         public bool AreCardsVisible { get; }
 
-        /// <summary>Metres the card stack has risen out of the top.</summary>
-        public float CardsRise { get; }
+        /// <summary>Metres the card stack has slid out.</summary>
+        public float CardsSlide { get; }
 
-        /// <summary>0 in the hand pose, 1 in the tearing pose.</summary>
-        public float PoseBlend { get; }
+        /// <summary>Opacity of the dark layer over the world.</summary>
+        public float DimAlpha { get; }
     }
 }

@@ -4300,7 +4300,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2103144436}
   m_Father: {fileID: 1982535440}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &782842847
@@ -4380,7 +4381,7 @@ Camera:
     height: 1
   near clip plane: 0.01
   far clip plane: 5
-  field of view: 60
+  field of view: 45
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -5382,7 +5383,7 @@ MonoBehaviour:
   _cardCountOffset: {x: 0.046, y: -0.036, z: -0.002}
   _takeVerb: Take
   _packNounFormat: '{0} pack'
-  _openVerb: Tear open
+  _openVerb: Open pack
   _putDownVerb: Put down
   _returnVerb: Return to binder
   _cardsNounFormat: '{0} cards'
@@ -9082,7 +9083,7 @@ Transform:
   m_GameObject: {fileID: 1907927193}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.16, y: -0.12, z: 0.45}
+  m_LocalPosition: {x: 0.115, y: -0.086, z: 0.45}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9826,6 +9827,9 @@ MonoBehaviour:
   _socket: {fileID: 1907927194}
   _view: {fileID: 1982535440}
   _heldLayer: 7
+  _heldCamera: {fileID: 782842848}
+  _heldFieldOfView: 45
+  _socketOffset: {x: 0.115, y: -0.086, z: 0.45}
 --- !u!1 &1939998770
 GameObject:
   m_ObjectHideFlags: 0
@@ -9897,66 +9901,80 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Unity::Game.Unity.UI.PackOpening.PackOpeningScreen
   _cardTemplate: {fileID: 9197481963319205126, guid: d367a78940df2c54d98013b52f9de4db, type: 3}
   _pacing:
-    _fastFlipSeconds: 0.18
-    _slowTellSeconds: 0.9
-    _slowFlipSeconds: 0.45
-    _slideOutSeconds: 0.2
+    _swipeSeconds: 0.28
     _rowLayoutSeconds: 0.35
     _lastCardHoldSeconds: 1.2
     _showcaseSeconds: 0.25
     _hoverSeconds: 0.1
-    _slowSlotCount: 2
   _layout:
-    _stackStep: {x: 4, y: 5}
-    _rowArrangement: 0
-    _rowGap: 24
-    _rowScale: 0.8
-    _twoRowScale: 0.9
-    _rowLineGap: 24
-    _hoverScale: 1
-    _showcaseHeightShare: 0.7
-    _showcaseCenterShare: 0.5
-    _slideDistance: 900
+    _stackCardHeightShare: 0.72
+    _stackStep: {x: 2, y: 2.5}
+    _swipeDistance: 1100
+    _swipeDrop: 380
+    _swipeCurve: 2.2
+    _swipeTiltDegrees: 16
     _dragThreshold: 80
     _clickSlop: 12
+    _rowScale: 1.1
+    _rowGap: 24
+    _rowLineGap: 24
+    _hoverScale: 1.2
+    _showcaseHeightShare: 0.7
+    _showcaseCenterShare: 0.5
   _tierTells:
   - _tier: 0
-    _intensity: 0
-    _spread: 0
-    _pulsesPerSecond: 0
+    _flashIntensity: 0
+    _flashSeconds: 0.2
+    _haloSpread: 0
+    _sparkleCount: 0
   - _tier: 1
-    _intensity: 0
-    _spread: 0
-    _pulsesPerSecond: 0
+    _flashIntensity: 0
+    _flashSeconds: 0.2
+    _haloSpread: 0
+    _sparkleCount: 0
   - _tier: 7
-    _intensity: 0.8
-    _spread: 32
-    _pulsesPerSecond: 2
+    _flashIntensity: 0.25
+    _flashSeconds: 0.18
+    _haloSpread: 12
+    _sparkleCount: 0
   - _tier: 8
-    _intensity: 1
-    _spread: 48
-    _pulsesPerSecond: 3
+    _flashIntensity: 0.35
+    _flashSeconds: 0.22
+    _haloSpread: 16
+    _sparkleCount: 14
+  _sparkles:
+    _seconds: 0.6
+    _travel: 60
+    _size: 7
+    _opacity: 0.9
+    _pooledBursts: 4
+    _maxSparklesPerBurst: 24
   _tearPacing:
-    _dragPixels: 360
-    _flapShare: 0.3
-    _flapAngle: 25
-    _peelAngle: 130
-    _stripLift: 0.03
-    _stripDrift: 0.02
-    _cardsRiseDistance: 0.06
-    _cardsRiseSeconds: 0.45
-    _handOffSeconds: 0.15
-    _poseSeconds: 0.2
-    _tearPosePosition: {x: 0, y: -0.035, z: 0.3}
-    _tearPoseRotation: {x: 12, y: 0, z: 0}
+    _zoomSeconds: 0.45
+    _zoomDistance: 0.32
+    _zoomScreenHeightShare: 0.9
+    _zoomTiltDegrees: 6
+    _dimAlpha: 0.6
+    _dimSeconds: 0.25
+    _seamTearSeconds: 0.3
+    _openSeconds: 0.35
+    _openAngle: 150
+    _cardsSlideDistance: 0.08
+    _cardsSlideSeconds: 0.3
+    _handOffSeconds: 0.1
   _tearSounds:
-    _flapLift: {fileID: 8300000, guid: 6e54ad239ff10524185d8c0a355bbe00, type: 3}
-    _crimpTear: {fileID: 8300000, guid: b5c69cc23ace5664392dcdaada30c121, type: 3}
+    _seamTear: {fileID: 8300000, guid: b5c69cc23ace5664392dcdaada30c121, type: 3}
+    _wrapperOpen: {fileID: 8300000, guid: 6e54ad239ff10524185d8c0a355bbe00, type: 3}
     _cardsSlide: {fileID: 8300000, guid: 480d238a19b0cf24b8bbce8131ca68ec, type: 3}
     _volume: 0.8
   _tearAudio: {fileID: 1939998774}
-  _tearHints: LMB:Drag down to tear;Space:Skip;Esc:Store
-  _revealHint: "Click or drag to reveal   \xB7   Space to skip"
+  _worldDim: {fileID: 2103144434}
+  _ripPromptKey: LMB
+  _ripPromptVerb: Rip
+  _ripPromptObject: the back seam
+  _zoomHints: LMB:Rip;Space:Skip to row;Esc:Put back
+  _ripHints: Space:Skip to row;Esc:Store
+  _revealHint: "Click or swipe for the next card   \xB7   Space to skip"
   _rowHint: "Click a card to inspect it   \xB7   Click outside the cards or press
     Store"
   _showcaseHint: Right click, click outside the card or press Esc to put it back
@@ -10548,6 +10566,96 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &2103144433
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2103144436}
+  - component: {fileID: 2103144435}
+  - component: {fileID: 2103144434}
+  m_Layer: 7
+  m_Name: WorldDim
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!23 &2103144434
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2103144433}
+  m_Enabled: 0
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: f7f116efae1696c4fb4f85d04e1d7e52, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &2103144435
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2103144433}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &2103144436
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2103144433}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.9}
+  m_LocalScale: {x: 2.4, y: 1.4, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 782842846}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &2109581142
 Mesh:
   m_ObjectHideFlags: 0

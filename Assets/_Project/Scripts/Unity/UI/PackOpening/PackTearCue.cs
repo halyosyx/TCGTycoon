@@ -1,15 +1,15 @@
 namespace Game.Unity.UI.PackOpening
 {
-    /// <summary>Moments of a tear that get a sound, in the order they happen.</summary>
+    /// <summary>Moments of the rip that get a sound, in the order they happen.</summary>
     public enum PackTearCue
     {
-        /// <summary>The back flap starts to lift.</summary>
-        FlapLift,
+        /// <summary>The back seam starts to tear (the rip click).</summary>
+        SeamTear,
 
-        /// <summary>The top crimp starts to split.</summary>
-        CrimpTear,
+        /// <summary>The back flaps start to swing open.</summary>
+        WrapperOpen,
 
-        /// <summary>The cards start sliding out of the top.</summary>
+        /// <summary>The cards start sliding out.</summary>
         CardsSlide,
     }
 }

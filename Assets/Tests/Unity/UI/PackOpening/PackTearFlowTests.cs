@@ -10,9 +10,10 @@ using NUnit.Framework;
 namespace Game.Unity.Tests.UI.PackOpening
 {
     /// <summary>
-    /// The tear's commit seam against a real <see cref="GameSession"/>: the pack opening screen starts a
-    /// tear with exactly this call, so these pin down "commits once, before anything is shown, and no
-    /// path loses a card".
+    /// The opening's commit seam against a real <see cref="GameSession"/>: the pack opening screen zooms
+    /// with <see cref="PackRevealStateMachine.BeginZoom"/> and rips with exactly this commit, so these pin
+    /// down "the zoom commits nothing, the rip commits once before anything is shown, and no path loses
+    /// a card".
     /// </summary>
     public sealed class PackTearFlowTests
     {
@@ -21,10 +22,40 @@ namespace Game.Unity.Tests.UI.PackOpening
         private const int PackSize = 7;
 
         [Test]
-        public void TryBeginTear_RepeatedPresses_CommitsOnce()
+        public void ZoomThenBackOut_CommitsNothing()
+        {
+            GameSession session = CreateSessionHoldingOnePack(packsInBinder: 0);
+            int itemsBefore = session.Inventory.TotalItemCount;
+            long costBefore = session.Inventory.TotalCostBasisCents;
+            var reveal = new PackRevealStateMachine();
+
+            reveal.BeginZoom();
+            reveal.CancelZoom();
+
+            Assert.That(CountCards(session.Inventory), Is.EqualTo(0));
+            Assert.That(session.Inventory.CountOfSealed(PackId, ItemLocation.Held), Is.EqualTo(1), "The pack is still in the hand.");
+            Assert.That(session.Inventory.TotalItemCount, Is.EqualTo(itemsBefore));
+            Assert.That(session.Inventory.TotalCostBasisCents, Is.EqualTo(costBefore));
+        }
+
+        [Test]
+        public void Zooming_CommitsNothingUntilTheRip()
+        {
+            GameSession session = CreateSessionHoldingOnePack(packsInBinder: 0);
+            var reveal = new PackRevealStateMachine();
+
+            reveal.BeginZoom();
+
+            Assert.That(CountCards(session.Inventory), Is.EqualTo(0));
+            Assert.That(session.Inventory.CountOfSealed(PackId, ItemLocation.Held), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void TryBeginRip_RepeatedClicks_CommitsOnce()
         {
             GameSession session = CreateSessionHoldingOnePack(packsInBinder: 1);
             var reveal = new PackRevealStateMachine();
+            reveal.BeginZoom();
             int commits = 0;
             Func<OpenedPack> commit = () =>
             {
@@ -32,9 +63,9 @@ namespace Game.Unity.Tests.UI.PackOpening
                 return session.OpenSealedPack(PackId, ItemLocation.Held);
             };
 
-            for (int press = 0; press < 5; press++)
+            for (int click = 0; click < 5; click++)
             {
-                reveal.TryBeginTear(commit);
+                reveal.TryBeginRip(commit);
             }
 
             Assert.That(commits, Is.EqualTo(1));
@@ -44,27 +75,29 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [Test]
-        public void TryBeginTear_CardsOwnedBeforeTheTearFinishes()
+        public void TryBeginRip_CardsOwnedBeforeTheRipAnimates()
         {
             GameSession session = CreateSessionHoldingOnePack(packsInBinder: 0);
             var reveal = new PackRevealStateMachine();
+            reveal.BeginZoom();
 
-            reveal.TryBeginTear(() => session.OpenSealedPack(PackId, ItemLocation.Held));
+            reveal.TryBeginRip(() => session.OpenSealedPack(PackId, ItemLocation.Held));
 
-            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Tearing));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Ripping));
             Assert.That(CountCards(session.Inventory), Is.EqualTo(PackSize));
             Assert.That(session.Inventory.CountIn(ItemLocation.Binder), Is.EqualTo(PackSize));
         }
 
         [Test]
-        public void FinishTear_RevealShowsTheCommittedCardsInSlotOrder()
+        public void FinishRip_RevealShowsTheCommittedCardsInSlotOrder()
         {
             GameSession session = CreateSessionHoldingOnePack(packsInBinder: 0);
             var reveal = new PackRevealStateMachine();
             OpenedPack committed = null;
-            reveal.TryBeginTear(() => committed = session.OpenSealedPack(PackId, ItemLocation.Held));
+            reveal.BeginZoom();
+            reveal.TryBeginRip(() => committed = session.OpenSealedPack(PackId, ItemLocation.Held));
 
-            reveal.FinishTear();
+            reveal.FinishRip();
 
             Assert.That(reveal.Pack, Is.SameAs(committed));
             for (int expectedSlot = 0; expectedSlot < committed.Cards.Count; expectedSlot++)
@@ -78,12 +111,13 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [Test]
-        public void Store_MidTear_KeepsEveryCard()
+        public void Store_MidRip_KeepsEveryCard()
         {
             GameSession session = CreateSessionHoldingOnePack(packsInBinder: 0);
             long costBefore = session.Inventory.TotalCostBasisCents;
             var reveal = new PackRevealStateMachine();
-            reveal.TryBeginTear(() => session.OpenSealedPack(PackId, ItemLocation.Held));
+            reveal.BeginZoom();
+            reveal.TryBeginRip(() => session.OpenSealedPack(PackId, ItemLocation.Held));
 
             reveal.Store();
 
@@ -94,17 +128,44 @@ namespace Game.Unity.Tests.UI.PackOpening
         }
 
         [Test]
-        public void ShowRow_MidTear_KeepsEveryCard()
+        public void Store_MidReveal_KeepsEveryCard()
         {
             GameSession session = CreateSessionHoldingOnePack(packsInBinder: 0);
             var reveal = new PackRevealStateMachine();
-            reveal.TryBeginTear(() => session.OpenSealedPack(PackId, ItemLocation.Held));
+            reveal.BeginZoom();
+            reveal.TryBeginRip(() => session.OpenSealedPack(PackId, ItemLocation.Held));
+            reveal.FinishRip();
+            reveal.RevealNext();
+            reveal.RevealNext();
 
-            reveal.ShowRow();
             reveal.Store();
 
             Assert.That(CountCards(session.Inventory), Is.EqualTo(PackSize));
             Assert.That(session.Inventory.CountOfSealed(PackId), Is.EqualTo(0));
+        }
+
+        // Space during the zoom counts as the rip click, then goes straight to the row.
+        [Test]
+        public void SpaceDuringZoom_CommitsOnceThenShowsTheRow()
+        {
+            GameSession session = CreateSessionHoldingOnePack(packsInBinder: 0);
+            var reveal = new PackRevealStateMachine();
+            reveal.BeginZoom();
+            int commits = 0;
+            Func<OpenedPack> commit = () =>
+            {
+                commits++;
+                return session.OpenSealedPack(PackId, ItemLocation.Held);
+            };
+
+            reveal.TryBeginRip(commit);
+            reveal.ShowRow();
+            reveal.TryBeginRip(commit);
+
+            Assert.That(commits, Is.EqualTo(1));
+            Assert.That(reveal.State, Is.EqualTo(PackRevealState.Row));
+            Assert.That(reveal.RevealedCount, Is.EqualTo(PackSize));
+            Assert.That(CountCards(session.Inventory), Is.EqualTo(PackSize));
         }
 
         private static GameSession CreateSessionHoldingOnePack(int packsInBinder)

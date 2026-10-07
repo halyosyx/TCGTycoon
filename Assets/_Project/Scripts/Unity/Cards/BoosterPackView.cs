@@ -4,79 +4,89 @@ using UnityEngine;
 namespace Game.Unity.Cards
 {
     /// <summary>
-    /// The generated booster pack model's moving parts: the top strip on a hinge at its back bottom edge
-    /// (the back seam), and the face-down card stack inside the body. Shows a tear pose it is given; it
-    /// decides nothing. Sealed is the rest state, which pooled packs return to.
+    /// The generated booster pack model's moving parts for the back-seam opening: two back flaps, each on
+    /// a hinge at its side edge; a dark tear line that grows down the seam; and the card stack inside.
+    /// Shows a pose it is given; it decides nothing. Sealed is the rest state, which pooled packs return to.
     /// </summary>
     public sealed class BoosterPackView : MonoBehaviour
     {
         /// <summary>Serialized field names, for the card data generator's prefab builder.</summary>
         public const string BodyRendererField = nameof(_bodyRenderer);
-        public const string StripRendererField = nameof(_stripRenderer);
-        public const string StripHingeField = nameof(_stripHinge);
+        public const string LeftFlapRendererField = nameof(_leftFlapRenderer);
+        public const string RightFlapRendererField = nameof(_rightFlapRenderer);
+        public const string LeftHingeField = nameof(_leftHinge);
+        public const string RightHingeField = nameof(_rightHinge);
+        public const string SeamTearField = nameof(_seamTear);
         public const string CardsField = nameof(_cards);
 
         [SerializeField] private Renderer _bodyRenderer;
-        [SerializeField] private Renderer _stripRenderer;
+        [SerializeField] private Renderer _leftFlapRenderer;
+        [SerializeField] private Renderer _rightFlapRenderer;
 
-        [SerializeField, Tooltip("Pivot of the top strip, on the back seam at the tear line.")]
-        private Transform _stripHinge;
+        [SerializeField, Tooltip("Pivot of the left back flap, on the pack's left side edge; it turns about Y.")]
+        private Transform _leftHinge;
 
-        [SerializeField, Tooltip("The face-down card stack inside the body, hidden until the crimp splits.")]
+        [SerializeField, Tooltip("Pivot of the right back flap, on the pack's right side edge; it turns about Y.")]
+        private Transform _rightHinge;
+
+        [SerializeField, Tooltip("Pivot at the top of the back seam; its Y scale is how far down the seam has torn.")]
+        private Transform _seamTear;
+
+        [SerializeField, Tooltip("The card stack inside the body, hidden until the flaps open.")]
         private Transform _cards;
 
-        private Vector3 _hingeRestPosition;
         private Vector3 _cardsRestPosition;
+        private bool _isReady;
 
-        /// <summary>The wrapper's renderers (body and strip), which take the set colour; not the cards or the label.</summary>
+        /// <summary>The wrapper's renderers (body and flaps), which take the set colour; not the cards, seam or label.</summary>
         public void CollectWrapperRenderers(List<Renderer> into)
         {
             if (_bodyRenderer != null) into.Add(_bodyRenderer);
-            if (_stripRenderer != null) into.Add(_stripRenderer);
+            if (_leftFlapRenderer != null) into.Add(_leftFlapRenderer);
+            if (_rightFlapRenderer != null) into.Add(_rightFlapRenderer);
         }
 
         private void Awake()
         {
-            if (_bodyRenderer == null || _stripRenderer == null || _stripHinge == null || _cards == null)
+            _isReady = _bodyRenderer != null && _leftFlapRenderer != null && _rightFlapRenderer != null
+                && _leftHinge != null && _rightHinge != null && _seamTear != null && _cards != null;
+            if (!_isReady)
             {
                 Debug.LogError($"{name}: {nameof(BoosterPackView)} is missing a part; regenerate it with TCG > Generate Card Data.", this);
-                enabled = false;
                 return;
             }
 
-            _hingeRestPosition = _stripHinge.localPosition;
             _cardsRestPosition = _cards.localPosition;
         }
 
-        /// <summary>Back to a sealed pack: strip on, cards inside and hidden.</summary>
-        public void ResetSealed()
+        /// <summary>Back to a sealed pack: flaps shut, seam whole, cards inside and hidden.</summary>
+        public void ResetSealed() => ShowOpen(0f, 0f, 0f, areCardsVisible: false);
+
+        /// <param name="seamTear">How far down the back seam has torn, 0 to 1.</param>
+        /// <param name="flapAngle">Degrees each flap has opened outward (toward the back) about its side edge.</param>
+        /// <param name="cardsSlide">Metres the card stack has slid up out of the opened wrapper.</param>
+        public void ShowOpen(float seamTear, float flapAngle, float cardsSlide, bool areCardsVisible)
         {
-            if (!enabled)
+            if (!_isReady)
             {
                 return;
             }
 
-            ShowTear(0f, Vector3.zero, isStripVisible: true, areCardsVisible: false, cardsRise: 0f);
-        }
+            // Opening outward means each flap's inner edge swings toward +Z (the back); about Y that is a
+            // negative angle on the left hinge and a positive one on the right.
+            _leftHinge.localRotation = Quaternion.Euler(0f, -flapAngle, 0f);
+            _rightHinge.localRotation = Quaternion.Euler(0f, flapAngle, 0f);
 
-        /// <param name="stripAngle">Degrees the strip has hinged back off the back seam.</param>
-        /// <param name="stripOffset">The strip's offset from its sealed place, in pack space.</param>
-        /// <param name="cardsRise">Metres the card stack has risen out of the top.</param>
-        public void ShowTear(float stripAngle, Vector3 stripOffset, bool isStripVisible, bool areCardsVisible, float cardsRise)
-        {
-            if (!enabled)
+            // The tear line shows the seam tearing; once the flaps swing apart there is no seam left.
+            bool isTorn = seamTear > 0f && flapAngle <= 0f;
+            if (_seamTear.gameObject.activeSelf != isTorn)
             {
-                return;
+                _seamTear.gameObject.SetActive(isTorn);
             }
 
-            _stripHinge.localPosition = _hingeRestPosition + stripOffset;
-            _stripHinge.localRotation = Quaternion.Euler(stripAngle, 0f, 0f);
-            if (_stripHinge.gameObject.activeSelf != isStripVisible)
-            {
-                _stripHinge.gameObject.SetActive(isStripVisible);
-            }
+            _seamTear.localScale = new Vector3(1f, Mathf.Max(seamTear, 0.0001f), 1f);
 
-            _cards.localPosition = _cardsRestPosition + Vector3.up * cardsRise;
+            _cards.localPosition = _cardsRestPosition + Vector3.up * cardsSlide;
             if (_cards.gameObject.activeSelf != areCardsVisible)
             {
                 _cards.gameObject.SetActive(areCardsVisible);

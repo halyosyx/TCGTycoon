@@ -4,75 +4,87 @@ using UnityEngine;
 namespace Game.Unity.UI.PackOpening
 {
     /// <summary>
-    /// How tearing a pack open feels: the drag, the timings and the motion of the two pack pieces, tuned
-    /// in the Inspector. The tear is lift the back flap, split the top crimp, then the cards rise out of
-    /// the top.
+    /// How opening a pack feels, tuned in the Inspector. The pack zooms from the hand to the centre of the
+    /// view with its back turned to the player (uncommitted), then the rip: the back seam tears top to
+    /// bottom, the two back flaps open outward like a book and the cards slide out. Plain durations: there
+    /// is no drag.
     /// </summary>
     [Serializable]
     public sealed class PackTearPacing
     {
-        [Header("Drag")]
-        [SerializeField, Min(1f), Tooltip("Downward mouse travel, in pixels, from sealed to the top strip coming away.")]
-        private float _dragPixels = 360f;
+        [Header("Zoom (uncommitted)")]
+        [SerializeField, Min(0.01f), Tooltip("Seconds for the pack to travel from the hand to the centre anchor (and back, when backing out).")]
+        private float _zoomSeconds = 0.45f;
 
-        [SerializeField, Range(0.05f, 0.95f), Tooltip("Share of the drag spent lifting the back flap before the crimp starts to split.")]
-        private float _flapShare = 0.3f;
+        [SerializeField, Min(0.05f), Tooltip("Distance of the centre anchor in front of the camera, in metres. The pack is scaled up rather than pulled close, so its corners don't distort.")]
+        private float _zoomDistance = 0.32f;
 
-        [Header("Top strip")]
-        [SerializeField, Range(0f, 90f), Tooltip("Degrees the strip hinges back off the back seam by the end of the flap lift.")]
-        private float _flapAngle = 25f;
+        [SerializeField, Range(0.3f, 1f), Tooltip("How much of the screen height the zoomed pack fills.")]
+        private float _zoomScreenHeightShare = 0.9f;
 
-        [SerializeField, Range(0f, 180f), Tooltip("Degrees the strip has hinged back when it comes away.")]
-        private float _peelAngle = 130f;
+        [SerializeField, Range(-30f, 30f), Tooltip("Degrees the zoomed pack tips about its horizontal axis (positive: its top leans away), so the back catches the light.")]
+        private float _zoomTiltDegrees = 6f;
 
-        [SerializeField, Min(0f), Tooltip("Metres the strip lifts as the crimp splits.")]
-        private float _stripLift = 0.03f;
+        [SerializeField, Range(0f, 1f), Tooltip("Opacity of the dark layer over the world while the pack is zoomed.")]
+        private float _dimAlpha = 0.6f;
 
-        [SerializeField, Tooltip("Metres the strip drifts sideways as it comes away (negative: to the left).")]
-        private float _stripDrift = 0.02f;
+        [SerializeField, Min(0.01f), Tooltip("Seconds for the world to dim in or out.")]
+        private float _dimSeconds = 0.25f;
 
-        [Header("Cards")]
-        [SerializeField, Min(0f), Tooltip("Metres the card stack rises out of the top.")]
-        private float _cardsRiseDistance = 0.06f;
+        [Header("Rip (after the commit)")]
+        [SerializeField, Min(0.01f), Tooltip("Seconds for the back seam to tear from top to bottom.")]
+        private float _seamTearSeconds = 0.3f;
 
-        [SerializeField, Min(0.01f), Tooltip("Seconds for the cards to rise out of the top.")]
-        private float _cardsRiseSeconds = 0.45f;
+        [SerializeField, Min(0.01f), Tooltip("Seconds for the back flaps to swing open.")]
+        private float _openSeconds = 0.35f;
 
-        [SerializeField, Min(0f), Tooltip("Seconds the risen cards stay in view before the reveal takes over.")]
-        private float _handOffSeconds = 0.15f;
+        [SerializeField, Range(0f, 180f), Tooltip("Degrees each back flap opens to, about its side edge.")]
+        private float _openAngle = 150f;
 
-        [Header("Pose")]
-        [SerializeField, Min(0.01f), Tooltip("Seconds for the pack to move from the hand into the tearing pose.")]
-        private float _poseSeconds = 0.2f;
+        [SerializeField, Min(0f), Tooltip("How far the card stack slides out of the opened wrapper, in metres.")]
+        private float _cardsSlideDistance = 0.08f;
 
-        [SerializeField, Tooltip("Where the pack is held while tearing, in metres from the camera (x right, y up, z forward).")]
-        private Vector3 _tearPosePosition = new Vector3(0f, -0.035f, 0.3f);
+        [SerializeField, Min(0.01f), Tooltip("Seconds for the cards to slide out.")]
+        private float _cardsSlideSeconds = 0.3f;
 
-        [SerializeField, Tooltip("The pack's rotation while tearing, relative to the camera, in degrees (0 = front facing the player; positive X tips the face up toward the ceiling light).")]
-        private Vector3 _tearPoseRotation = new Vector3(12f, 0f, 0f);
+        [SerializeField, Min(0f), Tooltip("Seconds the slid-out cards stay before the reveal takes over.")]
+        private float _handOffSeconds = 0.1f;
 
-        public float DragPixels => _dragPixels;
+        public float ZoomSeconds => _zoomSeconds;
 
-        public float FlapShare => _flapShare;
+        public float ZoomDistance => _zoomDistance;
 
-        public float FlapAngle => _flapAngle;
+        public float ZoomScreenHeightShare => _zoomScreenHeightShare;
 
-        public float PeelAngle => _peelAngle;
+        public float ZoomTiltDegrees => _zoomTiltDegrees;
 
-        public float StripLift => _stripLift;
+        public float DimAlpha => _dimAlpha;
 
-        public float StripDrift => _stripDrift;
+        public float DimSeconds => _dimSeconds;
 
-        public float CardsRiseDistance => _cardsRiseDistance;
+        public float SeamTearSeconds => _seamTearSeconds;
 
-        public float CardsRiseSeconds => _cardsRiseSeconds;
+        public float OpenSeconds => _openSeconds;
+
+        public float OpenAngle => _openAngle;
+
+        public float CardsSlideDistance => _cardsSlideDistance;
+
+        public float CardsSlideSeconds => _cardsSlideSeconds;
 
         public float HandOffSeconds => _handOffSeconds;
 
-        public float PoseSeconds => _poseSeconds;
+        /// <summary>The anchor's rotation relative to the camera: turned to show the back, tipped by the tilt.</summary>
+        public Quaternion AnchorRotation => Quaternion.Euler(_zoomTiltDegrees, 180f, 0f);
 
-        public Vector3 TearPosePosition => _tearPosePosition;
-
-        public Quaternion TearPoseRotation => Quaternion.Euler(_tearPoseRotation);
+        /// <summary>
+        /// Scale that makes a pack of <paramref name="packHeight"/> metres fill the configured share of the
+        /// screen height at the anchor distance, for a camera of <paramref name="fieldOfView"/> degrees.
+        /// </summary>
+        public float AnchorScale(float packHeight, float fieldOfView)
+        {
+            float visibleHeight = 2f * _zoomDistance * Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad);
+            return packHeight <= 0f ? 1f : _zoomScreenHeightShare * visibleHeight / packHeight;
+        }
     }
 }

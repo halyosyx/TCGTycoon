@@ -285,23 +285,13 @@
                     "priority": 0
                 },
                 {
-                    "name": "TearGrip",
+                    "name": "RipPack",
                     "type": "Button",
                     "id": "fc3ecdc7-f682-4118-a1d4-3642c900320f",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false,
-                    "priority": 0
-                },
-                {
-                    "name": "TearPull",
-                    "type": "Value",
-                    "id": "a3cb25e8-0104-4a4a-a620-29502cd94992",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true,
                     "priority": 0
                 }
             ],
@@ -445,18 +435,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "TearGrip",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "32dcc699-0b9c-4c7b-b631-e156ec0c2ea4",
-                    "path": "<Mouse>/delta",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "TearPull",
+                    "action": "RipPack",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

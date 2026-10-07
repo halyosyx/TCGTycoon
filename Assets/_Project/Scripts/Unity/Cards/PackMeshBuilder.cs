@@ -4,8 +4,9 @@ using UnityEngine;
 namespace Game.Unity.Cards
 {
     /// <summary>
-    /// Builds a booster pack's two meshes from a <see cref="PackShape"/>: the body (pillow plus the bottom
-    /// crimp) and the top strip (the top crimp), split along the tear line. The zigzag is real geometry,
+    /// Builds a booster pack's meshes from a <see cref="PackShape"/> for the back-seam opening: the body
+    /// (the front half of the pillow plus both zigzag crimp bands) and two back flaps that meet at the
+    /// fin seam down the middle of the back, each hinged at its side edge. The zigzag is real geometry,
     /// so it reads in the silhouette at hand distance. Every face has its own vertices, so normals are
     /// flat, matching the flat-colour art style. Used by the card data generator, which saves the meshes
     /// as assets.
@@ -17,23 +18,37 @@ namespace Game.Unity.Cards
             var builder = new MeshData();
             float halfWidth = shape.Width * 0.5f;
             float halfHeight = shape.Height * 0.5f;
+            float crimpLine = shape.CrimpLineY;
+            float halfCrimp = shape.CrimpThickness * 0.5f;
 
-            // Pillow: a box between the two crimps. Its straight top is the tear line.
-            builder.AddBand(-halfWidth, halfWidth, -halfHeight + shape.CrimpHeight, shape.TearLineY, teeth: 1, toothDepth: 0f, areTeethOnTop: true, shape.Thickness);
+            // Front half-shell of the pillow, between the crimps. The back half is the two flaps.
+            builder.AddBand(-halfWidth, halfWidth, -crimpLine, crimpLine, teeth: 1, toothDepth: 0f, areTeethOnTop: true, -shape.Thickness * 0.5f, 0f);
 
-            // Bottom crimp: straight on top where it meets the pillow, zigzag cut edge below.
-            builder.AddBand(-halfWidth, halfWidth, -halfHeight, -halfHeight + shape.CrimpHeight, shape.TeethCount, shape.ToothDepth, areTeethOnTop: false, shape.CrimpThickness);
+            // Crimps: straight where they meet the pillow, zigzag cut edge outward. Sealed, so the tear
+            // never runs through them.
+            builder.AddBand(-halfWidth, halfWidth, crimpLine, halfHeight, shape.TeethCount, shape.ToothDepth, areTeethOnTop: true, -halfCrimp, halfCrimp);
+            builder.AddBand(-halfWidth, halfWidth, -halfHeight, -crimpLine, shape.TeethCount, shape.ToothDepth, areTeethOnTop: false, -halfCrimp, halfCrimp);
             return builder.ToMesh("BoosterPackBody");
         }
 
-        public static Mesh BuildTopStrip(PackShape shape)
+        /// <summary>
+        /// One half of the back, between the crimps, with half of the fin seam standing proud along its
+        /// inner edge. The left flap spans −width/2 to 0, the right one 0 to width/2.
+        /// </summary>
+        public static Mesh BuildBackFlap(PackShape shape, bool isLeft)
         {
             var builder = new MeshData();
             float halfWidth = shape.Width * 0.5f;
+            float crimpLine = shape.CrimpLineY;
+            float back = shape.Thickness * 0.5f;
+            float left = isLeft ? -halfWidth : 0f;
+            float right = isLeft ? 0f : halfWidth;
+            builder.AddBand(left, right, -crimpLine, crimpLine, teeth: 1, toothDepth: 0f, areTeethOnTop: true, 0f, back);
 
-            // Top crimp: straight along the tear line, zigzag cut edge on top.
-            builder.AddBand(-halfWidth, halfWidth, shape.TearLineY, shape.Height * 0.5f, shape.TeethCount, shape.ToothDepth, areTeethOnTop: true, shape.CrimpThickness);
-            return builder.ToMesh("BoosterPackTopStrip");
+            float lipLeft = isLeft ? -shape.SeamLipWidth : 0f;
+            float lipRight = isLeft ? 0f : shape.SeamLipWidth;
+            builder.AddBand(lipLeft, lipRight, -crimpLine, crimpLine, teeth: 1, toothDepth: 0f, areTeethOnTop: true, back, back + shape.SeamLipHeight);
+            return builder.ToMesh(isLeft ? "BoosterPackFlapLeft" : "BoosterPackFlapRight");
         }
 
         private sealed class MeshData
@@ -42,11 +57,12 @@ namespace Game.Unity.Cards
             private readonly List<int> _triangles = new List<int>();
 
             /// <summary>
-            /// A slab from <paramref name="bottom"/> to <paramref name="top"/>, centred on z = 0, with one
-            /// edge cut into <paramref name="teeth"/> zigzag teeth: tips at the outer edge, valleys
-            /// <paramref name="toothDepth"/> inside it.
+            /// A slab from <paramref name="bottom"/> to <paramref name="top"/> and from
+            /// <paramref name="front"/> to <paramref name="back"/> (Z), with one edge cut into
+            /// <paramref name="teeth"/> zigzag teeth: tips at the outer edge, valleys
+            /// <paramref name="toothDepth"/> inside it. One tooth of depth 0 is a plain box.
             /// </summary>
-            public void AddBand(float left, float right, float bottom, float top, int teeth, float toothDepth, bool areTeethOnTop, float thickness)
+            public void AddBand(float left, float right, float bottom, float top, int teeth, float toothDepth, bool areTeethOnTop, float front, float back)
             {
                 int pointCount = teeth * 2 + 1;
                 var upper = new Vector2[pointCount];
@@ -61,8 +77,6 @@ namespace Game.Unity.Cards
                     lower[i] = new Vector2(x, lowerY);
                 }
 
-                float front = -thickness * 0.5f;
-                float back = thickness * 0.5f;
                 for (int i = 0; i < pointCount - 1; i++)
                 {
                     // Front faces −Z (clockwise seen from the front), back faces +Z.

@@ -8,11 +8,12 @@ namespace Game.Unity.Hands
 {
     /// <summary>
     /// One owned sealed booster pack as an object: in the hand (Core: <see cref="ItemLocation.Held"/>)
-    /// or set down loose in the room (<see cref="ItemLocation.Placed"/>). Held, Use (LMB) starts tearing
-    /// it open and Put down sets it on the surface in front of the player, falling back to the floor;
-    /// set down, it can be taken again. Taking and putting down never open it. While torn it is only a
-    /// wrapper the pack opening screen poses (<see cref="ITearablePack"/>): its cards are already owned.
-    /// Built and pooled by <see cref="HoldableFactory"/>.
+    /// or set down loose in the room (<see cref="ItemLocation.Placed"/>). Held, Use (LMB, "Open pack")
+    /// hands it to the pack opening screen and Put down sets it on the surface in front of the player,
+    /// falling back to the floor; set down, it can be taken again. Taking, putting down and the zoom never
+    /// open it: it stays in the hand (Core: Held) until the screen commits the rip. While being opened it
+    /// only shows the poses the screen gives it (<see cref="ITearablePack"/>). Built and pooled by
+    /// <see cref="HoldableFactory"/>.
     /// </summary>
     public sealed class SealedBoosterPack : MonoBehaviour, IInteractable, IHoldable, ITearablePack
     {
@@ -23,10 +24,13 @@ namespace Game.Unity.Hands
         private BoxCollider _collider;
         private RendererTint _tint;
         private BoosterPackView _view;
-        private Vector3 _tearStartPosition;
-        private Quaternion _tearStartRotation;
-        private Vector3 _tearPosition;
-        private Quaternion _tearRotation;
+        private Transform _socket;
+        private int _heldLayer;
+        private Vector3 _zoomFromPosition;
+        private Quaternion _zoomFromRotation;
+        private Vector3 _anchorPosition;
+        private Quaternion _anchorRotation;
+        private float _anchorScale;
         private string _productId;
         private string _noun;
         private Color _colour;
@@ -64,6 +68,7 @@ namespace Game.Unity.Hands
             _colour = colour;
             _isHeld = false;
             _tint.Set(_colour);
+            transform.localScale = Vector3.one;
             if (_view != null)
             {
                 _view.ResetSealed();
@@ -94,6 +99,8 @@ namespace Game.Unity.Hands
 
         public void OnHeld(Transform socket, int heldLayer)
         {
+            _socket = socket;
+            _heldLayer = heldLayer;
             _isHeld = true;
             _tint.Set(_colour);
             _collider.enabled = false;
@@ -104,43 +111,57 @@ namespace Game.Unity.Hands
         }
 
         /// <summary>
-        /// Starts tearing it open: Core takes the held pack and adds its cards at once, then the screen
-        /// animates this wrapper and returns it to the pool when the tear ends. It leaves the hand.
+        /// Hands it to the pack opening screen (the zoom). Always false: the pack stays in the hand, and
+        /// in Core, until the screen commits the rip and empties the hand itself.
         /// </summary>
         public bool TryUse()
         {
-            if (!_isHeld || !_factory.OpenHeldPack(this))
+            if (_isHeld)
             {
-                return false;
+                _factory.OpenHeldPack(this);
             }
 
-            _isHeld = false;
-            return true;
+            return false;
         }
 
-        // --- Being torn open (the pack opening screen drives this) ---
+        // --- Being opened (the pack opening screen drives all of this) ---
 
-        public void BeginTear(Transform camera, Vector3 tearPosition, Quaternion tearRotation)
+        public void BeginZoom(Transform camera, Vector3 anchorPosition, Quaternion anchorRotation, float anchorScale)
         {
             transform.SetParent(camera, true);
-            _tearStartPosition = transform.localPosition;
-            _tearStartRotation = transform.localRotation;
-            _tearPosition = tearPosition;
-            _tearRotation = tearRotation;
+            _zoomFromPosition = transform.localPosition;
+            _zoomFromRotation = transform.localRotation;
+            _anchorPosition = anchorPosition;
+            _anchorRotation = anchorRotation;
+            _anchorScale = anchorScale;
         }
 
-        public void ApplyTear(PackTearPose pose)
+        public void ApplyPose(PackTearPose pose)
         {
-            transform.localPosition = Vector3.Lerp(_tearStartPosition, _tearPosition, pose.PoseBlend);
-            transform.localRotation = Quaternion.Slerp(_tearStartRotation, _tearRotation, pose.PoseBlend);
+            transform.localPosition = Vector3.Lerp(_zoomFromPosition, _anchorPosition, pose.ZoomBlend);
+            transform.localRotation = Quaternion.Slerp(_zoomFromRotation, _anchorRotation, pose.ZoomBlend);
+            transform.localScale = Vector3.one * Mathf.Lerp(1f, _anchorScale, pose.ZoomBlend);
             if (_view != null)
             {
-                _view.ShowTear(pose.StripAngle, pose.StripOffset, pose.IsStripVisible, pose.AreCardsVisible, pose.CardsRise);
+                _view.ShowOpen(pose.SeamTear, pose.FlapAngle, pose.CardsSlide, pose.AreCardsVisible);
             }
+        }
+
+        public void ReturnToHand()
+        {
+            transform.localScale = Vector3.one;
+            if (_view != null)
+            {
+                _view.ResetSealed();
+            }
+
+            OnHeld(_socket, _heldLayer);
         }
 
         public void Discard()
         {
+            _isHeld = false;
+            transform.localScale = Vector3.one;
             if (_view != null)
             {
                 _view.ResetSealed();

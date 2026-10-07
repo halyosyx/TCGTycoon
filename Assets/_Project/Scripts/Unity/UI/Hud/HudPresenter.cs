@@ -151,8 +151,8 @@ namespace Game.Unity.UI.Hud
         }
 
         /// <summary>
-        /// Replaces the key hints while a moment needs its own (tearing a pack: "LMB Drag down to tear ·
-        /// Space Skip · Esc Store"), until <see cref="ClearContextHints"/>.
+        /// Replaces the key hints while a moment needs its own (opening a pack: "LMB Rip · Space Skip to
+        /// row · Esc Put back"), until <see cref="ClearContextHints"/>.
         /// </summary>
         public void SetContextHints(string hints)
         {
@@ -164,6 +164,26 @@ namespace Game.Unity.UI.Hud
         {
             _contextHints = null;
             RefreshHints();
+        }
+
+        /// <summary>
+        /// Shows the centre prompt for a moment that isn't aiming at something (the zoomed pack: "LMB Rip
+        /// the back seam"), until <see cref="ClearContextPrompt"/>. Call it after gameplay input is off.
+        /// </summary>
+        public void SetContextPrompt(string key, string verb, string objectName)
+        {
+            if (_prompt != null)
+            {
+                _prompt.Show(key, verb, objectName);
+            }
+        }
+
+        public void ClearContextPrompt()
+        {
+            if (_prompt != null)
+            {
+                _prompt.Hide();
+            }
         }
 
         public void ShowDay(int day, DayKind kind)
